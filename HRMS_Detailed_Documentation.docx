@@ -1,0 +1,200 @@
+# HRMS System - Detailed Feature Documentation with Access Paths
+
+## 1. Task Management and Calendar System
+
+### 1.1 Calendar Integration
+**Access Path:** Click on the Calendar icon in the sidebar or navigate to "/calendar"
+The system implements a comprehensive calendar system using FullCalendar with the following features:
+
+#### Technical Implementation:
+- Uses @fullcalendar/react with multiple plugins:
+  - dayGridPlugin: For month view
+  - timeGridPlugin: For week/day view
+  - interactionPlugin: For drag-and-drop functionality
+
+#### Key Features:
+1. **Task Visualization**
+   - Calendar view with day, week, and month layouts
+   - Color-coded events based on priority
+   - Drag-and-drop event scheduling
+   - Real-time updates
+
+2. **Task Management**
+   - Priority levels (High, Medium, Low)
+   - Status tracking (Pending, In Progress, Completed)
+   - Department assignment
+   - Progress tracking
+   - Estimated hours
+   - Assignee management
+
+3. **Advanced Features**
+   - Search functionality
+   - Status filtering
+   - Pagination support
+   - Multiple view modes (Calendar/Gantt)
+   - Lazy loading for performance
+
+## 2. Human Capital Information Management (HCIMS)
+
+### 2.1 Employee Management
+**Access Path:** HCIMS → Add/Edit Employee (/edit_employee)
+The system provides comprehensive employee management capabilities:
+
+#### Core Features:
+1. **Employee Profiles**
+   - Personal information
+   - Employment history
+   - Document management
+   - Skills and qualifications
+   - Contact information
+
+2. **Employee Operations**
+   - New employee onboarding
+   - Employee termination processing
+   - Department transfers
+   - Role changes
+
+3. **Document Management**
+   - Secure document storage
+   - Version control
+   - Access permissions
+   - Document categories
+
+### 2.2 Communication System
+**Access Path:** HCIMS → WhatsApp (/whatsapp)
+Integrated communication tools including:
+
+1. **WhatsApp Integration**
+   - Direct messaging
+   - Bulk notifications
+   - Message templates
+   - Delivery tracking
+
+2. **Internal Messaging**
+   - Department communications
+   - Team discussions
+   - Announcement system
+   - Read receipts
+
+## 3. Routine Management System
+
+### 3.1 Attendance Management
+**Access Path:** Routines → Attendance (/staff_attendence)
+Comprehensive attendance tracking system:
+
+1. **Time Tracking**
+   - Clock in/out
+   - Break time management
+   - Overtime calculation
+   - Attendance reports
+
+2. **Leave Management**
+   - Leave request submission
+   - Approval workflow
+   - Leave balance tracking
+   - Multiple leave types
+   - Calendar integration
+
+### 3.2 Expense Management
+**Access Paths:**
+- View Claims: Routines → Expense Claims (/owner_expense_claim_list)
+- Create Claims: Routines → Create Expense Claim (/create_expense_claim)
+Complete expense tracking and management:
+
+1. **Expense Claims**
+   - Submission workflow
+   - Receipt management
+   - Approval process
+   - Reimbursement tracking
+
+2. **Reporting**
+   - Expense categories
+   - Department-wise reports
+   - Cost center allocation
+   - Budget tracking
+
+## 4. Evaluation System
+
+### 4.1 Performance Management
+**Access Paths:**
+- Contest: Evaluation → Contest (/create_contest)
+- Performance Matrix: Evaluation → Performance Matric (/performance_matric)
+- Setup: Evaluation → Setup Evaluation (/step_evaluation)
+Comprehensive evaluation system including:
+
+1. **Evaluation Types**
+   - 360-degree feedback
+   - Manager evaluation
+   - Self-evaluation
+   - Peer review
+   - Engagement surveys
+
+2. **Performance Metrics**
+   - KPI tracking
+   - Goal setting
+   - Achievement monitoring
+   - Performance scoring
+
+### 4.2 Company Policies
+**Access Path:** Evaluation → Company Policies (/company_policies)
+Policy management system featuring:
+
+1. **Policy Administration**
+   - Policy creation
+   - Version control
+   - Distribution tracking
+   - Acknowledgment system
+
+2. **Compliance**
+   - Policy acceptance tracking
+   - Violation reporting
+   - Audit trails
+   - Compliance reports
+
+## 5. System Configuration
+
+### 5.1 Organization Structure
+**Access Paths:**
+- Departments: Settings → Create Department (/add_department)
+- Designations: Settings → Create Designation (/add_designation)
+- Salary Structure: Settings → Create Salary Structure (/create_salary_structure)
+Flexible organization management:
+
+1. **Department Management**
+   - Department creation
+   - Hierarchy setup
+   - Resource allocation
+   - Budget management
+
+2. **Role Management**
+   - Designation setup
+   - Permission management
+   - Reporting structure
+   - Access control
+
+### 5.2 Compensation Management
+**Access Path:** Settings → Compensation (/compensation)
+Comprehensive salary and benefits management:
+
+1. **Salary Structure**
+   - Grade definition
+   - Component setup
+   - Tax configuration
+   - Allowance management
+
+2. **Benefits Administration**
+   - Benefits enrollment
+   - Coverage tracking
+   - Claims processing
+   - Cost management
+
+## 6. Technical Implementation Details
+
+### 6.1 Frontend Architecture
+- React with TypeScript
+- Redux for state management
+- Tailwind CSS for styling
+- Responsive design implementation
+
+
+
