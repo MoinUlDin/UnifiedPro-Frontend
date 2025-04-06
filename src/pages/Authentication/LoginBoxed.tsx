@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPageTitle } from '../../store/themeConfigSlice';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import config from '../../config';
 
 interface ThemeConfig {
@@ -47,43 +48,91 @@ const LoginBoxed: React.FC = () => {
     const submitForm = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        await handleLogin();
+    };
+    
+    const handleLogin = async () => {
         setError('');
-
-        const formData = {
-            email,
-            password,
-        };
-
+        
+        const API_BASE_URL = 'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me';
+        
         try {
-            const response = await fetch(`${config.API_BASE_URL}auth/login/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
+            const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
+                email,
+                password
             });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                const { token } = data;
-                localStorage.setItem('token', token);
+    
+            if (response.status === 200) {
+                console.log(response.data)
+                const { access, refresh } = response.data;
+                localStorage.setItem("token", access);
+                localStorage.setItem("refreshToken", refresh);
+               
                 navigate('/');
             } else {
-                if (response.status === 400) {
+                setError('Login failed. Please try again later.');
+            }
+        } catch (err: any) {
+            console.error("❌ Login Error:", err);
+    
+            if (err.response) {
+                const { status } = err.response;
+                
+                if (status === 400) {
                     setError('Invalid credentials. Please check your email and password.');
-                } else if (response.status === 404) {
+                } else if (status === 404) {
                     setError('Email not found. Please check your email address.');
                 } else {
                     setError('Login failed. Please try again later.');
                 }
+            } else {
+                setError('Network error. Please check your connection.');
             }
-        } catch (error) {
-            setError('Login failed. Please check your network connection.');
         } finally {
             setIsLoading(false);
         }
     };
+    
+// Function to refresh access token
+
+
+
+
+// const refreshAccessToken = async () => {
+//     try {
+//       const refreshToken = localStorage.getItem("refreshToken");
+  
+//       if (!refreshToken) throw new Error("No refresh token available");
+  
+//       const response = await axios.post(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/auth/token/refresh`, {
+//         refresh: refreshToken,
+//       });
+  
+//       const { access, refresh } = response.data;
+  
+//       localStorage.setItem("token", access);
+//       localStorage.setItem("refreshToken", refresh);
+  
+//       return access;
+//     } catch (error) {
+//       console.error("Failed to refresh token:", error);
+//       return null;
+//     }
+//   };
+
+
+//   useEffect(() => {
+//     const interval = setInterval(() => {
+//       refreshAccessToken();
+//     }, 1000 * 60 * 3); // Refresh every 3 minutes
+  
+//     return () => clearInterval(interval); // Cleanup
+//   }, []);
+  
+
+
+
+
 
     return (
         <div className="flex min-h-screen">
@@ -289,6 +338,7 @@ const LoginBoxed: React.FC = () => {
                     </form>
                 </motion.div>
             </div>
+           
         </div>
     );
 };

@@ -1,11 +1,12 @@
 import { DataTable } from 'mantine-datatable';
 import { useState } from 'react';
 import Salary_Structure_Popup from './Salary_Structure_Popup';
+import axios from 'axios';
 
 
 const Salary_Structure = () => {
     const [salaryStructureModel, setSalaryStructureModel] = useState(false);
-
+ 
     const salaryStructurePopup = () => {
         setSalaryStructureModel(true);
     }

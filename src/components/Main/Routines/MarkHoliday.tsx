@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { addHoliday } from "../../../store/holidaySlice";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import axios from "axios";
 
 interface Holiday {
     date: Date;
@@ -69,6 +70,17 @@ const MarkHoliday = () => {
                 remarks
             }));
 
+            const response = await axios.post("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/holidays/", {
+                "holiday_dates": [
+                  "2025-03-29"
+                ]
+              },
+                {
+                    headers:{Authorization:`Bearer ${localStorage.getItem('token')}`
+                    ,"Content-Type": "application/json"
+                }
+                }
+            );
             dispatch(addHoliday(holidays));
             
             setSuccess("Holidays marked successfully!");
@@ -85,8 +97,8 @@ const MarkHoliday = () => {
     return (
         <div className="panel p-6 mx-auto max-w-7xl">
             {/* Header Section */}
-            <div className="flex flex-col items-center justify-center mb-8 relative">
-                <div className="absolute left-0 top-0">
+            <div className="flex flex-col items-center justify-center  mb-8 relative">
+                <div className="  absolute left-0 top-0">
                     <button 
                         onClick={() => navigate("/staff_attendence")}
                         className="btn btn-outline-primary p-2 rounded-full"
@@ -104,7 +116,7 @@ const MarkHoliday = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column - Calendar */}
                 <div className="space-y-3">
-                    <div className="bg-white dark:bg-[#1c232f] rounded-lg shadow-md p-6">
+                    <div className="bg-white dark:bg-[#1c232f] flex items-center justify-center flex-col md:block rounded-lg shadow-md p-6">
                         <h3 className="text-lg font-semibold mb-4 flex items-center">
                             <span className="mr-2">📅</span>
                             Select Dates
@@ -115,7 +127,7 @@ const MarkHoliday = () => {
                             highlightDates={selectedDates}
                             inline
                             minDate={new Date()}
-                            calendarClassName="border-0 w-full"
+                            calendarClassName="border-0 "
                             className="w-full"
                         />
                     </div>
@@ -178,9 +190,9 @@ const MarkHoliday = () => {
                     )}
 
                     {/* Holiday Type */}
-                    <div className="bg-white dark:bg-[#1c232f] rounded-lg shadow-md p-6">
+                    <div className="bg-white dark:bg-[#1c232f]  rounded-lg shadow-md p-6">
                         <h3 className="text-lg font-semibold mb-4">Holiday Type</h3>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
                             {holidayTypes.map(type => (
                                 <label 
                                     key={type.id}

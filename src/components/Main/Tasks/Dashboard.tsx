@@ -13,7 +13,7 @@ import IconUsers from '../../../components/Icon/IconUsers';
 import IconSearch from '../../../components/Icon/IconSearch';
 import IconPencilPaper from '../../../components/Icon/IconPencilPaper';
 import IconInfoTriangle from '../../../components/Icon/IconInfoTriangle';
-import IconFlag from '../../../components/Icon/IconFlag';
+// import IconFlag from '../../../components/Icon/IconFlag';
 import IconHorizontalDots from '../../../components/Icon/IconHorizontalDots';
 import IconPlus from '../../../components/Icon/IconPlus';
 import themeConfig from '../../../theme.config';
@@ -799,7 +799,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+        <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
             <div className="p-6 space-y-6">
                 {/* Header with Period Selection */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -817,7 +817,7 @@ const Dashboard = () => {
                                     onClick={() => setSelectedPeriod(period)}
                                     className={`px-4 py-2 text-sm font-medium ${
                                         selectedPeriod === period
-                                            ? 'bg-primary-500 text-white'
+                                            ? 'bg-primary-500 text-gray-600'
                                             : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                                     } transition-colors duration-200`}
                                 >

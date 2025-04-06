@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import Performance_Moni_List_Popup from './Performance_Moni_List_Popup';
+import axios from 'axios';
 
 interface RowData {
     Company: string;
@@ -19,7 +20,7 @@ const Performance_Moni_List = () => {
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
-
+    const [Perf, setPerf] = useState([]);
     const rowData: RowData[] = [
         { id: 1, Company: 'Company A', Branch: 'Branch A', 'Start Date': '2024-01-01', 'End Date': '2024-01-31', Achieved: 'Yes', Actions: '' },
         { id: 2, Company: 'Company B', Branch: 'Branch B', 'Start Date': '2024-02-01', 'End Date': '2024-02-28', Achieved: 'No', Actions: '' },
@@ -32,12 +33,6 @@ const Performance_Moni_List = () => {
     useEffect(() => {
         setPage(1); // Reset page when page size changes
     }, [pageSize]);
-
-    useEffect(() => {
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize;
-        setRecordsData(rowData.slice(from, to));
-    }, [page, pageSize, rowData]);
 
     const handleEditClick = (item: RowData) => {
         console.log('Edit clicked for:', item);
@@ -58,6 +53,50 @@ const Performance_Moni_List = () => {
         { accessor: 'End Date', title: 'End Date' },
         { accessor: 'Achieved', title: 'Achieved' },
     ];
+
+    const FetchPerfMoni = async () => {
+        try {
+            let response = await axios.get(
+                'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-performace/performance-monitoring/',
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                }
+            );
+
+            console.log('API Response:', response.data); // Log the response
+
+            // Map the API data to match the expected structure
+            const mappedData = response.data.map((item: any) => ({
+                id: item.id,
+                Company: item.PerformanceMonitoring_session || 'N/A', // Replace with actual field if available
+                Branch: item.branch || 'N/A',
+                'Start Date': item.start_date || 'N/A',
+                'End Date': item.due_date || 'N/A',
+                Achieved: item.Achieved || 'N/A', // Replace with actual field if available
+            }));
+
+            setPerf(mappedData); // Store the mapped data in the Perf state
+
+            // Update recordsData based on the current page and page size
+            const from = (page - 1) * pageSize;
+            const to = from + pageSize;
+            setRecordsData(mappedData.slice(from, to));
+        } catch (error) {
+            console.log('Failed to fetch:', error);
+        }
+    };
+
+    useEffect(() => {
+        FetchPerfMoni();
+    }, []);
+
+    useEffect(() => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize;
+        setRecordsData(Perf.slice(from, to)); // Use Perf instead of rowData
+    }, [page, pageSize, Perf]);
 
     const adjustedColumns = [
         ...columns,

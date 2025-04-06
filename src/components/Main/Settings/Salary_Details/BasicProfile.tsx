@@ -1,6 +1,6 @@
 import { DataTable } from 'mantine-datatable';
 import { useState,useEffect } from 'react';
-import Paygrade_Popup from './Paygrade_Popup';
+import Paygrade_Popup from './BasicProfilePopUp';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
@@ -11,9 +11,9 @@ const Paygrade = () => {
     const PaygradePopup = () => {
         setPaygradeModel(true);
     }
- const FetchPaygrade=async()=>{
+ const FetchBasice=async()=>{
         try{
-            let reposnse=await axios.get("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/pay-grade/",
+            let reposnse=await axios.get("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/basic-profile/",
                 { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
             console.log(reposnse.data);
             setPayGrade(reposnse.data);
@@ -24,7 +24,7 @@ const Paygrade = () => {
         }
         useEffect(() => {
           
-        FetchPaygrade();
+        FetchBasice();
           
            
         }, [])
@@ -48,9 +48,9 @@ const Paygrade = () => {
          
             <div className="panel mt-6">
                 <div className="flex justify-between items-center text-center">
-                    <h5 className="font-semibold text-lg dark:text-white-light mb-4 pt-2">Pay Grades</h5>
+                    <h5 className="font-semibold text-lg dark:text-white-light mb-4 pt-2">Basic Profile</h5>
                     <button type="button" className="btn btn-primary mb-2" onClick={PaygradePopup}>
-                        Create Pay Grade
+                        Create Basic Profile
                     </button>
                 </div>
                 <div className="datatables">

@@ -4,6 +4,7 @@ import PrivateRoute from './Privateroute'; // Import the PrivateRoute component
 import BlankLayout from '../components/Layouts/BlankLayout';
 import App from '../App';
 
+
 // 'LoginBoxed' is declared but its value is never read.ts(6133)
 const LoginBoxed = lazy(() => import('../pages/Authentication/LoginBoxed'));
 const RegisterBoxed = lazy(() => import('../pages/Authentication/RegisterBoxed'));
@@ -25,7 +26,10 @@ const TasksDashboard = lazy(() => import('../components/Main/Tasks/Dashboard'));
 const ViewTasks = lazy(() => import('../components/Main/Tasks/View_Tasks'));
 const TasksReports = lazy(() => import('../components/Main/Tasks/Reports'));
 const ViewTasksForm = lazy(() => import('../components/Main/Tasks/View_Tasks_Form'));
-
+const Annoucements = lazy(() => import('../components/Main/Tasks/Announcement'));
+const PersonalTaskReports=lazy(()=>import('../components/Main/Tasks/PersonalTaskReports'))
+const TaskProgressReports=lazy(()=>import('../components/Main/Tasks/TaskProgressReports'))
+const SubordinateTaskReports=lazy(()=>import('../components/Main/Tasks/SubordinateTaskReports'))
 // Routines
 const RoutineDashboard = lazy(() => import('../components/Main/Routines/Dashboard'));
 const Attendance = lazy(() => import('../components/Main/Routines/Attendance'));
@@ -35,7 +39,8 @@ const ExpClaims = lazy(() => import('../components/Main/Routines/Exp_Claims'));
 const CreateExp = lazy(() => import('../components/Main/Routines/Create_Exp'));
 const RoutinesReports = lazy(() => import('../components/Main/Routines/Reports'));
 const Whistle = lazy(() => import('../components/Main/Routines/Whistle'));
-
+const MarkHoliday = lazy(() => import('../components/Main/Routines/MarkHoliday')); // Ensure the file exists at this path or update the path accordingly
+const ViewMarkedHolidays =lazy(() => import('../components/Main/Routines/ViewMarkedHolidays'))
 // Evaluation
 const CompanyPolicies = lazy(() => import('../components/Main/Evaluation/Company_Policies'));
 const Contest = lazy(() => import('../components/Main/Evaluation/Contest'));
@@ -177,10 +182,31 @@ const routes = [
         layout: 'default'
     },
     {
+        path: '/create-announcement',
+        element: <Annoucements/>,
+        layout: 'default'
+    },
+    {
+        path:'/PersonalTasks',
+        element:<PersonalTaskReports/>,
+        layout:'default'
+    },
+    {
+        path:'/TaskReports',
+        element:<TaskProgressReports/>,
+        layout:'default'
+    },
+    {
         path: '/tasks_reports',
         element: <TasksReports />,
         layout: 'default'
     },
+    {
+        path: '/SubordinateTaskReports',
+        element: <SubordinateTaskReports/>,
+        layout: 'default'
+    },
+    
     {
         path: '/tasks_form',
         element: <ViewTasksForm />,
@@ -192,6 +218,17 @@ const routes = [
         element: <RoutineDashboard />,
         layout: 'default'
     },
+    {
+        path: '/mark_holidays',
+        element: <MarkHoliday />,
+        layout: 'default'
+    },
+    {
+        path: '/view-marked-holidays',
+        element: <ViewMarkedHolidays />,
+        layout: 'default'
+    },
+
     {
         path: '/staff_attendence',
         element: <Attendance />,

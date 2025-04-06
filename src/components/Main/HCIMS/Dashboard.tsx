@@ -51,7 +51,7 @@ const documentTypes = [
   { value: 'presentation', label: 'Presentation' }
 ];
 const totalVisit: any = {
-  series: [{ data: [21, 9, 36, 12, 44, 25, 59, 41, 66, 25] }],
+  series: [{ data: [21, 9, 36, 12, 44, 25, 59, 41, 10, 25] }],
   options: {
       chart: {
           height: 58,
@@ -94,7 +94,7 @@ const totalVisit: any = {
       },
   },
 };    const paidVisit: any = {
-  series: [{ data: [22, 19, 30, 47, 32, 44, 34, 55, 41, 69] }],
+  series: [{ data: [22, 19, 30, 47, 100, 44, 34, 55, 41, 69] }],
   options: {
       chart: {
           height: 58,

@@ -4,12 +4,14 @@ import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../../store/themeConfigSlice';
 import CommonTable from '../../Common_Table';
 import CommonPopup from '../../Common_Popup';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 
 interface Branch {
     id: number;
-    branchName: string;
-    location: string;
-    contactNumber: string;
+    name: string;
+    city: string;
+    phone: string;
 }
 
 // Define the FormField type
@@ -29,12 +31,12 @@ const Branches = () => {
     }, [dispatch]);
 
     const [branches, setBranches] = useState<Branch[]>([
-        {
-            id: 1,
-            branchName: 'Main Branch',
-            location: 'Downtown',
-            contactNumber: '123-456-7890'
-        }
+        // {
+        //     id: 1,
+        //     name: 'Main Branch',
+        //     city: 'Downtown',
+        //     phone: '123-456-7890'
+        // }
     ]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,27 +45,27 @@ const Branches = () => {
 
     const initialFormFields: Branch = {
         id: 0,
-        branchName: '',
-        location: '',
-        contactNumber: ''
+        name: '',
+        city: '',
+        phone: ''
     };
 
     const [formData, setFormData] = useState<Branch>(initialFormFields);
 
     const columns = [
         { accessor: 'id', title: 'ID' },
-        { accessor: 'branchName', title: 'Branch Name' },
-        { accessor: 'location', title: 'Location' },
-        { accessor: 'contactNumber', title: 'Contact Number' }
+        { accessor: 'name', title: 'Branch Name' },
+        { accessor: 'city', title: 'city' },
+        { accessor: 'phone', title: 'Contact Number' }
     ];
 
     const formFields: FormField[] = [
-        { id: 'branchName', label: 'Branch Name', type: 'text', value: formData.branchName },
-        { id: 'location', label: 'Location', type: 'text', value: formData.location },
-        { id: 'contactNumber', label: 'Contact Number', type: 'text', value: formData.contactNumber }
+        { id: 'name', label: 'Branch Name', type: 'text', value: formData.name },
+        { id: 'city', label: 'city', type: 'text', value: formData.city },
+        { id: 'phone', label: 'Contact Number', type: 'text', value: formData.phone }
     ];
 
-    const handleAddOrEditBranch = (submittedData: Branch) => {
+    const handleAddOrEditBranch = async(submittedData: Branch) => {
         if (isEditMode && currentEditId !== null) {
             setBranches(prev =>
                 prev.map(branch =>
@@ -79,13 +81,50 @@ const Branches = () => {
                 ...submittedData,
                 id: branches.length + 1
             };
+            try{
+                const res=await axios.post("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/branch/",submittedData,
+                    {
+                        headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}
+                    }
+                )
+                console.log(res.data)
+                Swal.fire('Branch created successfully')
+            }catch{
+                Swal.fire('failed to create branch')
+            }
             setBranches(prev => [...prev, newBranch]);
         }
 
         setFormData(initialFormFields);
         closeModal();
     };
-
+    const deleteBranch = async (id: number) => {
+        try {
+            let res=await axios.delete(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/branch/${id}/`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            console.log('Before deletion:', res.data);
+            setBranches(prev => prev.filter(branch => branch.id !== id)); // Remove the branch from state
+            Swal.fire('Branch deleted successfully');
+        } catch (error) {
+            Swal.fire('Failed to delete branch');
+        }
+    };
+    const FetchBranches=async()=>{
+        try{
+            let res=await axios.get(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/branch/`,
+                {
+                    headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}
+                }
+            )
+            console.log(res.data)
+            setBranches(res.data)
+        }catch{};
+    }
+    useEffect(() => {
+      FetchBranches()
+    }, [])
+    
     const closeModal = () => {
         setIsModalOpen(false);
         setFormData(initialFormFields);
@@ -98,11 +137,13 @@ const Branches = () => {
     return (
         <div>
             <CommonTable
-                heading="Branche"
+                heading="Branch"
                 buttonLabel="Branch"
                 formFields={formFields}
                 columns={columns}
                 data={branches}
+                onButtonClick={openModal}
+                onDelete ={deleteBranch}
             />
 
             <Transition appear show={isModalOpen} as={Fragment}>

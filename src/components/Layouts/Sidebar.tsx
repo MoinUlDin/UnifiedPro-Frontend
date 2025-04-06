@@ -165,7 +165,7 @@ const Sidebar = () => {
                                             <NavLink to="/company_tasks_dashboard">{t('Dashboard')}</NavLink>
                                         </li>
                                         <li>
-                                            <NavLink to="/apps/todolist">{t('Add/View Tasks')}</NavLink>
+                                            <NavLink to="/view_tasks">{t('Add/View Tasks')}</NavLink>
                                         </li>
                                         <li>
                                             <NavLink to="/create-announcement">{t('Announcement')}</NavLink>

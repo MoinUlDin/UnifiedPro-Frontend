@@ -68,7 +68,7 @@ const ViewMarkedHolidays = () => {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate("/mark-holiday")}
+            onClick={() => navigate("/mark_holidays")}
             className="btn btn-primary gap-2"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

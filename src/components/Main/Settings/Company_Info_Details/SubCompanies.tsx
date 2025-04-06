@@ -113,6 +113,7 @@ const SubCompanies = () => {
                 formFields={formFields}
                 columns={columns}
                 data={subCompanies}
+                onButtonClick={openModal}
             />
 
             <Transition appear show={isModalOpen} as={Fragment}>

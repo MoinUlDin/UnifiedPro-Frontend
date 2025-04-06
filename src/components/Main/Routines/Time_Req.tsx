@@ -36,7 +36,7 @@ const Time_Req = () => {
     ]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(true);
     const [currentEditId, setCurrentEditId] = useState<number | null>(null);
 
     const initialFormFields = {
@@ -119,11 +119,11 @@ const Time_Req = () => {
 
     return (
         <div>
-            <CommonTable heading="Leave Request" buttonLabel="Request" formFields={formFields} columns={columns} data={leaveRequests} />
+            <CommonTable heading="Leave Request" buttonLabel="Request" onButtonClick={openModal} formFields={formFields} columns={columns} data={leaveRequests} />
 
             {/* Modal Popup for Form */}
             <Transition appear show={isModalOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={closeModal}>
+                <Dialog as="div"  className="relative z-10" onClose={closeModal}>
                     <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
                         <div className="fixed inset-0 bg-black bg-opacity-25" />
                     </Transition.Child>

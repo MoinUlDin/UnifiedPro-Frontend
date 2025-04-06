@@ -128,7 +128,7 @@ const Exp_Claims = () => {
                 <input type="date" className="px-4 py-2 bg-gray-200 rounded" placeholder="mm/dd/yyyy" />
             </div>
 
-            <CommonTable heading="Expense Claim" buttonLabel="Claim" formFields={formFields} columns={columns} data={expenseClaims} />
+            <CommonTable heading="Expense Claim" onButtonClick={openModal } buttonLabel="Claim" formFields={formFields} columns={columns} data={expenseClaims} />
 
             {/* Modal Popup for Form */}
             <Transition appear show={isModalOpen} as={Fragment}>

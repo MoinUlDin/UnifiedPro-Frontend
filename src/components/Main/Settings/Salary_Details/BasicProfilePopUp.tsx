@@ -5,50 +5,64 @@ import { Dialog, Transition } from '@headlessui/react';
 // import IconUserPlus from '../../components/Icon/IconUserPlus';
 import IconX from '../../../Icon/IconX';
 import IconCaretDown from '../../../Icon/IconCaretDown';
-import Salary_Component from './Salary_Component';
-import axios from "axios"
+import axios from 'axios';
 import Swal from 'sweetalert2';
-import { title } from 'process';
-// import Edit from '../../../pages/Apps/Invoice/Edit';
-// import Job_Type from './Job_Type';
+// import Edit from '../../../../pages/Apps/Invoice/Edit';
 
-const Salary_Component_Popup = ({ closeModal }: { closeModal: () => void }) => {
+const Paygrade_Popup = ({ closeModal }: { closeModal: () => void }) => {
     const [params, setParams] = useState({
-        name: '',
-        // email: '',
-        // password: '',
-        // confirm_password: '',
-        // department: '',
-        // assign_designation: '',
-        // report_to: '',
-        // hire_date: '',
-        // employee_id: '',
+        employee: 0,
+        department: 0,
+        job_type: 0,
+        pay_start_date: '',
     });
-   
+    const [JobType, setJobType] = useState([])
     const changeValue = (e: any) => {
         const { value, id } = e.target;
         setParams({ ...params, [id]: value });
     };
-    const Submit=async(e: any)=>{
+    const Submit=async(e:any)=>{
         e.preventDefault();
         try{
-            let response=await axios.post("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/salary-component/",params,
+            const response=await axios.post('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/basic-profile/',params,
+                {headers: {
+                    'Content-Type': 'application/json',
+                Authorization:`Bearer ${localStorage.getItem('token')}`}
+            })
+            console.log(response.data);
+            closeModal();
+            
+        }catch{
+             Swal.fire({
+                            title:'Error',
+                            text:'Failed to create Salary Compoonent',
+                            timer:10000
+                        })
+                        closeModal()
+            console.log('error');
+            
+        }
+    
+    }
+    const FetchJobType=async()=>{
+        try{
+            let res=await axios.get(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/Job-type/`,
                 {
-                    headers:{
-                        Authorization:`Bearer ${localStorage.getItem('token')}`
-                    }
+                    headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}
                 }
             )
-            
-            closeModal()
+            setJobType(res.data)
         }catch{
-            Swal.fire({
-                title:'Error',
-                text:'Failed to create Salary Component',
-                timer:10000
-            })
-            closeModal()
+          console.log("failed to fetch job types" )
         }
+       
+    }
+    useEffect(() => {
+    FetchJobType()
+
+    }, [])
+    const FetchDepartements=async()=>{
+        
     }
     return (
         <Transition appear show={true} as={Fragment}>
@@ -75,10 +89,28 @@ const Salary_Component_Popup = ({ closeModal }: { closeModal: () => void }) => {
                                 <div className="p-5">
                                     <form>
                                         <div className="mb-5">
-                                            <label htmlFor="name">Name</label>
-                                            <input id="name" type="text" placeholder="" className="form-input" value={params.name} onChange={(e) => changeValue(e)} />
+                                            <label htmlFor="name">Employee</label>
+                                            <input id="name" type="text" placeholder="" className="form-input" value={params.employee} onChange={(e) => changeValue(e)} />
                                         </div>
-
+                                        <div className="mb-5">
+                                            <label htmlFor="minimum_salary">Department:</label>
+                                            <input id="minimum_salary" type="text" placeholder="" className="form-input" value={params.department} onChange={(e) => changeValue(e)} />
+                                        </div>
+                                            <div className="mb-5">
+                                                <label htmlFor="maximum_salary">Job Type:</label>
+                                                <select id="job_type" className="form-input" value={params.job_type} onChange={changeValue}>
+                                                <option value="">Select Job Type</option>
+                                                {JobType.map((job: any) => (
+                                                    <option key={job.id} value={job.id}>
+                                                        {job.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            </div>
+                                            <div className="mb-5">
+                                                <label htmlFor="maximum_salary">Pay start date:</label>
+                                                <input id="maximum_salary" type="text" placeholder="" className="form-input" value={params.pay_start_date} onChange={(e) => changeValue(e)} />
+                                            </div>
                                         <div className="flex justify-end items-center mt-8">
                                             <button type="button" className="btn btn-outline-danger" onClick={closeModal}>
                                                 Cancel
@@ -98,4 +130,4 @@ const Salary_Component_Popup = ({ closeModal }: { closeModal: () => void }) => {
     );
 };
 
-export default Salary_Component_Popup;
+export default Paygrade_Popup;

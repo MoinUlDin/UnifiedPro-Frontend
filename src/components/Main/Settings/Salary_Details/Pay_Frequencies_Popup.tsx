@@ -7,7 +7,10 @@ import IconX from '../../../Icon/IconX';
 import IconCaretDown from '../../../Icon/IconCaretDown';
 import Salary_Component from './Salary_Component';
 import Pay_Frequencies from './Pay_Frequencies';
-// import Edit from '../../../pages/Apps/Invoice/Edit';
+import Swal from 'sweetalert2';
+import axios from 'axios';
+// import Edit from '../../../pages/Apps/Invoice
+// /Edit';
 // import Job_Type from './Job_Type';
 
 const Pay_Frequencies_Popup = ({ closeModal }: { closeModal: () => void }) => {
@@ -27,7 +30,27 @@ const Pay_Frequencies_Popup = ({ closeModal }: { closeModal: () => void }) => {
         const { value, id } = e.target;
         setParams({ ...params, [id]: value });
     };
-
+    const Submit=async(e: any)=>{
+            e.preventDefault();
+            try{
+                let response=await axios.post("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/pay-frequency/",params,
+                    {
+                        headers:{
+                            Authorization:`Bearer ${localStorage.getItem('token')}`
+                        }
+                    }
+                )
+                console.log(response.data)
+                closeModal()
+            }catch{
+                Swal.fire({
+                    title:'Error',
+                    text:'Failed to create Pay frequency',
+                    timer:10000
+                })
+                closeModal()
+            }
+        }
     return (
         <Transition appear show={true} as={Fragment}>
             <Dialog as="div" open={true} onClose={closeModal} className="   relative z-[51]">
@@ -61,7 +84,7 @@ const Pay_Frequencies_Popup = ({ closeModal }: { closeModal: () => void }) => {
                                             <button type="button" className="btn btn-outline-danger" onClick={closeModal}>
                                                 Cancel
                                             </button>
-                                            <button type="submit" className="btn btn-primary ltr:ml-4 rtl:mr-4">
+                                            <button type="submit" onClick={Submit} className="btn btn-primary ltr:ml-4 rtl:mr-4">
                                                 Create
                                             </button>
                                         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +18,7 @@ const RegisterBoxed: React.FC = () => {
     const [lastName, setLastName] = useState('');
     const [password, setPassword] = useState('');
     const [password2, setPassword2] = useState('');
+    const [profileImage, setProfileImage] = useState<File | null>(null);;
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -47,44 +48,74 @@ const RegisterBoxed: React.FC = () => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
-
+    
         if (password !== password2) {
             setError('Passwords do not match.');
             setIsLoading(false);
             return;
         }
-
-        const formData = {
-            email,
-            first_name: firstName,
-            last_name: lastName,
-            password,
-            password2
-        };
-
-        try {
-            const response = await axios.post(`${config.API_BASE_URL}/auth/owner-register/`, formData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (response.status === 201) {
-                setSuccess('Registration successful!');
-                navigate('/auth/boxed-signin');
+        const secretKey = 'jAAVaQxytWMDOhydK75SXjyKzDCLYa21E32fdkWve4joEfMGWPxwaFskSHtLDvLZ';
+        const API_BASE_URL = 'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me';
+        
+        const submitForm = async () => {
+            setIsLoading(true);
+        
+            const formData = new FormData();
+            formData.append("email", email);
+            formData.append("first_name", firstName);
+            formData.append("last_name", lastName);
+            formData.append("password", password);
+            formData.append("password2", password2);
+            formData.append("secret_key", secretKey);
+        
+            // ✅ Ensure profileImage is a valid File object before appending
+            if (profileImage && profileImage instanceof File) {
+                formData.append("profile_image", profileImage, profileImage.name);
             } else {
-                setError('Registration failed. Please try again.');
+                console.error("⚠️ profileImage is not a valid File object:", profileImage);
             }
-        } catch (err: any) {
-            if (err.response && err.response.status === 400 && err.response.data.email) {
-                setError('User already exists.');
-            } else {
-                setError('Registration failed. Please check your network connection.');
+        
+            // ✅ Properly log FormData contents
+            console.log("📤 Sending data to server:");
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value);
             }
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        
+            try {
+                const response = await axios.post(`${API_BASE_URL}/auth/owner-register/`, formData, {
+                    headers: { },
+                });
+        
+                console.log("✅ Server response:", response);
+        
+                if (response.status === 201) {
+                    setSuccess("Registration successful!");
+                    navigate("/auth/boxed-signin");
+                } else {
+                    setError("Registration failed. Please try again.");
+                }
+            } catch (err: any) {
+                console.error("❌ Error:", err);
+        
+                if (err.response) {
+                    const { status, data } = err.response;
+                    if (status === 400) {
+                        setError(data.email ? "User already exists." : "Invalid input. Please check your details.");
+                    } else if (status === 500) {
+                        setError("Server error. Try again later.");
+                    } else {
+                        setError("Registration failed. Please check your details.");
+                    }
+                } else {
+                    setError("Network error. Please check your connection.");
+                }
+            } finally {
+                setIsLoading(false);
+            }
+     
+        }}
+
+    
 
     return (
         <div className="flex min-h-screen">
@@ -254,7 +285,25 @@ const RegisterBoxed: React.FC = () => {
                                     required
                                 />
                             </div>
-
+                            <div className="space-y-2">
+                                <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Profile Picture</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            setProfileImage(e.target.files[0]);
+                                        } }}
+                                 
+                                    className={`w-full px-4 py-3 rounded-xl border ${
+                                        isDark 
+                                            ? 'bg-gray-900 border-gray-700 text-white focus:border-blue-500' 
+                                            : 'bg-white border-gray-300 focus:border-blue-500'
+                                    } focus:ring-1 focus:ring-blue-500 outline-none transition-colors duration-200`}
+                                    placeholder="Upload image"
+                                    required
+                                />
+                            </div>
                             <button
                                 type="submit"
                                 disabled={isLoading}

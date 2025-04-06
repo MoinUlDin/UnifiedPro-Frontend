@@ -5,7 +5,7 @@ import Pay_Frequencies from './Salary_Details/Pay_Frequencies';
 import Paygrade from './Salary_Details/Paygrade';
 import Salary_Component from './Salary_Details/Salary_Component';
 import Salary_Structure from './Salary_Details/Salary_Structure';
-
+import BasicProfile from './Salary_Details/BasicProfile';
 const Create_Salary = () => {
     return (
         <div>
@@ -14,6 +14,7 @@ const Create_Salary = () => {
             <Salary_Component />
             <Pay_Frequencies />
             <Deductions />
+            <BasicProfile />
             <Leave_Quota />
             <Salary_Structure />
         </div>

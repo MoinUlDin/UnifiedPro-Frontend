@@ -2,7 +2,6 @@ import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import config from '../../../config';
 
 interface Department {
     id: number;
@@ -14,20 +13,21 @@ interface Department {
 interface FormData {
     name: string;
     expected_arrival_time: string;
-    parent: string | null;
+    parent: string;
 }
 
 const CreateDepartmentForm: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
         name: '',
         expected_arrival_time: '',
-        parent: 'null',
+        parent: 'null', // Ensure it's a string initially
     });
     const [departments, setDepartments] = useState<Department[]>([]);
     const [error, setError] = useState<string>('');
-    const [success, setSuccess] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const navigate = useNavigate();
+
+    const API_BASE_URL = `https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/`;
 
     useEffect(() => {
         document.title = 'Create Department';
@@ -42,15 +42,12 @@ const CreateDepartmentForm: React.FC = () => {
         }
 
         try {
-            const response = await axios.get(
-                `${config.API_BASE_URL}company-Setup/departments/`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${authToken}`
-                    }
+            const response = await axios.get(`${API_BASE_URL}company-Setup/departments/`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
                 }
-            );
+            });
             setDepartments(response.data);
         } catch (err) {
             console.error('Failed to fetch departments:', err);
@@ -69,7 +66,7 @@ const CreateDepartmentForm: React.FC = () => {
 
         const authToken = localStorage.getItem('token');
         if (!authToken) {
-            setError('Authentication token is missing');
+            toast.error('Authentication token is missing');
             setIsLoading(false);
             return;
         }
@@ -81,34 +78,24 @@ const CreateDepartmentForm: React.FC = () => {
                 parent: formData.parent === 'null' ? null : Number(formData.parent),
             };
 
-            // Make POST request to create department
-            const response = await axios.post(
-                `${config.API_BASE_URL}company-Setup/departments/`,
-                submissionData,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${authToken}`
-                    }
+            const response = await axios.post(`${API_BASE_URL}company-Setup/departments/`, submissionData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
                 }
-            );
+            });
 
-            console.log('Department created successfully:', response.data);
-            setSuccess('Department created successfully!');
-            
-            // Reset form
+            toast.success('Department created successfully!');
+            console.log("Department created successfully:", response.data);
             setFormData({
                 name: '',
                 expected_arrival_time: '',
                 parent: 'null'
             });
-            
-            // Refresh departments list
+
             fetchDepartments();
-            toast.success('Department created successfully!');
         } catch (err) {
             let errorMessage = 'An unknown error occurred';
-
             if (axios.isAxiosError(err) && err.response) {
                 errorMessage = err.response.data.detail || err.response.statusText;
             }
@@ -124,9 +111,7 @@ const CreateDepartmentForm: React.FC = () => {
             <h2 className="text-xl font-semibold mb-4">Create Department</h2>
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium">
-                        Department Name
-                    </label>
+                    <label htmlFor="name" className="block text-sm font-medium">Department Name</label>
                     <input
                         type="text"
                         id="name"
@@ -138,9 +123,7 @@ const CreateDepartmentForm: React.FC = () => {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="expected_arrival_time" className="block text-sm font-medium">
-                        Expected Arrival Time
-                    </label>
+                    <label htmlFor="expected_arrival_time" className="block text-sm font-medium">Expected Arrival Time</label>
                     <input
                         type="time"
                         id="expected_arrival_time"
@@ -152,9 +135,7 @@ const CreateDepartmentForm: React.FC = () => {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="parent" className="block text-sm font-medium">
-                        Parent Department
-                    </label>
+                    <label htmlFor="parent" className="block text-sm font-medium">Parent Department</label>
                     <select
                         id="parent"
                         name="parent"
@@ -172,7 +153,6 @@ const CreateDepartmentForm: React.FC = () => {
                 </div>
 
                 {error && <div className="mt-4 text-red-600">{error}</div>}
-                {success && <div className="mt-4 text-green-600">{success}</div>}
 
                 <button
                     type="submit"

@@ -5,15 +5,17 @@ import { Dialog, Transition } from '@headlessui/react';
 // import IconUserPlus from '../../components/Icon/IconUserPlus';
 import IconX from '../../../Icon/IconX';
 import IconCaretDown from '../../../Icon/IconCaretDown';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 // import Edit from '../../../pages/Apps/Invoice/Edit';
 // import Job_Type from './Job_Type';
 
 const Performance_Moni_List_Popup = ({ closeModal }: { closeModal: () => void }) => {
     const [params, setParams] = useState({
-        Branch: '',
-        Start_Date: '',
-        End_Date: '',
-        Performance_Monitoring_Session: '',
+        branch: '',  // lowercase key
+        start_date: '',  // lowercase key
+        end_date: '',  // lowercase key
+        PerformanceMonitoring_session: '',
 
         // email: '',
         // password: '',
@@ -24,12 +26,47 @@ const Performance_Moni_List_Popup = ({ closeModal }: { closeModal: () => void })
         // hire_date: '',
         // employee_id: '',
     });
-
+    const [Branches, setBranches] = useState([])
     const changeValue = (e: any) => {
         const { value, id } = e.target;
         setParams({ ...params, [id]: value });
     };
-
+    const Submit=async(e: any)=>{
+            e.preventDefault();
+            try{
+                let response=await axios.post("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-performace/performance-monitoring/",params,
+                    {
+                        headers:{
+                            Authorization:`Bearer ${localStorage.getItem('token')}`
+                        }
+                    }
+                )
+                console.log(response.data)
+                closeModal()
+            }catch{
+                Swal.fire({
+                    title:'Error',
+                    text:'Failed to create Performance Monitoring Year',
+                    timer:10000
+                })
+                closeModal()
+            }
+        }
+          const FetchBranches=async()=>{
+                try{
+                    let res=await axios.get(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/branch/`,
+                        {
+                            headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}
+                        }
+                    )
+                    console.log(res.data)
+                    setBranches(res.data)
+                }catch{};
+            }
+            useEffect(() => {
+              FetchBranches()
+            }, [])
+            
     return (
         <Transition appear show={true} as={Fragment}>
             <Dialog as="div" open={true} onClose={closeModal} className="   relative z-[51]">
@@ -57,32 +94,36 @@ const Performance_Moni_List_Popup = ({ closeModal }: { closeModal: () => void })
                                         <div className="mb-5 relative">
                                             <label htmlFor="Branch">Branch</label>
                                             <div className="relative">
-                                                <select id="Branch" className="form-input appearance-none pr-10" value={params.Branch} onChange={(e) => changeValue(e)}>
-                                                    <option value="" disabled>
+                                            <select id="branch" className="form-input appearance-none pr-10" value={params.branch} onChange={(e) => changeValue(e)}>
+                                            <option value="" disabled>
                                                         --------
                                                     </option>
-                                                    <option value="Branch A">Branch A</option>
+                                                    {Branches.map((branch: any) => (
+                                                        <option value={branch.id}>{branch.name}</option>
+                                                    ))}
+                                                    {/* <option value="Branch A">Branch A</option>
                                                     <option value="Branch B">Branch B</option>
-                                                    <option value="Branch C">Branch C</option>
+                                                    <option value="Branch C">Branch C</option> */}
                                                 </select>
                                                 <i className="bi bi-chevron-down absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none"></i>
                                             </div>
                                         </div>
                                         <div className="mb-5">
-                                            <label htmlFor="Start_Date">Start Date</label>
-                                            <input id="Start_Date" type="date" placeholder="" className="form-input" value={params.Start_Date} onChange={(e) => changeValue(e)} />
+                                            <label htmlFor="start_date">Start Date</label>
+                                            <input id="start_date" type="date" className="form-input" value={params.start_date} onChange={(e) => changeValue(e)} />
                                         </div>
                                         <div className="mb-5">
-                                            <label htmlFor="End_Date">End Date</label>
-                                            <input id="End_Date" type="date" placeholder="" className="form-input" value={params.End_Date} onChange={(e) => changeValue(e)} />
+                                            <label htmlFor="end_date">End Date</label>
+                                            <input id="end_date" type="date" className="form-input" value={params.end_date} onChange={(e) => changeValue(e)} />
                                         </div>
+
                                         <div className="mb-5 relative">
                                             <label htmlFor="Performance_Monitoring_Session">Performance Monitoring Session</label>
                                             <div className="relative">
                                                 <select
                                                     id="Performance_Monitoring_Session"
                                                     className="form-input appearance-none pr-10"
-                                                    value={params.Performance_Monitoring_Session}
+                                                    value={params.PerformanceMonitoring_session}
                                                     onChange={(e) => changeValue(e)}
                                                 >
                                                     <option value="" disabled>
@@ -99,7 +140,7 @@ const Performance_Moni_List_Popup = ({ closeModal }: { closeModal: () => void })
                                             <button type="button" className="btn btn-outline-danger" onClick={closeModal}>
                                                 Cancel
                                             </button>
-                                            <button type="submit" className="btn btn-primary ltr:ml-4 rtl:mr-4">
+                                            <button type="submit" onClick={Submit} className="btn btn-primary ltr:ml-4 rtl:mr-4">
                                                 Create
                                             </button>
                                         </div>

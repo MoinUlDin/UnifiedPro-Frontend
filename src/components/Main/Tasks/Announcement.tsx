@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import Announcement_Popup from './Announcement_Popup';
-
+import axios from 'axios';
 type Customer = {
+    
     id: number;
     department: string;
     title: string;
-    detail: string;
+    description: string;
     priority: string;
+    date:string;
 };
 
 const initialCustomers: Customer[] = [
-    { id: 1, department: 'Technichal', title: 'Creative', detail: 'Single', priority: 'None' },
-    { id: 2, department: 'Engneering', title: 'Pridictive', detail: 'Marreid', priority: 'None' },
-    { id: 3, department: 'Software', title: 'Creative', detail: 'Married', priority: 'None' },
-    { id: 4, department: 'Sales Marketing', title: 'Creative', detail: 'Single', priority: 'None' },
-    { id: 5, department: 'Technichal', title: 'Creative', detail: 'Single', priority: 'None' },
+    
+    {
+        id: 3, department: 'Software', title: 'Creative', description: 'Married', priority: 'None',
+        date: ''
+    },
+    {
+        id: 4, department: 'Sales Marketing', title: 'Creative', description: 'Single', priority: 'None',
+        date: ''
+    },
+   
 ];
 
 const Announcement: React.FC = () => {
@@ -28,15 +35,28 @@ const Announcement: React.FC = () => {
     const [annoucementModel, setAnnoucementModel] = useState(false);
 
     const announcementPopup = () => {
-        setAnnoucementModel(true);
+    
+        setShowPopup(true); 
     };
-
+    const closePopup = () => {
+        setShowPopup(false); // Close the popup
+    };
     const initialCustomer = {
         id: customers.length + 1,
         department: '',
         title: '',
-        detail: '',
+        description: '',
         priority: '',
+        date:'',
+        is_active: true,
+        files: [
+            {
+                id: 0,  // Assuming this will be set by the backend
+                files: null  // Should be a valid file path or URL
+            }
+        ],
+        uploaded_files: [""] // This should contain actual file paths or URLs
+    
     };
 
     const [newCustomer, setNewCustomer] = useState<Customer>(initialCustomer);
@@ -55,10 +75,43 @@ const Announcement: React.FC = () => {
         e.preventDefault();
         try {
             if (editing && editIndex !== null) {
+               ;
                 const updatedCustomers = [...customers];
                 updatedCustomers[editIndex] = newCustomer;
                 setCustomers(updatedCustomers);
+                
             } else {
+                console.log("📡 Sending request...", newCustomer);
+
+                const response = await axios.post(
+                    'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/announcement/', 
+                    {
+                        "id": 0,
+                        "title": "string",
+                        "department": 0,
+                        "priority": "High",
+                        "description": "string",
+                        "date": "2025-03-25T05:58:16.109Z",
+                        "is_active": true,
+                        "files": [
+                          {
+                            "id": 0,
+                            "files": "https://example.com/path-to-file.pdf"
+                          }
+                        ],
+                        "uploaded_files": [
+                          "https://example.com/path-to-file.pdf"
+                        ]
+                      },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('token')}`,
+                        },
+                    }
+                );
+    
+                console.log("✅ Response received:", response.data)
                 setCustomers([...customers, { ...newCustomer, id: customers.length + 1 }]);
             }
             setShowPopup(false);
@@ -154,9 +207,10 @@ const Announcement: React.FC = () => {
                         <tr>
                             <th className="">Department</th>
                             <th>Title </th>
-                            <th>Detail</th>
+                            <th>description</th>
                             <th>Priority</th>
                             <th>Action</th>
+                             
                         </tr>
                     </thead>
                     <tbody>
@@ -164,8 +218,9 @@ const Announcement: React.FC = () => {
                             <tr key={customer.id}>
                                 <td>{customer.department}</td>
                                 <td>{customer.title}</td>
-                                <td>{customer.detail}</td>
+                                <td>{customer.description}</td>
                                 <td>{customer.priority}</td>
+                                
                                 <td className="text-center">
                                     <button
                                         onClick={() => handleActionMenu(index)}
@@ -251,17 +306,17 @@ const Announcement: React.FC = () => {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="detail" className="form-label">
-                                            Detail
+                                        <label htmlFor="description" className="form-label">
+                                            description
                                         </label>
                                         <input
                                             type="text"
-                                            id="detail"
-                                            value={newCustomer.detail}
+                                            id="description"
+                                            value={newCustomer.description}
                                             onChange={(e) =>
                                                 setNewCustomer({
                                                     ...newCustomer,
-                                                    detail: e.target.value,
+                                                    description: e.target.value,
                                                 })
                                             }
                                             className="form-control"
@@ -287,6 +342,24 @@ const Announcement: React.FC = () => {
                                             required
                                         />
                                     </div>
+                                    <div className="form-group">
+                                        <label htmlFor="date" className="form-label">
+                                            Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="date"
+                                            value={newCustomer.date}
+                                            onChange={(e) =>
+                                                setNewCustomer({
+                                                    ...newCustomer,
+                                                   date: e.target.value,
+                                                })
+                                            }
+                                            className="form-control"
+                                            required
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="flex justify-end space-x-4 mt-4">
@@ -306,6 +379,7 @@ const Announcement: React.FC = () => {
                     </div>
                 </div>
             )}
+           
         </div>
     );
 };

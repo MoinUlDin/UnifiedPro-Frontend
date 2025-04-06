@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import CommonTable from '../Common_Table';
 import FormComponent from '../Common_Popup';
-
+import axios from 'axios'
 const Whistle = () => {
     const dispatch = useDispatch();
 
@@ -14,15 +14,11 @@ const Whistle = () => {
 
     const [reports, setReports] = useState([
         {
-            id: 1,
-            Subject: 'Financial Misconduct',
-            Description: 'Reported mismanagement of funds in the finance department.',
+            id: 0,
+            subject: '',
+            message: '',
         },
-        {
-            id: 2,
-            Subject: 'Safety Violation',
-            Description: 'Report of safety violations in the manufacturing unit.',
-        },
+        
     ]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,37 +27,135 @@ const Whistle = () => {
 
     const initialFormFields = {
         id: 0,
-        Subject: '',
-        Description: '',
+        subject: '',
+        message: '',
     };
     const [formData, setFormData] = useState(initialFormFields);
 
     const columns = [
         { accessor: 'id', title: 'ID' },
-        { accessor: 'Subject', title: 'Subject' },
-        { accessor: 'Description', title: 'Description' },
+        { accessor: 'subject', title: 'subject' },
+        { accessor: 'message', title: 'message' },
     ];
 
-    const formFields = [
-        { id: 'Subject', label: 'Subject', type: 'text', value: formData.Subject },
-        { id: 'Description', label: 'Description', type: 'text', value: formData.Description },
-    ];
+    
+        const formFields = [
+            { 
+                id: 'subject', 
+                label: 'Subject', 
+                type: 'text', 
+                value: formData.subject, 
+                onChange: (e: any) => setFormData({ ...formData, subject: e.target.value }) 
+            },
+            { 
+                id: 'message', 
+                label: 'Message', // Label changed for clarity
+                type: 'text', 
+                value: formData.message, 
+                onChange: (e: any) => setFormData({ ...formData, message: e.target.value }) 
+            },
+        ];
+        
+    
 
-    const handleAddOrEditReport = (submittedData: any) => {
-        if (isEditMode && currentEditId !== null) {
-            setReports((prev) => prev.map((report) => (report.id === currentEditId ? { ...report, ...submittedData } : report)));
-            setIsEditMode(false);
-            setCurrentEditId(null);
-        } else {
-            const newReport = {
-                ...submittedData,
-                id: reports.length + 1,
+        const handleAddOrEditReport = async (submittedData: any) => {
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json',
+                },
             };
-            setReports((prev) => [...prev, newReport]);
-        }
-        setFormData(initialFormFields);
-        closeModal();
-    };
+        
+            try {
+                const payload = {
+                    subject: submittedData.subject,  
+                    message: submittedData.message,  
+                    uploaded_files: [], 
+                };
+        
+                if (isEditMode && currentEditId !== null) {
+                    await axios.put(
+                        `https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/whistle-blower/${currentEditId}`,
+                        payload,
+                        config
+                    );
+        
+                    setReports((prev) =>
+                        prev.map((report) =>
+                            report.id === currentEditId ? { ...report, ...submittedData } : report
+                        )
+                    );
+                } else {
+                    const response = await axios.post(
+                        'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/whistle-blower/',
+                        payload,
+                        config
+                    );
+        
+                    const newReport = { ...response.data, id: reports.length + 1 };
+                    setReports((prev) => [...prev, newReport]);
+                }
+        
+                closeModal();
+            } catch (error) {
+                if (axios.isAxiosError(error)) {
+                    console.error('Error while adding or editing report:', error.response?.data || error.message);
+                } else {
+                    console.error('Unexpected error:', error);
+                }
+            }
+        };
+        
+        const handleDeleteReport = async (reportId: number) => {
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            };
+        
+            try {
+                await axios.delete(
+                    `https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/whistle-blower/${reportId}/`,
+                    config
+                );
+        
+                // Remove the deleted report from the state
+                setReports((prevReports) => prevReports.filter(report => report.id !== reportId));
+        
+                console.log(`Report with ID ${reportId} deleted successfully`);
+            } catch (error) {
+                if (axios.isAxiosError(error)) {
+                    console.error('Error deleting report:', error.response?.data || error.message);
+                } else {
+                    console.error('Unexpected error:', error);
+                }
+            }
+        };
+        
+        const FetchWhistles=async()=>{
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            };
+        
+            try{
+                const response = await axios.get(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/whistle-blower/`,
+                config
+                )
+                setReports(response.data);
+            }
+            catch (error) {
+                if (axios.isAxiosError(error)) {
+                    console.error('Error fetching reports:', error.response?.data || error.message);
+                } else {
+                    console.error('Unexpected error:', error);
+            }}
+        };
+        useEffect(() => {
+         FetchWhistles();
+        }, [])
+        
 
     const closeModal = () => {
         setIsModalOpen(false);
@@ -74,7 +168,7 @@ const Whistle = () => {
 
     return (
         <div>
-            <CommonTable heading="Whistle Report" buttonLabel="Report" formFields={formFields} columns={columns} data={reports} />
+            <CommonTable heading="Whistle Report" onButtonClick={openModal} onDelete={handleDeleteReport} buttonLabel="Report" formFields={formFields} columns={columns} data={reports} />
 
             {/* Modal Popup for Form */}
             <Transition appear show={isModalOpen} as={Fragment}>
@@ -98,7 +192,7 @@ const Whistle = () => {
                                     <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
                                         {isEditMode ? 'Edit Report' : 'Add Report'}
                                     </Dialog.Title>
-                                    <FormComponent fields={formFields} onSubmit={handleAddOrEditReport} onCancel={closeModal} />
+                                    <FormComponent fields={formFields}     onSubmit={(submittedData) => handleAddOrEditReport(submittedData)}   onCancel={closeModal} />
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>

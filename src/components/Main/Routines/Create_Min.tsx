@@ -91,7 +91,7 @@ const Create_Min = () => {
 
     return (
         <div>
-            <CommonTable heading="Meeting" buttonLabel="Meeting" formFields={formFields} columns={columns} data={meetings} />
+            <CommonTable heading="Meeting" onButtonClick={openModal} buttonLabel="Meeting" formFields={formFields} columns={columns} data={meetings} />
 
             <Transition appear show={isModalOpen} as={Fragment}>
                 <Dialog as="div" className="relative z-10" onClose={closeModal}>

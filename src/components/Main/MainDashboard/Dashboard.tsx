@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import { motion } from 'framer-motion';
 import ReactApexChart from 'react-apexcharts';
 import CountUp from 'react-countup';
@@ -9,8 +9,10 @@ import IconPencilPaper from '../../../components/Icon/IconPencilPaper';
 import IconPlus from '../../../components/Icon/IconPlus';
 import IconCircleCheck from '../../../components/Icon/IconCircleCheck';
 import IconInfoTriangle from '../../../components/Icon/IconInfoTriangle';
-
+import Edit_Employee_Popup from '../HCIMS/Edit_Employee_Popup';
+import axios from 'axios';
 const MainDashboard = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
     const isDark = document.documentElement.classList.contains('dark');
 
     // Animation variants for staggered animations
@@ -24,18 +26,7 @@ const MainDashboard = () => {
         }
     };
 
-    const cardVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                type: "spring",
-                stiffness: 100,
-                damping: 10
-            }
-        }
-    };
+    
 
     const chartVariants = {
         hidden: { opacity: 0, scale: 0.8 },
@@ -139,7 +130,41 @@ const MainDashboard = () => {
             policyAcknowledgments: 98,
         }
     };
-
+    useEffect(() => {
+        axios.post(
+          "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/late-arrival/",
+          {
+            department: 0,
+            allowed_late_minutes: 2147483647,
+            late_arrival_penalty: 599
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem('token')}` // Add your token if needed
+            }
+          }
+        )
+        .then(res => console.log("Response:", res.data))
+        .catch(err => console.error("Error:", err));
+      }, []);
+    useEffect(() => {
+      
+    axios.get('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/late-arrival/'
+    , {
+        headers: {
+          
+          "Authorization": `Bearer ${localStorage.getItem('token')}` // Add your token if needed
+        }
+      })
+     .then(res => {
+        console.log("Response:", res.data)
+      }
+    ) 
+      
+      
+    }, [])
+    
     return (
         <motion.div 
             className="dashboard-container p-6 max-w-[1920px] mx-auto"
@@ -161,12 +186,15 @@ const MainDashboard = () => {
                 <div className="flex gap-4">
                     <motion.button 
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileTap={{ scale: 0.95 }} 
+                        onClick={() => setIsModalOpen(true)}
+                       
                         className="btn-primary px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                         <IconPlus className="w-4 h-4 inline-block mr-2" />
                         New Employee
                     </motion.button>
+                  {isModalOpen && <Edit_Employee_Popup closeModal={() => setIsModalOpen(false)} />}
                     <motion.button 
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -177,108 +205,111 @@ const MainDashboard = () => {
                     </motion.button>
                 </div>
             </motion.div>
+            <div className="grid grid-cols-12 gap-6 mb-6">
+    {/* Key Metrics - Full Width */}
+    <motion.div 
+        className="col-span-12" // Ensure it spans the full width
+        variants={containerVariants}
+    >
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6"> {/* Adjusted grid for 4 equal columns */}
+            {/* Attendance Cards with hover effects */}
+            <motion.div
+                variants={chartVariants}
+                whileHover={{ 
+                    scale: 1.02,
+                    transition: { type: "spring", stiffness: 400 }
+                }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 pl-2 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300"
+            >
+                <div className="flex justify-between gap-1 items-start">
+                    <div>
+                        <p className="text-sm text-gray-500">Total Employees</p>
+                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                            <CountUp end={attendanceData.totalEmployees} duration={2} />
+                        </h3>
+                    </div>
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                        <IconUsers className="w-5 h-6 text-blue-600" />
+                    </div>
+                </div>
+            </motion.div>
 
+            <motion.div
+                variants={chartVariants}
+                whileHover={{ 
+                    scale: 1.02,
+                    transition: { type: "spring", stiffness: 400 }
+                }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300"
+            >
+                <div className="flex justify-between gap-2 items-start">
+                    <div>
+                        <p className="text-sm text-gray-500 mb-1">Present Today</p>
+                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                            <CountUp end={attendanceData.presentEmployees} duration={2} />
+                        </h3>
+                    </div>
+                    <div className="p-3 bg-green-100 rounded-lg">
+                        <IconCircleCheck className="w-6 h-6 text-green-600" />
+                    </div>
+                </div>
+            </motion.div>
+
+            <motion.div
+                variants={chartVariants}
+                whileHover={{ 
+                    scale: 1.02,
+                    transition: { type: "spring", stiffness: 400 }
+                }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-all duration-300"
+            >
+                <div className="flex justify-between gap-1 items-start">
+                    <div>
+                        <p className="text-sm text-gray-500 mb-1">Absent Today</p>
+                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                            <CountUp end={attendanceData.absentEmployees} duration={2} />
+                        </h3>
+                    </div>
+                    <div className="p-3 bg-red-100 rounded-lg">
+                        <IconInfoTriangle className="w-6 h-6 text-red-600" />
+                    </div>
+                </div>
+            </motion.div>
+
+            <motion.div
+                variants={chartVariants}
+                whileHover={{ 
+                    scale: 1.02,
+                    transition: { type: "spring", stiffness: 400 }
+                }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300"
+            >
+                <div className="flex justify-between gap-1 items-start">
+                    <div>
+                        <p className="text-sm text-gray-500 mb-1">On Leave</p>
+                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                            <CountUp end={attendanceData.onLeave} duration={2} />
+                        </h3>
+                    </div>
+                    <div className="p-3 bg-yellow-100 rounded-lg">
+                        <IconCalendar className="w-6 h-6 text-yellow-600" />
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    </motion.div>
+</div>
             {/* Main Stats Grid - 70% width */}
             <div className="grid grid-cols-12 gap-6 mb-6">
                 {/* Key Metrics - 70% width */}
                 <motion.div 
                     className="col-span-12 lg:col-span-8"
                     variants={containerVariants}
-                >
-                    <div className="grid md:grid-cols-4 grid-cols-1  gap-4">
-                        {/* Attendance Cards with hover effects */}
-                        <motion.div
-                            variants={cardVariants}
-                            whileHover={{ 
-                                scale: 1.02,
-                                transition: { type: "spring", stiffness: 400 }
-                            }}
-                            className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Total Employees</p>
-                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                        <CountUp end={attendanceData.totalEmployees} duration={2} />
-                                    </h3>
-                                </div>
-                                <div className="p-3 bg-blue-100 rounded-lg">
-                                    <IconUsers className="w-6 h-6 text-blue-600" />
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div
-                            variants={cardVariants}
-                            whileHover={{ 
-                                scale: 1.02,
-                                transition: { type: "spring", stiffness: 400 }
-                            }}
-                            transition={{ delay: 0.1 }}
-                            className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Present Today</p>
-                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                        <CountUp end={attendanceData.presentEmployees} duration={2} />
-                                    </h3>
-                                </div>
-                                <div className="p-3 bg-green-100 rounded-lg">
-                                    <IconCircleCheck className="w-6 h-6 text-green-600" />
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div
-                            variants={cardVariants}
-                            whileHover={{ 
-                                scale: 1.02,
-                                transition: { type: "spring", stiffness: 400 }
-                            }}
-                            transition={{ delay: 0.2 }}
-                            className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Absent Today</p>
-                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                        <CountUp end={attendanceData.absentEmployees} duration={2} />
-                                    </h3>
-                                </div>
-                                <div className="p-3 bg-red-100 rounded-lg">
-                                    <IconInfoTriangle className="w-6 h-6 text-red-600" />
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div
-                            variants={cardVariants}
-                            whileHover={{ 
-                                scale: 1.02,
-                                transition: { type: "spring", stiffness: 400 }
-                            }}
-                            transition={{ delay: 0.3 }}
-                            className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">On Leave</p>
-                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                        <CountUp end={attendanceData.onLeave} duration={2} />
-                                    </h3>
-                                </div>
-                                <div className="p-3 bg-yellow-100 rounded-lg">
-                                    <IconCalendar className="w-6 h-6 text-yellow-600" />
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-
+                > 
                     {/* Performance Charts with animations */}
                     <motion.div
                         variants={chartVariants}
-                        className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
+                        className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300"
                     >
                         <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center">
                             <IconTrendingUp className="w-6 h-6 mr-2 text-blue-600" />
@@ -340,17 +371,17 @@ const MainDashboard = () => {
 
                 {/* Side Stats - 30% width */}
                 <motion.div 
-                    className="col-span-12 lg:col-span-4 space-y-6"
+                    className="col-span-12 lg:col-span-4 mt-6 space-y-1"
                     variants={containerVariants}
                 >
                     {/* Recruitment Summary with hover effects */}
                     <motion.div
-                        variants={cardVariants}
+                        variants={chartVariants}
                         whileHover={{ 
                             scale: 1.02,
                             transition: { type: "spring", stiffness: 400 }
                         }}
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
+                        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 hover:shadow-xl transition-all duration-300"
                     >
                         <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                             <IconUsers className="w-5 h-5 inline-block mr-2" />
@@ -387,13 +418,13 @@ const MainDashboard = () => {
 
                     {/* Employee Engagement Metrics with animations */}
                     <motion.div
-                        variants={cardVariants}
+                        variants={chartVariants}
                         whileHover={{ 
                             scale: 1.02,
                             transition: { type: "spring", stiffness: 400 }
                         }}
                         transition={{ delay: 0.2 }}
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
+                        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 hover:shadow-xl transition-all duration-300"
                     >
                         <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                             <IconTrendingUp className="w-5 h-5 inline-block mr-2" />
@@ -438,7 +469,7 @@ const MainDashboard = () => {
             >
                 {/* Training Progress with hover effects */}
                 <motion.div
-                    variants={cardVariants}
+                    variants={chartVariants}
                     whileHover={{ 
                         scale: 1.02,
                         transition: { type: "spring", stiffness: 400 }
@@ -489,7 +520,7 @@ const MainDashboard = () => {
 
                 {/* Compliance Overview with animations */}
                 <motion.div
-                    variants={cardVariants}
+                    variants={chartVariants}
                     whileHover={{ 
                         scale: 1.02,
                         transition: { type: "spring", stiffness: 400 }
@@ -525,7 +556,7 @@ const MainDashboard = () => {
 
                 {/* Employee Development with animations */}
                 <motion.div
-                    variants={cardVariants}
+                    variants={chartVariants}
                     whileHover={{ 
                         scale: 1.02,
                         transition: { type: "spring", stiffness: 400 }
@@ -561,7 +592,7 @@ const MainDashboard = () => {
             </motion.div>
 
             {/* Add glass-morphism effect to cards */}
-            <style jsx>{`
+            {/* <style jsx>{`
                 .dashboard-container {
                     background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
                 }
@@ -572,7 +603,7 @@ const MainDashboard = () => {
                 .dark .card {
                     background: rgba(17, 24, 39, 0.8);
                 }
-            `}</style>
+            `}</style> */}
         </motion.div>
     );
 };

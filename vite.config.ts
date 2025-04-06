@@ -10,7 +10,8 @@ export default defineConfig({
         NodeGlobalsPolyfillPlugin({
             process: true,
             buffer: true,
-            global: true
+            global: true,
+            base: '/', 
         }),
     ],
     resolve: {

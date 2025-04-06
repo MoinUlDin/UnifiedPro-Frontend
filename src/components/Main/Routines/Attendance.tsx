@@ -142,7 +142,7 @@ const Attendance = () => {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate("/mark-holiday")}
+            onClick={() => navigate("/mark_holidays")}
             className="btn btn-success gap-2"
           >
             <IconCalendar className="w-5 h-5" />

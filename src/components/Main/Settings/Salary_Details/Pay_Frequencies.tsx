@@ -1,15 +1,34 @@
 import { DataTable } from 'mantine-datatable';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import Pay_Frequencies_Popup from './Pay_Frequencies_Popup';
-
+import axios from 'axios';
 
 const Pay_Frequencies = () => {
     const [PayFrequencyModel, setPayFrequencyModel] = useState(false);
-
+    const [PayFreq, setPayFreq] = useState([])
     const payFrequencyPopup = () => {
         setPayFrequencyModel(true);
     }
-
+     const FetchSalaryComps=async()=>{
+            try{
+                let response=await axios.get('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/pay-frequency/',
+                {
+                    headers:{
+                        Authorization:`Bearer ${localStorage.getItem('token')}`
+                    }
+    
+                }
+                )
+                setPayFreq(response.data)
+    
+            }catch{
+                console.log('failed to fetch')
+            }
+         }
+         useEffect(() => {
+           FetchSalaryComps()
+         }, [])
+         
  
 
     return (
@@ -27,11 +46,17 @@ const Pay_Frequencies = () => {
                         noRecordsText="No results match your search query"
                         highlightOnHover
                         className="whitespace-nowrap table-hover"
-                        // records={recordsData}
+                        records={PayFreq}
                         columns={[
-                            { accessor: 'ID', title: 'ID' },
-                            { accessor: 'Name', title: 'Name' },
-                            { accessor: 'Actions', title: 'Actions' },
+                            { accessor: 'id', title: 'ID' },
+                            { accessor: 'name', title: 'Name' },
+                            { accessor: 'actions',
+                                title: 'Actions',
+                                render: (record) => (
+                                    <button className="btn btn-danger" onClick={() => console.log('Delete', record.id)}>
+                                        Delete
+                                    </button>
+                                ), },
                         ]}
                                              minHeight={200}
                     />

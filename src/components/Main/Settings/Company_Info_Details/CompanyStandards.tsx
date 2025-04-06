@@ -95,6 +95,7 @@ const CompanyStandards = () => {
                 formFields={formFields}
                 columns={columns}
                 data={standards}
+                onButtonClick={openModal}
             />
 
             <Transition appear show={isModalOpen} as={Fragment}>

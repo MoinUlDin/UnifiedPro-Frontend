@@ -27,6 +27,7 @@ interface TableComponentProps {
     isModalOpen?: boolean;
     setIsModalOpen?: (isOpen: boolean) => void;
     isLoading?: boolean;
+    onButtonClick?: () => void;
 }
 
 const Common_Table: React.FC<TableComponentProps> = ({ 
@@ -41,7 +42,8 @@ const Common_Table: React.FC<TableComponentProps> = ({
     onSubmit,
     isModalOpen = false,
     setIsModalOpen,
-    isLoading = false
+    isLoading = false,
+    onButtonClick
 }) => {
     const dispatch = useDispatch();
     const [page, setPage] = useState(1);
@@ -85,7 +87,7 @@ const Common_Table: React.FC<TableComponentProps> = ({
         <div className="panel">
             <div className="flex justify-between items-center mb-5">
                 <h5 className="font-semibold text-lg dark:text-white-light">{heading}</h5>
-                <button type="button" className="btn btn-primary" onClick={handleAdd}>
+                <button type="button" className="btn btn-primary" onClick={onButtonClick}>
                     <IconUserPlus className="w-5 h-5 ltr:mr-2 rtl:ml-2" />
                     {buttonLabel}
                 </button>
@@ -101,13 +103,13 @@ const Common_Table: React.FC<TableComponentProps> = ({
                             title: 'Actions',
                             render: (row) => (
                                 <div className="flex gap-4">
-                                    <button 
+                                    {/* <button 
                                         type="button" 
                                         className="btn btn-sm btn-outline-primary"
                                         onClick={() => handleEdit(row)}
                                     >
                                         Edit
-                                    </button>
+                                    </button> */}
                                     <button 
                                         type="button" 
                                         className="btn btn-sm btn-outline-danger"

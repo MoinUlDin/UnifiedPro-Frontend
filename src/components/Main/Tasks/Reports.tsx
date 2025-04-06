@@ -120,13 +120,13 @@ const Reports: React.FC = () => {
         setSelectedId(id);
         switch (id) {
             case 1:
-                navigate('/personal_tasks_reports');
+                navigate('/PersonalTasks');
                 break;
             case 2:
-                navigate('/subordinate_tasks_reports');
+                navigate('/SubordinateTaskReports');
                 break;
             case 3:
-                navigate('/task_progress_reports');
+                navigate('/TaskReports');
                 break;
             case 4:
                 navigate('/announcements');

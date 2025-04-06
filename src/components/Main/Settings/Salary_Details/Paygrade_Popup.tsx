@@ -5,6 +5,8 @@ import { Dialog, Transition } from '@headlessui/react';
 // import IconUserPlus from '../../components/Icon/IconUserPlus';
 import IconX from '../../../Icon/IconX';
 import IconCaretDown from '../../../Icon/IconCaretDown';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 // import Edit from '../../../../pages/Apps/Invoice/Edit';
 
 const Paygrade_Popup = ({ closeModal }: { closeModal: () => void }) => {
@@ -18,7 +20,29 @@ const Paygrade_Popup = ({ closeModal }: { closeModal: () => void }) => {
         const { value, id } = e.target;
         setParams({ ...params, [id]: value });
     };
-
+    const Submit=async(e:any)=>{
+        e.preventDefault();
+        try{
+            const response=await axios.post('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/pay-grade/',params,
+                {headers: {
+                    'Content-Type': 'application/json',
+                Authorization:`Bearer ${localStorage.getItem('token')}`}
+            })
+            console.log(response.data);
+            closeModal();
+            
+        }catch{
+             Swal.fire({
+                            title:'Error',
+                            text:'Failed to create Salary Compoonent',
+                            timer:10000
+                        })
+                        closeModal()
+            console.log('error');
+            
+        }
+    
+    }
     return (
         <Transition appear show={true} as={Fragment}>
             <Dialog as="div" open={true} onClose={closeModal} className="   relative z-[51]">
@@ -60,7 +84,7 @@ const Paygrade_Popup = ({ closeModal }: { closeModal: () => void }) => {
                                             <button type="button" className="btn btn-outline-danger" onClick={closeModal}>
                                                 Cancel
                                             </button>
-                                            <button type="submit" className="btn btn-primary ltr:ml-4 rtl:mr-4">
+                                            <button type="submit" onClick={Submit} className="btn btn-primary ltr:ml-4 rtl:mr-4">
                                                 Create
                                             </button>
                                         </div>

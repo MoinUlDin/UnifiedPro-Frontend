@@ -4,7 +4,8 @@ import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import CommonTable from '../Common_Table';
 import FormComponent from '../Common_Popup';
-
+import Edit_Employee_Popup from './Edit_Employee_Popup';
+import axios from 'axios';
 const Edit_Employee = () => {
     const dispatch = useDispatch();
 
@@ -12,19 +13,18 @@ const Edit_Employee = () => {
         dispatch(setPageTitle('Create Employee'));
     }, [dispatch]);
 
-    const [employees, setEmployees] = useState([
-        {
-            id: 1,
-            Email: 'john.doe@example.com',
-            Department: 'HR',
-            Designation: 'HR Manager',
-            ReportTo: 'Jane Smith',
-            FirstName: 'John',
-            LastName: 'Doe',
-            HireDate: '01/15/2022',
-        },
-        // Add more employee objects as needed
-    ]);
+    interface Employee {
+        id: number;
+        Email: string;
+        Department: string;
+        Designation: string;
+        ReportTo: string;
+        FirstName: string;
+        LastName: string;
+        HireDate: string;
+    }
+
+    const [employees, setEmployees] = useState<Employee[]>([]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -47,20 +47,18 @@ const Edit_Employee = () => {
 
     const columns = [
         { accessor: 'id', title: 'ID' },
-        { accessor: 'Email', title: 'Email' },
-        { accessor: 'Department', title: 'Department' },
-        { accessor: 'Designation', title: 'Designation' },
-        { accessor: 'ReportTo', title: 'Report To' },
-        { accessor: 'FirstName', title: 'First Name' },
-        { accessor: 'LastName', title: 'Last Name' },
-        { accessor: 'HireDate', title: 'Hire Date' },
+    { accessor: 'department', title: 'Department' }, 
+    { accessor: 'designation', title: 'Designation' }, // ✅ Already correct
+    { accessor: 'first_name', title: 'First Name' }, // ✅ Fixed
+    { accessor: 'last_name', title: 'Last Name' }, // ✅ Fixed
+    { accessor: 'hire_date', title: 'Hire Date' }, // ✅ Fixed
     ];
 
     const departmentOptions = [
         { value: '', label: '--------- (Select Department)' }, // Default placeholder
-        { value: 'HR', label: 'HR' },
-        { value: 'Finance', label: 'Finance' },
-        { value: 'Engineering', label: 'Engineering' },
+        { value: '1', label: 'HR' },
+        { value: '2', label: 'Finance' },
+        { value: '3', label: 'Engineering' },
         // Add more department options as needed
     ];
 
@@ -82,11 +80,10 @@ const Edit_Employee = () => {
         { id: 'HireDate', label: 'Hire Date', type: 'date', value: formData.HireDate },
     ];
 
-    const handleAddOrEditEmployee = (submittedData: typeof formData) => {
-        const newEmployee = {
-            id: employees.length + 1,
+    const handleAddOrEditEmployee = async (submittedData: typeof formData) => {
+        const updatedEmployee = {
+            id: submittedData.id || employees.length + 1, // Keep existing ID or generate new one
             Email: submittedData.Email,
-            Password: submittedData.Password,
             Department: submittedData.Department,
             Designation: submittedData.Designation,
             ReportTo: submittedData.ReportTo,
@@ -94,25 +91,49 @@ const Edit_Employee = () => {
             LastName: submittedData.LastName,
             HireDate: submittedData.HireDate,
         };
-
-        if (isEditMode && currentEditId !== null) {
+    
+        if (isEditMode) {
             setEmployees(prev =>
-                prev.map(employee =>
-                    employee.id === currentEditId
-                        ? { ...employee, ...submittedData }
-                        : employee
-                )
+                prev.map(emp => (emp.id === currentEditId ? updatedEmployee : emp))
             );
-            setIsEditMode(false);
-            setCurrentEditId(null);
         } else {
-            setEmployees(prev => [...prev, newEmployee]);
+            setEmployees(prev => [...prev, updatedEmployee]);
         }
-
+    
+        setIsModalOpen(false);
+        setIsEditMode(false);
+        setCurrentEditId(null);
         setFormData(initialFormFields);
-        closeModal();
     };
-
+    const ImportEmployeeData = async () => {
+        try {
+            const response = await axios.get('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/auth/employees/', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                }
+            });
+    
+            console.log("API Response:", response.data);
+    
+            const formattedEmployees = response.data.map((emp: { id: any; department: any; designation: any; first_name: any; last_name: any; hire_date: any; }) => ({
+                id: emp.id,
+                department: emp.department || "N/A", // Handle null values
+                designation: emp.designation || "N/A",
+                first_name: emp.first_name,
+                last_name: emp.last_name,
+                hire_date: emp.hire_date || "N/A",
+            }));
+    
+            setEmployees(formattedEmployees);
+        } catch (error) {
+            console.error("Error fetching employee data:", error);
+        }
+    };
+    
+        useEffect(() => {
+            ImportEmployeeData();
+        }, []);
+        
     const closeModal = () => {
         setIsModalOpen(false);
         setFormData(initialFormFields);
@@ -123,18 +144,20 @@ const Edit_Employee = () => {
     const openModal = () => setIsModalOpen(true);
 
     return (
-        <div>
+        <div >
+            
             <CommonTable
                 heading=" Create Employee"
                 buttonLabel="Employee"
                 formFields={formFields}
                 columns={columns}
                 data={employees}
+                onButtonClick={openModal}
             />
-
+           
             {/* Modal Popup for Form */}
-            <Transition appear show={isModalOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={closeModal}>
+            <Transition appear show={isModalOpen}  as={Fragment}>
+                <Dialog as="div" className="relative z-10"  onClose={closeModal}> 
                     <Transition.Child
                         as={Fragment}
                         enter="ease-out duration-300"
@@ -147,7 +170,7 @@ const Edit_Employee = () => {
                         <div className="fixed inset-0 bg-black bg-opacity-25" />
                     </Transition.Child>
 
-                    <div className="fixed inset-0 overflow-y-auto">
+                    {/* <div className="fixed inset-0 overflow-y-auto">
                         <div className="flex items-center justify-center min-h-full p-4 text-center">
                             <Transition.Child
                                 as={Fragment}
@@ -171,11 +194,12 @@ const Edit_Employee = () => {
                                             onSubmit={handleAddOrEditEmployee}
                                             onCancel={closeModal}
                                         />
-                                    </div>
+                                    </div> 
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>
-                    </div>
+                    </div>*/}
+                    <Edit_Employee_Popup closeModal={closeModal} />
                 </Dialog>
             </Transition>
         </div>

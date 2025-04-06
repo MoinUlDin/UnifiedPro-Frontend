@@ -1,11 +1,11 @@
 // import { PropsWithChildren, useEffect } from 'react';
 // import { useDispatch, useSelector } from 'react-redux';
-// import { IRootState } from './store';
+// import {  } from './store';
 // import { toggleRTL, toggleTheme, toggleLocale, toggleMenu, toggleLayout, toggleAnimation, toggleNavbar, toggleSemidark } from './store/themeConfigSlice';
 // import store from './store';
 
 // function App({ children }: PropsWithChildren) {
-//     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+//     const themeConfig = useSelector((state: ) => state.themeConfig);
 //     const dispatch = useDispatch();
 
 //     useEffect(() => {
@@ -41,9 +41,9 @@
 import React, { PropsWithChildren, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { IRootState } from './store';
+import { RootState } from './store';
 import store from './store';
-
+import axios from 'axios';
 import {
     toggleRTL,
     toggleTheme,
@@ -55,12 +55,18 @@ import {
     toggleSemidark,
 } from './store/themeConfigSlice';
 
+import useTokenRefresher from './TokenRefresh';
+
+    
 function App({ children }: PropsWithChildren) {
     // Using useSelector to get the current state from Redux
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+    const themeConfig = useSelector((state: RootState) => state.themeConfig);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
+  
+        useTokenRefresher()
+  
+    
     // Dispatching actions to set up theme configurations from localStorage
     useEffect(() => {
         dispatch(toggleTheme(localStorage.getItem('theme') || themeConfig.theme));
@@ -108,7 +114,33 @@ function App({ children }: PropsWithChildren) {
             events.forEach(event => document.removeEventListener(event, handleUserActivity));
         };
     }, [navigate]);
-
+   
+        //     const postData = async () => {
+        //       try {
+        //         const response = await axios.post(
+        //           "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/auth/employees/",
+        //           {
+        //             name: "John Doe",
+        //             email: "johndoe@example.com",
+        //             position: "Software Engineer",
+        //           },
+        //           {
+        //             headers: {
+        //               Authorization: "Token 1234567890abcdef1234567890abcdef",
+        //               "Content-Type": "application/json",
+        //             },
+        //             withCredentials: false, // If using cookies
+        //           }
+        //         );
+        
+        //         console.log("Success:", response.data);
+        //       } catch (error) {
+        //         console.error("Error:");
+        //       }
+        //     };
+        
+        //     postData(); // Call the function inside useEffect
+        //   }, []);
     return (
         <>
             {/* Dynamically apply className based on themeConfig state */}
@@ -119,6 +151,7 @@ function App({ children }: PropsWithChildren) {
         >
             {children}
         </div>
+        
         </>
     );
 }

@@ -86,11 +86,13 @@ const Create_Exp = () => {
         setCurrentEditId(null);
     };
 
-    const openModal = () => setIsModalOpen(true);
+    const openModal = () =>{console.log("Modal Opened");
+        setIsModalOpen(true);} 
 
     return (
         <div>
-            <CommonTable heading="Expense Claim" buttonLabel="Claim" formFields={formFields} columns={columns} data={expenseClaims} />
+        
+            <CommonTable heading="Expense Claim" onButtonClick={openModal} buttonLabel="Claim" formFields={formFields} columns={columns} data={expenseClaims} />
 
             {/* Modal Popup for Form */}
             <Transition appear show={isModalOpen} as={Fragment}>

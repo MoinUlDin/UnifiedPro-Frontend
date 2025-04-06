@@ -130,6 +130,7 @@ const Company_Info = () => {
                 formFields={formFields}
                 columns={columns}
                 data={policies}
+                onButtonClick={openModal}
             />
 
             <Transition appear show={isModalOpen} as={Fragment}>

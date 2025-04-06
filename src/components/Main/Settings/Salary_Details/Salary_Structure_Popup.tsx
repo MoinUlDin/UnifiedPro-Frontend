@@ -7,6 +7,7 @@ import IconX from '../../../Icon/IconX';
 import IconCaretDown from '../../../Icon/IconCaretDown';
 // import Edit from '../../../../pages/Apps/Invoice/Edit';
 import Salary_Structure from './Salary_Structure';
+import axios from 'axios';
 
 const Salary_Structure_Popup = ({ closeModal }: { closeModal: () => void }) => {
     const [params, setParams] = useState({
@@ -14,14 +15,33 @@ const Salary_Structure_Popup = ({ closeModal }: { closeModal: () => void }) => {
         last_name: '',
         department: '',
         job_type: '',
-        pay_start_date: '',
+        paygrade: '',
     });
 
     const changeValue = (e: any) => {
         const { value, id } = e.target;
         setParams({ ...params, [id]: value });
     };
-
+    const [PayGrade, setPayGrade] = useState([])
+    const FetchPayGrade=async()=>{
+        try{
+            const res=await axios.get(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/pay-grade/`,
+                {
+                    headers:{
+                        Authorization:`Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            )
+            setPayGrade(res.data)
+    
+        }catch{
+            console.log('Failed to Fetch Pay Grades')
+        }
+       }
+       useEffect(() => {
+        FetchPayGrade()
+       }, [])
+       
     return (
         <Transition appear show={true} as={Fragment}>
             <Dialog as="div" open={true} onClose={closeModal} className="   relative z-[51]">
@@ -54,18 +74,26 @@ const Salary_Structure_Popup = ({ closeModal }: { closeModal: () => void }) => {
                                             <label htmlFor="last_name">Last Name:</label>
                                             <input id="last_name" type="text" placeholder="" className="form-input" value={params.last_name} onChange={(e) => changeValue(e)} />
                                         </div>
-                                            <div className="mb-5">
-                                                <label htmlFor="department">Department</label>
-                                                <input id="department" type="text" placeholder="" className="form-input" value={params.department} onChange={(e) => changeValue(e)} />
-                                            </div>
-                                            <div className="mb-5">
-                                                <label htmlFor="job_type">Job Type</label>
-                                                <input id="job_type" type="text" placeholder="" className="form-input" value={params.job_type} onChange={(e) => changeValue(e)} />
-                                            </div>
-                                            <div className="mb-5">
-                                                <label htmlFor="pay_start_date">Pay Start Date</label>
-                                                <input id="pay_start_date" type="text" placeholder="" className="form-input" value={params.pay_start_date} onChange={(e) => changeValue(e)} />
-                                            </div>
+                                        <div className="mb-5">
+                                            <label htmlFor="department">Department</label>
+                                            <input id="department" type="text" placeholder="" className="form-input" value={params.department} onChange={(e) => changeValue(e)} />
+                                        </div>
+                                        <div className="mb-5">
+                                            <label htmlFor="job_type">Job Type</label>
+                                            <input id="job_type" type="text" placeholder="" className="form-input" value={params.job_type} onChange={(e) => changeValue(e)} />
+                                        </div>
+                                        <div className="mb-5">
+                                            <label htmlFor="pay_grade">Pay Grade</label>
+                                            {/* <input id="pay_start_date" type="text" placeholder=""  onChange={(e) => changeValue(e)} /> */}
+                                            <select value={params.paygrade} className="form-input">
+                                                {/* Mapping through the array and creating <option> elements */}
+                                                {PayGrade.map((option, index) => (
+                                                    <option key={index} value={option}>
+                                                        {option.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
 
                                         <div className="flex justify-end items-center mt-8">
                                             <button type="button" className="btn btn-outline-danger" onClick={closeModal}>
