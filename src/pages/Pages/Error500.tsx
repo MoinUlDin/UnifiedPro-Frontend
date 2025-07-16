@@ -2,14 +2,14 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { setPageTitle } from '../../store/themeConfigSlice';
-import { IRootState } from '../../store';
+import { RootState } from '../../store';
 
 const Error500 = () => {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(setPageTitle('Error 500'));
     });
-    const isDark = useSelector((state: IRootState) => state.themeConfig.theme === 'dark' || state.themeConfig.isDarkMode);
+    const isDark = useSelector((state: RootState) => state.themeConfig.theme === 'dark' || state.themeConfig.isDarkMode);
 
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden">

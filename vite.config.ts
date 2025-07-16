@@ -11,7 +11,7 @@ export default defineConfig({
             process: true,
             buffer: true,
             global: true,
-            base: '/', 
+            base: '/',
         }),
     ],
     resolve: {

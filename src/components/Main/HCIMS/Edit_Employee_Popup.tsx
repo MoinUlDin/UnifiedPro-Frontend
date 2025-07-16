@@ -1,222 +1,168 @@
 import { useState, Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-// import { useDispatch } from 'react-redux';
-// import { setPageTitle } from '../../store/themeConfigSlice';
-// import IconUserPlus from '../../components/Icon/IconUserPlus';
+import SettingServices from '../../../services/SettingServices';
 import IconX from '../../Icon/IconX';
 import IconCaretDown from '../../Icon/IconCaretDown';
-import axios from 'axios';
+import EmployeeServices from '../../../services/EmployeeServices';
 
-// import Edit from '../../../pages/Apps/Invoice/Edit';
+interface Designation {
+    id: number;
+    name: string;
+    department: number; // FK
+    parent: number | null;
+    department_name: string;
+}
 
-const Edit_Employee_Popup = ({ closeModal }: { closeModal: () => void }) => {
+interface Department {
+    id: number;
+    name: string;
+    expected_arrival_time: string | null;
+    parent: number | null;
+}
+interface InitData {
+    id: number;
+    first_name: string;
+    last_name: string;
+    department: string;
+    designation: string;
+    hire_date: string;
+}
+interface InputProps {
+    closeModal: () => void;
+    isEditMode?: boolean;
+    initailData?: InitData | null;
+}
+
+export default function Edit_Employee_Popup({ closeModal, isEditMode = false, initailData = null }: InputProps) {
     const [params, setParams] = useState({
-        email: 'test@example.com',
-        password: '123456',
-        password2: '123456',
-        first_name: 'John',
-        last_name: 'Doe',
-        designation: null,
+        email: '',
+        password: '',
+        password2: '',
+        first_name: '',
+        last_name: '',
+        designation: '', // string so it works with <select>
         department: '',
-        hire_date: '2025-03-05',
-        report_to: null,
-        profile_image: new File([], "empty.jpg", { type: "image/jpeg" }),
+        hire_date: '',
+        profile_image: null as File | null,
     });
-      interface Designation {
-        id: number;
-        name: string;
-        ParentDesignation: string;
-        ChildDesignation: string;
-    }
-    interface Department {
-        id: number;
-        name: string;
-        ParentDesignation: string;
-        ChildDesignation: string;
-    }
 
     const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
-
-    const changeValue = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { value, id } = e.target;
-        setParams(prevParams => ({ ...prevParams, [id]: value }));
-    };
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]; // Get selected file
-        if (file) {
-            setParams(prev => ({ ...prev, profile_image: file }));
-        }
-    };
-    // ✅ Token Refresh Function
-    const refreshAccessToken = async () => {
-        try {
-            const refreshToken = localStorage.getItem("refreshToken");
-            if (!refreshToken) throw new Error("No refresh token available");
-
-            const response = await axios.post(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/auth/token/refresh`, {
-                refresh: refreshToken,
-            });
-
-            const { access, refresh } = response.data;
-
-            localStorage.setItem("token", access);
-            localStorage.setItem("refreshToken", refresh);
-
-            return access;
-        } catch (error) {
-            console.error("❌ Failed to refresh token:", error);
-            return null;
-        }
-    };
-
-    // ✅ Handle Form Submission
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault(); 
-        setIsLoading(true);
-        setError("");
-
-        try {
-            let token = localStorage.getItem('token');
-            if (!token) {
-                setError("No access token found. Please log in again.");
-                return;
-            }
-
-            const API_BASE_URL = "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me";
-            const response = await axios.post(`${API_BASE_URL}/auth/employee-register/`, params, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "multipart/form-data",
-                }
-            });
-            console.log("Submitting params:", params);
-            if (response.status === 201) {
-                alert("Employee added successfully!");
-              
-
-                closeModal();
-            } else {
-                setError("Failed to add employee. Please try again.");
-            }
-        } catch (err: any) {
-            console.error("❌ Error:", err);
-
-            if (err.response?.status === 401) {
-                // Token expired, try refreshing
-                const newToken = await refreshAccessToken();
-                if (newToken) {
-                    localStorage.setItem("token", newToken); // Update token before retrying
-                    return handleSubmit(e);
-                } else {
-                    setError("Session expired. Please log in again.");
-                }
-            } else {
-                setError(err.response?.data?.message || "Something went wrong.");
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // ✅ Fetch Employee Data When Component Loads
+    const [allDesignations, setAllDesignations] = useState<Designation[]>([]);
+    const [filteredDesigs, setFilteredDesigs] = useState<Designation[]>([]);
+    const [errors, setErrors] = useState<Partial<Record<keyof typeof params, string>>>({});
     useEffect(() => {
-        const fetchEmployeeData = async () => {
-            try {
-                const token = localStorage.getItem('token'); // Fetch the token inside the effect
-                if (!token) {
-                    setError("No access token found.");
-                    return;
-                }
-
-                const API_BASE_URL = "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me";
-
-                const response = await axios.get(`${API_BASE_URL}/auth/employees/7/`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json"
-                    }
-                });
-
-                console.log(response.data);
-                setParams(response.data); // ✅ Populate form with fetched data
-
-            } catch (err: any) {
-                console.error("❌ Error fetching employee data:", err);
-                setError(err.response?.data?.message || "Failed to fetch data.");
-            }
-        };
-
-        fetchEmployeeData();
+        // fetch departments
+        SettingServices.fetchParentDepartments()
+            .then((r) => setDepartments(r))
+            .catch(console.error);
+        // fetch all designations
+        SettingServices.fetchDesignations()
+            .then((r) => setAllDesignations(r))
+            .catch(console.error);
     }, []);
-    const fetchDepartments = async () => {
-        const API_BASE_URL = "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me";
-        const authToken = localStorage.getItem('token');
-        if (!authToken) {
-            navigate('/auth/boxed-signin');
-            return;
+
+    // when department changes, recompute filtered designations
+    useEffect(() => {
+        if (params.department) {
+            const depId = parseInt(params.department, 10);
+            setFilteredDesigs(allDesignations.filter((d) => d.department === depId));
+        } else {
+            setFilteredDesigs([]);
         }
+    }, [params.department, allDesignations]);
+
+    // 1) whenever initailData arrives, copy it into state
+    useEffect(() => {
+        if (isEditMode && initailData) {
+            console.log('initial data:', initailData);
+            const desigObj = allDesignations.find((d) => d.name === initailData.designation); // ← UPDATED
+            const desigId = desigObj ? String(desigObj.id) : '';
+            setParams({
+                email: '',
+                password: '', // blank out password on edit
+                password2: '',
+                first_name: initailData.first_name,
+                last_name: initailData.last_name,
+                department: String(initailData.department),
+                designation: desigId,
+                hire_date: initailData.hire_date,
+                profile_image: null, // you can’t prefill a File input
+            });
+        }
+    }, [isEditMode, initailData, allDesignations]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { id, value } = e.target;
+        setParams((p) => ({ ...p, [id]: value }));
+        // clear error for this field
+        setErrors((err) => ({ ...err, [id]: undefined }));
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setParams((p) => ({ ...p, profile_image: file }));
+    };
+
+    const validate = () => {
+        const errs: typeof errors = {};
+
+        // always required:
+        if (!params.first_name.trim()) errs.first_name = 'First name is required';
+        if (!params.last_name.trim()) errs.last_name = 'Last name is required';
+
+        // department & designation & hire_date always required
+        if (!params.department) errs.department = 'Department is required';
+        if (!params.designation) errs.designation = 'Designation is required';
+        if (!params.hire_date) errs.hire_date = 'Hire date is required';
+
+        // **only** in create mode do we require email/password/file
+        if (!isEditMode) {
+            if (!params.email.trim()) errs.email = 'Email is required';
+            if (!params.password) errs.password = 'Password is required';
+            if (!params.password2) errs.password2 = 'Please confirm password';
+            if (params.password !== params.password2) errs.password2 = 'Passwords must match';
+            // you could also require profile_image here if you want:
+            // if (!params.profile_image) errs.profile_image = 'Photo is required';
+        }
+
+        setErrors(errs);
+        return Object.keys(errs).length === 0;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log('entering Submit');
+        if (!validate()) return;
+        console.log('not Validated');
+        const form = new FormData();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value != null) form.append(key, value as any);
+        });
+        console.log('sending Update Reques with Data: ', FormData);
 
         try {
-            const response = await axios.get(`${API_BASE_URL}/company-Setup/departments/`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                }
-            });
-            setDepartments(response.data);
+            if (isEditMode && initailData) {
+                // 3) call update endpoint
+                await EmployeeServices.UpdateEmployee(initailData.id, form);
+            } else {
+                await EmployeeServices.AddEmployee(form);
+            }
+            closeModal();
         } catch (err) {
-            console.error('Failed to fetch departments:', err);
-            setError('Failed to fetch departments');
+            console.error(err);
+            alert(err || 'Error saving employee');
         }
     };
-   useEffect(() => {
-     
-   
-    
-    fetchDepartments()
-   }, [])
-
-   const fetchDesignation = async () => {
-    const API_BASE_URL = "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me";
-    const authToken = localStorage.getItem('token');
-    if (!authToken) {
-        navigate('/auth/boxed-signin');
-        return;
-    }
-    
-    try {
-        const response = await axios.get(`${API_BASE_URL}/company-Setup/designations/`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`
-            }
-        });
-
-        setDesignations(response.data);
-    } catch (err) {
-        console.error('Failed to fetch designations:', err);
-        setError('Failed to fetch designations');
-    }
-};
-
-// ✅ Correct useEffect for fetching designations
-useEffect(() => {
-    fetchDesignation();
-}, []);
-
-console.log(departments)
 
     return (
-        <Transition appear show={true} as={Fragment}>
-            <Dialog as="div" open={true} onClose={closeModal} className="   relative z-[51]">
+        <Transition appear show as={Fragment}>
+            <Dialog as="div" className="relative z-50" onClose={closeModal}>
                 <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-                    <div className="fixed inset-0 bg-[black]/60" />
+                    <div className="fixed inset-0 bg-black bg-opacity-25" />
                 </Transition.Child>
+
                 <div className="fixed inset-0 overflow-y-auto">
-                    <div className="flex min-h-full items-center justify-center px-4 py-8">
+                    <div className="flex items-center justify-center min-h-full p-4 text-start">
                         <Transition.Child
                             as={Fragment}
                             enter="ease-out duration-300"
@@ -226,107 +172,118 @@ console.log(departments)
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-xl text-black dark:text-white-dark">
-                                <button type="button" onClick={closeModal} className="absolute top-4 ltr:right-4 rtl:left-4 text-gray-400 hover:text-gray-800 dark:hover:text-gray-600 outline-none">
+                            <Dialog.Panel className="w-full max-w-xl bg-white p-6 rounded-lg shadow-xl">
+                                <button onClick={closeModal} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
                                     <IconX />
                                 </button>
-                                <div className="text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">Add Employee</div>
-                                <div className="p-5">
-                                    <form onSubmit={handleSubmit}>
-                                        <div className="mb-5">
-                                            <label htmlFor="full_name">First Name:</label>
-                                            <input id="first_name" type="text" placeholder="" className="form-input" value={params.first_name} onChange={(e) => changeValue(e)} />
-                                        </div>
-                                        <div className="mb-5">
-                                            <label htmlFor="full_name">Last Name:</label>
-                                            <input id="last_name" type="text" placeholder="" className="form-input" value={params.last_name} onChange={(e) => changeValue(e)} />
-                                        </div>
-                                        <div className="mb-5 w-">
-                                            <label htmlFor="email">Email:</label>
-                                            <input id="email" type="email" placeholder="" className="form-input" value={params.email} onChange={(e) => changeValue(e)} />
-                                        </div>
-                                        <div className="flex gap-4">
-                                            <div className="mb-5 w-[48%]">
-                                                <label htmlFor="password">Password:</label>
-                                                <input id="password" type="password" placeholder="" className="form-input" value={params.password} onChange={(e) => changeValue(e)} />
-                                            </div>
+                                <h2 className="text-lg font-medium mb-4 text-center">Add / Edit Employee</h2>
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    {/* First Name */}
+                                    <div>
+                                        <label htmlFor="first_name">First Name</label>
+                                        <input id="first_name" type="text" placeholder="Moin" className="form-input w-full" value={params.first_name} onChange={handleChange} />
+                                        {errors.first_name && <p className="text-red-600">{errors.first_name}</p>}
+                                    </div>
 
-                                            <div className="mb-5  w-[48%]">
-                                                <label htmlFor="password2">Confirm Password:</label>
-                                                <input id="password2" type="password" placeholder="" className="form-input" value={params.password2} onChange={(e) => changeValue(e)} />
-                                            </div>
-                                        </div>
-                                        <div className="mb-5">
-                                            <label htmlFor="hire_date">Hire Date:</label>
-                                            <input id="hire_date" type="date" placeholder="" className="form-input" value={params.hire_date} onChange={(e) => changeValue(e)} />
-                                        </div>
-                                        <div className="mb-5">
-                                            <label htmlFor="dp">Upload Image:</label>
-                                            <input id="dp" type="file" className="form-input" onChange={(e) => handleImageUpload(e)} />
-                                        </div>
-                                        <div className="flex gap-4">
-                                            {/* Department Select with Icon */}
-                                            <div className="mb-5 w-[48%] relative">
-                                                <label htmlFor="department">Department:</label>
-                                                <select
-                                                    id="department"
-                                                    className="form-input pr-10" // Add padding-right to make space for the icon
-                                                    value={params.department}
-                                                    onChange={(e) => changeValue(e)}
-                                                >
-                                                    <option value="">None</option>
-                                                    {departments.map((dept) => (
-                                                        <option key={dept.id} value={dept.id.toString()}>
-                                                            {dept.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <IconCaretDown className="absolute top-10 right-3 pointer-events-none" /> {/* Position icon */}
-                                            </div>
+                                    {/* Last Name */}
+                                    <div>
+                                        <label htmlFor="last_name">Last Name</label>
+                                        <input id="last_name" type="text" className="form-input w-full" placeholder="Ul Din" value={params.last_name} onChange={handleChange} />
+                                        {errors.last_name && <p className="text-red-600">{errors.last_name}</p>}
+                                    </div>
 
-                                            {/* Assign Designation Select with Icon */}
-                                            <div className="mb-5 w-[48%] relative">
-                                                <label htmlFor="assign_designation">Assign designation:</label>
-                                                <select id="designation" className="form-input text-white pr-10" value={params.designation} onChange={(e) => changeValue(e)}>
-                                                    <option value=""></option>
-                                                    {designations.map((dept) => (
-                                                        <option key={dept.id} value={dept.id.toString()}>
-                                                            {dept.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <IconCaretDown className="absolute top-10 right-3 pointer-events-none" />
+                                    {!isEditMode && (
+                                        <div>
+                                            {/* Email */}
+                                            <label htmlFor="email">Email</label>
+                                            <input id="email" type="email" placeholder="email@google.com" className="form-input w-full" value={params.email} onChange={handleChange} />
+                                            {errors.email && <p className="text-red-600">{errors.email}</p>}
+                                        </div>
+                                    )}
+
+                                    {!isEditMode && (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {/* Password & Confirm */}
+                                            <div>
+                                                <label htmlFor="password">Password</label>
+                                                <input id="password" placeholder="Enter your password" type="password" className="form-input w-full" value={params.password} onChange={handleChange} />
+                                                {errors.password && <p className="text-red-600">{errors.password}</p>}
+                                            </div>
+                                            <div>
+                                                <label htmlFor="password2">Confirm Password</label>
+                                                <input
+                                                    id="password2"
+                                                    placeholder="Confirm your password"
+                                                    type="password"
+                                                    className="form-input w-full"
+                                                    value={params.password2}
+                                                    onChange={handleChange}
+                                                />
+                                                {errors.password2 && <p className="text-red-600">{errors.password2}</p>}
                                             </div>
                                         </div>
+                                    )}
 
-                                        <div className="flex gap-4">
-                                            <div className="mb-5  w-[48%] relative">
-                                                <label htmlFor="report_to">Report To:</label>
+                                    {/* Hire Date */}
+                                    <div>
+                                        <label htmlFor="hire_date">Hire Date</label>
+                                        <input id="hire_date" type="date" className="form-input w-full" value={params.hire_date} onChange={handleChange} />
+                                        {errors.hire_date && <p className="text-red-600">{errors.hire_date}</p>}
+                                    </div>
 
-                                                <select id="report_to" className="form-input pr-10" value={params.report_to} onChange={(e) => changeValue(e)}>
-                                                    <option value=""></option>
-                                                    <option value="CEO">CEO</option>
-                                                    <option value="CTO">CTO</option>
-                                                    <option value="Manager">Manager</option>
-                                                </select>
-                                                <IconCaretDown className="absolute top-10 right-3 pointer-events-none" />
-                                            </div>
-                                            <div className="mb-5  w-[48%]">
-                                                <label htmlFor="id">Employee ID:</label>
-                                                <input id="id" type="text" placeholder="" className="form-input" value={params.id} onChange={(e) => changeValue(e)} />
-                                            </div>
+                                    {/* Profile Image */}
+                                    {!isEditMode && (
+                                        <div>
+                                            <label htmlFor="profile_image">Photo</label>
+                                            <input id="profile_image" type="file" className="form-input w-full" onChange={handleImageUpload} />
+                                        </div>
+                                    )}
+
+                                    {/* Department & Designation */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="relative">
+                                            <label htmlFor="department">Department</label>
+                                            <select id="department" className="form-input w-full pr-8" value={params.department} onChange={handleChange}>
+                                                <option disabled value="">
+                                                    Select depart...
+                                                </option>
+                                                {departments.map((d) => (
+                                                    <option key={d.id} value={String(d.id)}>
+                                                        {d.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <IconCaretDown className="absolute top-9 right-3 pointer-events-none" />
+                                            {errors.department && <p className="text-red-600">{errors.department}</p>}
                                         </div>
 
-                                        <div className="flex justify-end items-center mt-8">
-                                            <button type="button" className="btn btn-outline-danger" onClick={closeModal}>
-                                                Cancel
-                                            </button>
-                                            <button type="submit" className="btn btn-primary ltr:ml-4 rtl:mr-4">
-                                                Add
-                                            </button>
+                                        <div className="relative">
+                                            <label htmlFor="designation">Designation</label>
+                                            <select id="designation" className="form-input w-full pr-8" value={params.designation} onChange={handleChange} disabled={!filteredDesigs.length}>
+                                                <option disabled value="">
+                                                    Select designa...
+                                                </option>
+                                                {filteredDesigs.map((d) => (
+                                                    <option key={d.id} value={d.id}>
+                                                        {d.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <IconCaretDown className="absolute top-9 right-3 pointer-events-none" />
+                                            {errors.designation && <p className="text-red-600">{errors.designation}</p>}
                                         </div>
-                                    </form>
-                                </div>
+                                    </div>
+
+                                    {/* Submit */}
+                                    <div className="flex justify-end mt-6">
+                                        <button type="button" onClick={closeModal} className="btn btn-outline-danger mr-3">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" className="btn btn-primary">
+                                            {isEditMode ? 'Update' : 'Add'}
+                                        </button>
+                                    </div>
+                                </form>
                             </Dialog.Panel>
                         </Transition.Child>
                     </div>
@@ -334,6 +291,4 @@ console.log(departments)
             </Dialog>
         </Transition>
     );
-};
-
-export default Edit_Employee_Popup;
+}

@@ -4,7 +4,6 @@ import PrivateRoute from './Privateroute'; // Import the PrivateRoute component
 import BlankLayout from '../components/Layouts/BlankLayout';
 import App from '../App';
 
-
 // 'LoginBoxed' is declared but its value is never read.ts(6133)
 const LoginBoxed = lazy(() => import('../pages/Authentication/LoginBoxed'));
 const RegisterBoxed = lazy(() => import('../pages/Authentication/RegisterBoxed'));
@@ -27,9 +26,9 @@ const ViewTasks = lazy(() => import('../components/Main/Tasks/View_Tasks'));
 const TasksReports = lazy(() => import('../components/Main/Tasks/Reports'));
 const ViewTasksForm = lazy(() => import('../components/Main/Tasks/View_Tasks_Form'));
 const Annoucements = lazy(() => import('../components/Main/Tasks/Announcement'));
-const PersonalTaskReports=lazy(()=>import('../components/Main/Tasks/PersonalTaskReports'))
-const TaskProgressReports=lazy(()=>import('../components/Main/Tasks/TaskProgressReports'))
-const SubordinateTaskReports=lazy(()=>import('../components/Main/Tasks/SubordinateTaskReports'))
+const PersonalTaskReports = lazy(() => import('../components/Main/Tasks/PersonalTaskReports'));
+const TaskProgressReports = lazy(() => import('../components/Main/Tasks/TaskProgressReports'));
+const SubordinateTaskReports = lazy(() => import('../components/Main/Tasks/SubordinateTaskReports'));
 // Routines
 const RoutineDashboard = lazy(() => import('../components/Main/Routines/Dashboard'));
 const Attendance = lazy(() => import('../components/Main/Routines/Attendance'));
@@ -40,7 +39,7 @@ const CreateExp = lazy(() => import('../components/Main/Routines/Create_Exp'));
 const RoutinesReports = lazy(() => import('../components/Main/Routines/Reports'));
 const Whistle = lazy(() => import('../components/Main/Routines/Whistle'));
 const MarkHoliday = lazy(() => import('../components/Main/Routines/MarkHoliday')); // Ensure the file exists at this path or update the path accordingly
-const ViewMarkedHolidays =lazy(() => import('../components/Main/Routines/ViewMarkedHolidays'))
+const ViewMarkedHolidays = lazy(() => import('../components/Main/Routines/ViewMarkedHolidays'));
 // Evaluation
 const CompanyPolicies = lazy(() => import('../components/Main/Evaluation/Company_Policies'));
 const Contest = lazy(() => import('../components/Main/Evaluation/Contest'));
@@ -60,7 +59,7 @@ const CreateDesignation = lazy(() => import('../components/Main/Settings/Create_
 const CreateSalary = lazy(() => import('../components/Main/Settings/Create_Salary'));
 const PerformanceMoni = lazy(() => import('../components/Main/Settings/Performance_Moni'));
 const SettingsPermission = lazy(() => import('../components/Main/Settings/Permissions'));
-
+const Departments = lazy(() => import('../components/Main/Settings/Departments'));
 // Training Section
 const TrainingAssess = lazy(() => import('../components/Main/Training/Train_Assess'));
 const CreateTraining = lazy(() => import('../components/Main/Training/Create_Train'));
@@ -78,320 +77,327 @@ const Calendar = lazy(() => import('../pages/Apps/Calendar'));
 // Error
 const Error = lazy(() => import('../components/Error'));
 
-const routes = [
+type AppRoute = {
+    path: string;
+    element: ReactElement;
+    layout: string;
+    protected?: boolean;
+};
+
+const routes: AppRoute[] = [
     // Auth Routes
     {
         path: '/auth/boxed-signin',
         element: <LoginBoxed />,
-        layout: 'blank'
+        layout: 'blank',
     },
     {
         path: '/auth/register',
         element: <RegisterBoxed />,
-        layout: 'blank'
+        layout: 'blank',
     },
     {
         path: '/auth/LoginBoxed',
         element: <LoginBoxed />,
-        layout: 'blank'
+        layout: 'blank',
     },
     // Main Route
     {
         path: '/',
         element: <MainDashboard />,
-        layout: 'default'
+        layout: 'default',
     },
     // Main Dashboard Route
     {
         path: '/dashboard',
         element: <MainDashboard />,
-        layout: 'default'
+        layout: 'default',
     },
     // Todo List Route
     {
         path: '/todolist',
         element: <TodoList />,
-        layout: 'default'
+        layout: 'default',
     },
     // Calendar Route
     {
         path: '/calendar',
         element: <Calendar />,
-        layout: 'default'
+        layout: 'default',
     },
     // HCIMS Routes
     {
         path: '/hcims',
         element: <CompanyDashboard />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/edit_employee',
         element: <EditEmployee />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/terminate_employee',
         element: <TerminateEmplyee />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/whatsapp',
         element: <WhatsApp />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/reports_pages',
         element: <HCIMSReports />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/config_reports',
         element: <Configuration />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/employee-details',
         element: <ReportEmpForm />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/Employee_Contact_Directory',
         element: <EmployeeContactDirectory />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/report-employee-details',
         element: <EmployeeDetails />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/Birthday_Directory',
         element: <BirthdayDirectory />,
-        layout: 'default'
+        layout: 'default',
     },
     // Tasks Routes
     {
         path: '/company_tasks_dashboard',
         element: <TasksDashboard />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/view_tasks',
         element: <ViewTasks />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create-announcement',
-        element: <Annoucements/>,
-        layout: 'default'
+        element: <Annoucements />,
+        layout: 'default',
     },
     {
-        path:'/PersonalTasks',
-        element:<PersonalTaskReports/>,
-        layout:'default'
+        path: '/PersonalTasks',
+        element: <PersonalTaskReports />,
+        layout: 'default',
     },
     {
-        path:'/TaskReports',
-        element:<TaskProgressReports/>,
-        layout:'default'
+        path: '/TaskReports',
+        element: <TaskProgressReports />,
+        layout: 'default',
     },
     {
         path: '/tasks_reports',
         element: <TasksReports />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/SubordinateTaskReports',
-        element: <SubordinateTaskReports/>,
-        layout: 'default'
+        element: <SubordinateTaskReports />,
+        layout: 'default',
     },
-    
+
     {
         path: '/tasks_form',
         element: <ViewTasksForm />,
-        layout: 'default'
+        layout: 'default',
     },
     // Routines Routes
     {
         path: '/routine_report_dashboard',
         element: <RoutineDashboard />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/mark_holidays',
         element: <MarkHoliday />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/view-marked-holidays',
         element: <ViewMarkedHolidays />,
-        layout: 'default'
+        layout: 'default',
     },
 
     {
         path: '/staff_attendence',
         element: <Attendance />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/employee_leave_requests',
         element: <TimeReq />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create_meeting',
         element: <CreateMins />,
-        layout: 'default'
+        layout: 'default',
     },
-   
+
     {
         path: '/owner_expense_claim_list',
         element: <ExpClaims />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create_expense_claim',
         element: <CreateExp />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/routine_reports',
         element: <RoutinesReports />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/routine_whistle',
         element: <Whistle />,
-        layout: 'default'
+        layout: 'default',
     },
     // Evaluation Routes
     {
         path: '/company_policies',
         element: <CompanyPolicies />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create_contest',
         element: <Contest />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/performance_matric',
         element: <PerformanceMatric />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/step_evaluation',
         element: <SetupEval />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/view_overall_all_forms',
         element: <Submit_360_Eval />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/view_manager_all_forms',
         element: <SubmitManagerEval />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/view_engagement_all_forms',
         element: <SubmitEngmntEval />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/view_satisfaction_all_forms',
         element: <SubmitStftnEval />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/view_all_forms',
         element: <SubmitSelfEval />,
-        layout: 'default'
+        layout: 'default',
     },
     // Settings Routes
     {
         path: '/company_info',
         element: <CompanyInfo />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/group_of_companies',
         element: <GroupCompany />,
-        layout: 'default'
+        layout: 'default',
     },
     {
-        path: '/add_department',
-        element: <CreateDepartment />,
-        layout: 'default'
+        path: '/departments',
+        element: <Departments />,
+        layout: 'default',
     },
     {
         path: '/add_designation',
         element: <CreateDesignation />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create_salary_structure',
         element: <CreateSalary />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create_performance_monitoring',
         element: <PerformanceMoni />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/permissions',
         element: <SettingsPermission />,
-        layout: 'default'
+        layout: 'default',
     },
     // Training Routes
     {
         path: '/training_assessment',
         element: <TrainingAssess />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create_training',
         element: <CreateTraining />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/assign_training',
         element: <AssignTraining />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create-questions',
         element: <CreateQues />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/view_results',
         element: <ViewRes />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/create-quiz',
         element: <CreateQuiz />,
-        layout: 'default'
+        layout: 'default',
     },
     {
         path: '/submit-quiz',
         element: <SubmitQuiz />,
-        layout: 'default'
+        layout: 'default',
     },
     // Error Route
     {
         path: '*',
         element: <Error />,
-        layout: 'blank'
-    }
+        layout: 'blank',
+    },
 ];
 
-const wrappedRoutes = routes.map((route) => {
+const wrappedRoutes = routes.map((route: AppRoute) => {
     if (route.protected) {
         return {
             ...route,

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { setPageTitle, toggleRTL } from '../../store/themeConfigSlice';
-import { IRootState } from '../../store';
+import { RootState } from '../../store';
 import config from '../../config';
 
 const RecoverResetPasswordPage: React.FC = () => {
@@ -17,7 +17,7 @@ const RecoverResetPasswordPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null);
-    const [uid, setUid] = useState<string | null>(null);  // Changed to string
+    const [uid, setUid] = useState<string | null>(null); // Changed to string
 
     useEffect(() => {
         dispatch(setPageTitle('Reset Password'));
@@ -33,14 +33,14 @@ const RecoverResetPasswordPage: React.FC = () => {
         }
 
         if (uidFromUrl) {
-            setUid(uidFromUrl);  // Removed numeric validation
+            setUid(uidFromUrl); // Removed numeric validation
         } else {
             setError('UID is missing.');
         }
     }, [dispatch, location.search]);
 
-    const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl';
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+    const isRtl = useSelector((state: RootState) => state.themeConfig.rtlClass) === 'rtl';
+    const themeConfig = useSelector((state: RootState) => state.themeConfig);
 
     const setLocale = (flag: string) => {
         setFlag(flag);
@@ -140,7 +140,9 @@ const RecoverResetPasswordPage: React.FC = () => {
                             {error && <div className="w-full rounded-md bg-red-100 p-3 text-red-700">{error}</div>}
                             {success && <div className="w-full rounded-md bg-green-100 p-3 text-green-700">{success}</div>}
                             <div className="relative flex w-full flex-col items-center">
-                                <label htmlFor="new-password" className="text-sm font-semibold text-body-dark">New Password</label>
+                                <label htmlFor="new-password" className="text-sm font-semibold text-body-dark">
+                                    New Password
+                                </label>
                                 <input
                                     type="password"
                                     id="new-password"
@@ -151,7 +153,9 @@ const RecoverResetPasswordPage: React.FC = () => {
                                 />
                             </div>
                             <div className="relative flex w-full flex-col items-center">
-                                <label htmlFor="confirm-password" className="text-sm font-semibold text-body-dark">Confirm Password</label>
+                                <label htmlFor="confirm-password" className="text-sm font-semibold text-body-dark">
+                                    Confirm Password
+                                </label>
                                 <input
                                     type="password"
                                     id="confirm-password"
@@ -161,11 +165,7 @@ const RecoverResetPasswordPage: React.FC = () => {
                                     required
                                 />
                             </div>
-                            <button
-                                type="submit"
-                                className={`w-full rounded-lg bg-primary py-2 text-white ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                disabled={loading}
-                            >
+                            <button type="submit" className={`w-full rounded-lg bg-primary py-2 text-white ${loading ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={loading}>
                                 {loading ? 'Resetting...' : 'Reset Password'}
                             </button>
                         </form>

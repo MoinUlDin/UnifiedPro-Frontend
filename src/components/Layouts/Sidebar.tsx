@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useLocation } from 'react-router-dom';
 import { toggleSidebar } from '../../store/themeConfigSlice';
 import AnimateHeight from 'react-animate-height';
-import { IRootState } from '../../store';
+import { RootState } from '../../store';
 import { useState, useEffect } from 'react';
 import IconCaretsDown from '../Icon/IconCaretsDown';
 import IconCaretDown from '../Icon/IconCaretDown';
@@ -44,8 +44,8 @@ import IconServer from '../Icon/IconServer';
 const Sidebar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
     const [errorSubMenu, setErrorSubMenu] = useState(false);
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
-    const semidark = useSelector((state: IRootState) => state.themeConfig.semidark);
+    const themeConfig = useSelector((state: RootState) => state.themeConfig);
+    const semidark = useSelector((state: RootState) => state.themeConfig.semidark);
     const location = useLocation();
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -285,7 +285,7 @@ const Sidebar = () => {
                                             <NavLink to="/group_of_companies">{t('Group of Companies')}</NavLink>
                                         </li>
                                         <li>
-                                            <NavLink to="/add_department">{t('Create Department')}</NavLink>
+                                            <NavLink to="/departments">{t('Create Department')}</NavLink>
                                         </li>
                                         <li>
                                             <NavLink to="/add_designation">{t('Create Designation')}</NavLink>

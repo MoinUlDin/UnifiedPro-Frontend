@@ -1,11 +1,23 @@
-import { useState, Fragment, useEffect } from 'react';
+import { useState, Fragment, useEffect, useMemo } from 'react';
+import { DataTable } from 'mantine-datatable';
 import { Dialog, Transition } from '@headlessui/react';
 import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
-import CommonTable from '../Common_Table';
-import FormComponent from '../Common_Popup';
 import Edit_Employee_Popup from './Edit_Employee_Popup';
-import axios from 'axios';
+import EmployeeServices from '../../../services/EmployeeServices';
+import { render } from '@fullcalendar/core/preact';
+type FormData = {
+    id: number;
+    email?: string;
+    department: string;
+    designation: string;
+    first_name: string;
+    last_name: string;
+    hire_date: string;
+    password?: string;
+    confirm_password?: string;
+};
+
 const Edit_Employee = () => {
     const dispatch = useDispatch();
 
@@ -15,13 +27,11 @@ const Edit_Employee = () => {
 
     interface Employee {
         id: number;
-        Email: string;
-        Department: string;
-        Designation: string;
-        ReportTo: string;
-        FirstName: string;
-        LastName: string;
-        HireDate: string;
+        department: string;
+        designation: string;
+        first_name: string;
+        last_name: string;
+        hire_date: string;
     }
 
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -29,177 +39,161 @@ const Edit_Employee = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [currentEditId, setCurrentEditId] = useState<number | null>(null);
+    const [page, setPage] = useState(1);
+    const [recordsPerPage, setRecordsPerPage] = useState(10);
 
-    const initialFormFields = {
+    const initialFormFields: FormData = {
         id: 0,
-        Email: '',
-        Password: '',
-        ConfirmPassword: '',
-        Department: '',
-        Designation: '',
-        ReportTo: '',
-        FirstName: '',
-        LastName: '',
-        HireDate: '',
+        department: '',
+        designation: '',
+        first_name: '',
+        last_name: '',
+        hire_date: '',
     };
 
     const [formData, setFormData] = useState(initialFormFields);
 
     const columns = [
-        { accessor: 'id', title: 'ID' },
-    { accessor: 'department', title: 'Department' }, 
-    { accessor: 'designation', title: 'Designation' }, // ✅ Already correct
-    { accessor: 'first_name', title: 'First Name' }, // ✅ Fixed
-    { accessor: 'last_name', title: 'Last Name' }, // ✅ Fixed
-    { accessor: 'hire_date', title: 'Hire Date' }, // ✅ Fixed
-    ];
-
-    const departmentOptions = [
-        { value: '', label: '--------- (Select Department)' }, // Default placeholder
-        { value: '1', label: 'HR' },
-        { value: '2', label: 'Finance' },
-        { value: '3', label: 'Engineering' },
-        // Add more department options as needed
-    ];
-
-    const formFields = [
-        { id: 'Email', label: 'Email', type: 'email', value: formData.Email },
-        { id: 'Password', label: 'Password', type: 'password', value: formData.Password },
-        { id: 'ConfirmPassword', label: 'Confirm Password', type: 'password', value: formData.ConfirmPassword },
         {
-            id: 'Department',
-            label: 'Department',
-            type: 'select', // Indicate this field is a dropdown
-            options: departmentOptions,
-            value: formData.Department,
+            accessor: 'first_name',
+            title: 'Name',
+            render: (row: any) => (
+                <div>
+                    {row.first_name} {row.last_name}
+                </div>
+            ),
         },
-        { id: 'Designation', label: 'Assign Designation', type: 'text', value: formData.Designation },
-        { id: 'ReportTo', label: 'Report To', type: 'text', value: formData.ReportTo },
-        { id: 'FirstName', label: 'First Name', type: 'text', value: formData.FirstName },
-        { id: 'LastName', label: 'Last Name', type: 'text', value: formData.LastName },
-        { id: 'HireDate', label: 'Hire Date', type: 'date', value: formData.HireDate },
+
+        { accessor: 'department', title: 'department', render: (row: any) => <div style={{ minWidth: 140 }}>{row.department}</div> },
+        { accessor: 'designation', title: 'designation' },
+        { accessor: 'hire_date', title: 'Hire Date' },
+        {
+            accessor: 'actions',
+            title: 'Actions',
+            render: (row: any) => (
+                <div className="flex gap-2">
+                    <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => {
+                            setIsEditMode(true);
+                            setCurrentEditId(row.id);
+                            setFormData({
+                                id: row.id,
+                                email: row.email,
+                                department: row.department,
+                                designation: row.designation,
+                                first_name: row.first_name,
+                                last_name: row.last_name,
+                                hire_date: row.hire_date,
+                            });
+                            openModal();
+                        }}
+                    >
+                        Edit
+                    </button>
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(row.id)}>
+                        Delete
+                    </button>
+                </div>
+            ),
+        },
     ];
 
     const handleAddOrEditEmployee = async (submittedData: typeof formData) => {
+        console.log('Submitted Data:', submittedData);
         const updatedEmployee = {
-            id: submittedData.id || employees.length + 1, // Keep existing ID or generate new one
-            Email: submittedData.Email,
-            Department: submittedData.Department,
-            Designation: submittedData.Designation,
-            ReportTo: submittedData.ReportTo,
-            FirstName: submittedData.FirstName,
-            LastName: submittedData.LastName,
-            HireDate: submittedData.HireDate,
+            id: submittedData.id,
+            department: submittedData.department,
+            designation: submittedData.designation,
+            first_name: submittedData.first_name,
+            last_name: submittedData.last_name,
+            hire_date: submittedData.hire_date,
         };
-    
+
         if (isEditMode) {
-            setEmployees(prev =>
-                prev.map(emp => (emp.id === currentEditId ? updatedEmployee : emp))
-            );
+            setEmployees((prev) => prev.map((emp) => (emp.id === currentEditId ? updatedEmployee : emp)));
         } else {
-            setEmployees(prev => [...prev, updatedEmployee]);
+            setEmployees((prev) => [...prev, updatedEmployee]);
         }
-    
+
         setIsModalOpen(false);
         setIsEditMode(false);
         setCurrentEditId(null);
         setFormData(initialFormFields);
     };
-    const ImportEmployeeData = async () => {
-        try {
-            const response = await axios.get('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/auth/employees/', {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                }
+
+    // Compute only the records for the active page:
+    const pagedRecords = useMemo(() => {
+        const start = (page - 1) * recordsPerPage;
+        return employees.slice(start, start + recordsPerPage);
+    }, [employees, page, recordsPerPage]);
+
+    useEffect(() => {
+        EmployeeServices.FetchEmployees()
+            .then((response) => {
+                console.log('Employess', response);
+                const filtered = response.filter((emp: any) => emp.department != null && emp.designation != null);
+                const formattedEmployees = filtered.map((emp: { id: any; department: any; designation: any; first_name: any; last_name: any; hire_date: any }) => ({
+                    id: emp.id,
+                    department: emp.department || 'N/A', // Handle null values
+                    designation: emp.designation || 'N/A',
+                    first_name: emp.first_name,
+                    last_name: emp.last_name,
+                    hire_date: emp.hire_date || 'N/A',
+                }));
+
+                setEmployees(formattedEmployees);
+            })
+            .catch((error) => {
+                console.log(error);
             });
-    
-            console.log("API Response:", response.data);
-    
-            const formattedEmployees = response.data.map((emp: { id: any; department: any; designation: any; first_name: any; last_name: any; hire_date: any; }) => ({
-                id: emp.id,
-                department: emp.department || "N/A", // Handle null values
-                designation: emp.designation || "N/A",
-                first_name: emp.first_name,
-                last_name: emp.last_name,
-                hire_date: emp.hire_date || "N/A",
-            }));
-    
-            setEmployees(formattedEmployees);
-        } catch (error) {
-            console.error("Error fetching employee data:", error);
-        }
-    };
-    
-        useEffect(() => {
-            ImportEmployeeData();
-        }, []);
-        
+    }, []);
+
     const closeModal = () => {
         setIsModalOpen(false);
         setFormData(initialFormFields);
         setIsEditMode(false);
         setCurrentEditId(null);
     };
+    useEffect(() => {
+        setPage(1);
+    }, [recordsPerPage]);
 
     const openModal = () => setIsModalOpen(true);
+    const handleDelete = (id: number) => {};
 
     return (
-        <div >
-            
-            <CommonTable
-                heading=" Create Employee"
-                buttonLabel="Employee"
-                formFields={formFields}
-                columns={columns}
-                data={employees}
-                onButtonClick={openModal}
-            />
-           
+        <div>
+            <div className="panel">
+                <div className="flex justify-between items-center mb-5">
+                    <h5 className="font-semibold text-lg dark:text-white-light">Employees</h5>
+                    <button className="btn btn-primary" onClick={openModal}>
+                        + Add Employee
+                    </button>
+                </div>
+
+                <DataTable
+                    records={pagedRecords}
+                    columns={columns}
+                    totalRecords={employees.length}
+                    recordsPerPage={recordsPerPage}
+                    page={page}
+                    onPageChange={setPage}
+                    onRecordsPerPageChange={setRecordsPerPage}
+                    recordsPerPageOptions={[10, 20, 50]}
+                    minHeight={200}
+                    paginationText={({ from, to, totalRecords }) => `Showing ${from} to ${to} of ${totalRecords}`}
+                />
+            </div>
+
             {/* Modal Popup for Form */}
-            <Transition appear show={isModalOpen}  as={Fragment}>
-                <Dialog as="div" className="relative z-10"  onClose={closeModal}> 
-                    <Transition.Child
-                        as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
+            <Transition appear show={isModalOpen} as={Fragment}>
+                <Dialog as="div" className="relative z-10" onClose={closeModal}>
+                    <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
                         <div className="fixed inset-0 bg-black bg-opacity-25" />
                     </Transition.Child>
 
-                    {/* <div className="fixed inset-0 overflow-y-auto">
-                        <div className="flex items-center justify-center min-h-full p-4 text-center">
-                            <Transition.Child
-                                as={Fragment}
-                                enter="ease-out duration-300"
-                                enterFrom="opacity-0 scale-95"
-                                enterTo="opacity-100 scale-100"
-                                leave="ease-in duration-200"
-                                leaveFrom="opacity-100 scale-100"
-                                leaveTo="opacity-0 scale-95"
-                            >
-                                <Dialog.Panel className="w-full max-w-3xl p-6 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-xl">
-                                    <Dialog.Title
-                                        as="h3"
-                                        className="text-lg font-medium leading-6 text-gray-900"
-                                    >
-                                        {isEditMode ? 'Edit Employee' : 'Add Employee'}
-                                    </Dialog.Title>
-                                    <div className="mt-2">
-                                        <FormComponent
-                                            fields={formFields}
-                                            onSubmit={handleAddOrEditEmployee}
-                                            onCancel={closeModal}
-                                        />
-                                    </div> 
-                                </Dialog.Panel>
-                            </Transition.Child>
-                        </div>
-                    </div>*/}
-                    <Edit_Employee_Popup closeModal={closeModal} />
+                    <Edit_Employee_Popup initailData={formData} closeModal={closeModal} isEditMode={isEditMode} />
                 </Dialog>
             </Transition>
         </div>

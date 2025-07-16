@@ -30,11 +30,11 @@ interface TableComponentProps {
     onButtonClick?: () => void;
 }
 
-const Common_Table: React.FC<TableComponentProps> = ({ 
-    heading, 
-    buttonLabel, 
-    formFields, 
-    columns, 
+const Common_Table: React.FC<TableComponentProps> = ({
+    heading,
+    buttonLabel,
+    formFields,
+    columns,
     data,
     onAdd,
     onEdit,
@@ -43,7 +43,7 @@ const Common_Table: React.FC<TableComponentProps> = ({
     isModalOpen = false,
     setIsModalOpen,
     isLoading = false,
-    onButtonClick
+    onButtonClick,
 }) => {
     const dispatch = useDispatch();
     const [page, setPage] = useState(1);
@@ -65,6 +65,7 @@ const Common_Table: React.FC<TableComponentProps> = ({
     };
 
     const handleEdit = (item: any) => {
+        console.log('Items: ', item);
         setInitialValues(item);
         if (onEdit) {
             onEdit(item);
@@ -103,18 +104,10 @@ const Common_Table: React.FC<TableComponentProps> = ({
                             title: 'Actions',
                             render: (row) => (
                                 <div className="flex gap-4">
-                                    {/* <button 
-                                        type="button" 
-                                        className="btn btn-sm btn-outline-primary"
-                                        onClick={() => handleEdit(row)}
-                                    >
+                                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => handleEdit(row)}>
                                         Edit
-                                    </button> */}
-                                    <button 
-                                        type="button" 
-                                        className="btn btn-sm btn-outline-danger"
-                                        onClick={() => handleDelete(row.id)}
-                                    >
+                                    </button>
+                                    <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(row.id)}>
                                         Delete
                                     </button>
                                 </div>
@@ -134,15 +127,7 @@ const Common_Table: React.FC<TableComponentProps> = ({
 
             <Transition appear show={isModalOpen} as={Fragment}>
                 <Dialog as="div" className="relative z-10" onClose={() => setIsModalOpen?.(false)}>
-                    <Transition.Child
-                        as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
+                    <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
                         <div className="fixed inset-0 bg-black bg-opacity-25" />
                     </Transition.Child>
 
@@ -161,13 +146,8 @@ const Common_Table: React.FC<TableComponentProps> = ({
                                     <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
                                         {initialValues.id ? 'Edit' : 'Add'} {heading}
                                     </Dialog.Title>
-                                    <CommonPopup
-                                        fields={formFields}
-                                        onSubmit={handleSubmit}
-                                        onCancel={() => setIsModalOpen?.(false)}
-                                        initialValues={initialValues}
-                                        isLoading={isLoading}
-                                    />
+
+                                    <CommonPopup fields={formFields} onSubmit={handleSubmit} onCancel={() => setIsModalOpen?.(false)} initialValues={initialValues} isLoading={isLoading} />
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>

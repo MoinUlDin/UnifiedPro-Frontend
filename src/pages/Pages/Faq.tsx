@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import AnimateHeight from 'react-animate-height';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPageTitle } from '../../store/themeConfigSlice';
-import { IRootState } from '../../store';
+import { RootState } from '../../store';
 import IconArrowWaveLeftUp from '../../components/Icon/IconArrowWaveLeftUp';
 import IconDesktop from '../../components/Icon/IconDesktop';
 import IconUser from '../../components/Icon/IconUser';
@@ -24,7 +24,7 @@ const Faq = () => {
             return oldValue === value ? 0 : value;
         });
     };
-    const isDark = useSelector((state: IRootState) => state.themeConfig.theme === 'dark' || state.themeConfig.isDarkMode);
+    const isDark = useSelector((state: RootState) => state.themeConfig.theme === 'dark' || state.themeConfig.isDarkMode);
     const [activeTab, setActiveTab] = useState<String>('general');
     const [active1, setActive1] = useState<any>(1);
     const [active2, setActive2] = useState<any>(1);

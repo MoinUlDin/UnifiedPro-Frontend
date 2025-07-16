@@ -1,15 +1,14 @@
-import { useState , useEffect} from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { setPageTitle, toggleRTL } from '../../store/themeConfigSlice';
 import Dropdown from '../../components/Dropdown';
-import { IRootState } from '../../store';
+import { RootState } from '../../store';
 import i18next from 'i18next';
 import IconCaretDown from '../../components/Icon/IconCaretDown';
 import IconMail from '../../components/Icon/IconMail';
 import config from '../../config';
-
 
 const RecoverIdCover = () => {
     const dispatch = useDispatch();
@@ -18,14 +17,14 @@ const RecoverIdCover = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    
+
     useEffect(() => {
         dispatch(setPageTitle('Recover Id Box'));
     }, [dispatch]);
 
-    const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
-    
+    const isRtl = useSelector((state: RootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
+    const themeConfig = useSelector((state: RootState) => state.themeConfig);
+
     const setLocale = (flag: string) => {
         setFlag(flag);
         dispatch(toggleRTL(flag.toLowerCase() === 'ae' ? 'rtl' : 'ltr'));
@@ -48,10 +47,10 @@ const RecoverIdCover = () => {
             setSuccess('A password reset link has been sent to your email address.');
             setEmail('');
         } catch (error) {
-            if (error.response) {
-                setError(error.response.data.message || 'An error occurred. Please try again.');
+            if (axios.isAxiosError(error)) {
+                setError(error.response?.data?.message || 'An error occurred. Please try again.');
             } else {
-                setError('An error occurred. Please try again.');
+                setError('An unexpected error occurred. Please try again.');
             }
         } finally {
             setLoading(false);
@@ -72,8 +71,6 @@ const RecoverIdCover = () => {
                     <div className="relative hidden w-full items-center justify-center bg-[linear-gradient(225deg,rgba(239,18,98,1)_0%,rgba(67,97,238,1)_100%)] p-5 lg:inline-flex lg:max-w-[835px] xl:-ms-28 ltr:xl:skew-x-[14deg] rtl:xl:skew-x-[-14deg]">
                         <div className="absolute inset-y-0 w-8 from-primary/10 via-transparent to-transparent ltr:-right-10 ltr:bg-gradient-to-r rtl:-left-10 rtl:bg-gradient-to-l xl:w-16 ltr:xl:-right-20 rtl:xl:-left-20"></div>
                         <div className="ltr:xl:-skew-x-[14deg] rtl:xl:skew-x-[14deg]">
-                       
-
                             <div className="mt-24 hidden w-full max-w-[430px] lg:block">
                                 <img src="/assets/images/auth/reset-password.svg" alt="Cover Image" className="w-full" />
                             </div>
@@ -84,7 +81,6 @@ const RecoverIdCover = () => {
                             <Link to="/" className="w-8 block lg:hidden">
                                 <img src="/assets/images/logo.svg" alt="Logo" className="mx-auto w-10" />
                             </Link>
-                            
                         </div>
                         <div className="w-full max-w-[440px] lg:mt-16">
                             <div className="mb-7">
@@ -95,14 +91,7 @@ const RecoverIdCover = () => {
                                 <div>
                                     <label htmlFor="Email">Email</label>
                                     <div className="relative text-white-dark">
-                                        <input
-                                            id="Email"
-                                            type="email"
-                                            placeholder="Enter Email"
-                                            value={email}
-                                            onChange={handleEmailChange}
-                                            className="form-input pl-10 placeholder:text-white-dark"
-                                        />
+                                        <input id="Email" type="email" placeholder="Enter Email" value={email} onChange={handleEmailChange} className="form-input pl-10 placeholder:text-white-dark" />
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2">
                                             <IconMail fill={true} />
                                         </span>

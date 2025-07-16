@@ -45,8 +45,8 @@ const CreateDepartmentForm: React.FC = () => {
             const response = await axios.get(`${API_BASE_URL}company-Setup/departments/`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                }
+                    Authorization: `Bearer ${authToken}`,
+                },
             });
             setDepartments(response.data);
         } catch (err) {
@@ -81,16 +81,16 @@ const CreateDepartmentForm: React.FC = () => {
             const response = await axios.post(`${API_BASE_URL}company-Setup/departments/`, submissionData, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                }
+                    Authorization: `Bearer ${authToken}`,
+                },
             });
 
             toast.success('Department created successfully!');
-            console.log("Department created successfully:", response.data);
+            console.log('Department created successfully:', response.data);
             setFormData({
                 name: '',
                 expected_arrival_time: '',
-                parent: 'null'
+                parent: 'null',
             });
 
             fetchDepartments();
@@ -111,19 +111,15 @@ const CreateDepartmentForm: React.FC = () => {
             <h2 className="text-xl font-semibold mb-4">Create Department</h2>
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium">Department Name</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-3 py-2 border rounded"
-                    />
+                    <label htmlFor="name" className="block text-sm font-medium">
+                        Department Name
+                    </label>
+                    <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="expected_arrival_time" className="block text-sm font-medium">Expected Arrival Time</label>
+                    <label htmlFor="expected_arrival_time" className="block text-sm font-medium">
+                        Expected Arrival Time
+                    </label>
                     <input
                         type="time"
                         id="expected_arrival_time"
@@ -135,14 +131,10 @@ const CreateDepartmentForm: React.FC = () => {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="parent" className="block text-sm font-medium">Parent Department</label>
-                    <select
-                        id="parent"
-                        name="parent"
-                        value={formData.parent}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded"
-                    >
+                    <label htmlFor="parent" className="block text-sm font-medium">
+                        Parent Department
+                    </label>
+                    <select id="parent" name="parent" value={formData.parent} onChange={handleChange} className="w-full px-3 py-2 border rounded">
                         <option value="null">None</option>
                         {departments.map((dept) => (
                             <option key={dept.id} value={dept.id.toString()}>
@@ -154,11 +146,7 @@ const CreateDepartmentForm: React.FC = () => {
 
                 {error && <div className="mt-4 text-red-600">{error}</div>}
 
-                <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    disabled={isLoading}
-                >
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" disabled={isLoading}>
                     {isLoading ? 'Creating...' : 'Create Department'}
                 </button>
             </form>
