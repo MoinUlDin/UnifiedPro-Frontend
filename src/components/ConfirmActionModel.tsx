@@ -12,7 +12,10 @@ interface Props {
 export default function ConfirmActionModal({ opened, onClose, onConfirm, title = 'Confirm Deletion', message = 'Are you sure you want to delete this item?', btnText = 'Delete' }: Props) {
     return (
         <Modal opened={opened} onClose={onClose} title={title} centered>
-            <Text>{message}</Text>
+            <div
+                // ⚠️ be very careful with user‑supplied HTML to avoid XSS!
+                dangerouslySetInnerHTML={{ __html: message }}
+            />
             <Group position="right" mt="md">
                 <Button variant="default" onClick={onClose}>
                     Cancel

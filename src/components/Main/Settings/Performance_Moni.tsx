@@ -1,4 +1,4 @@
-import Performance_Moni_List from './Performence_Moni_Details/Performance_Moni_List';
+import Performance_Moni_List from './Performence_Moni_Details/Performance_Monitoring';
 import Company_Goals_List from './Performence_Moni_Details/Company_Goals_List';
 import Departmental_Goals_List from './Performence_Moni_Details/Departmental_Goals_List';
 import Departmental_Session_Goals from './Performence_Moni_Details/Departmental_Session_Goals';

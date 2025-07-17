@@ -281,9 +281,7 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink to="/company_info">{t('Company Information')}</NavLink>
                                         </li>
-                                        <li>
-                                            <NavLink to="/group_of_companies">{t('Group of Companies')}</NavLink>
-                                        </li>
+
                                         <li>
                                             <NavLink to="/departments">{t('Create Department')}</NavLink>
                                         </li>

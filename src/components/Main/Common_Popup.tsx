@@ -16,7 +16,7 @@ interface FormComponentProps {
     onSubmit: (data: any) => void;
     onCancel: () => void;
     isLoading?: boolean;
-    initialValues?: Record<string, string | number | File | null>;
+    initialValues?: Record<string, any>;
 }
 
 const Common_Popup = ({ fields, onSubmit, onCancel, initialValues = {}, isLoading = false }: FormComponentProps) => {

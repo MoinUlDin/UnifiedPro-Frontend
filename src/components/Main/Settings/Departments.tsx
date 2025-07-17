@@ -5,6 +5,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import { format } from 'date-fns';
 import toast, { Toaster } from 'react-hot-toast';
 import ConfirmActionModal from '../../ConfirmActionModel';
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 interface Department {
     id: number;
@@ -15,6 +17,7 @@ interface Department {
 
 export default function DepartmentsTable() {
     const [departments, setDepartments] = useState<Department[]>([]);
+    const storedDepartments = useSelector((s: any) => s.settings.departmentList);
     const [page, setPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(10);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,15 +28,22 @@ export default function DepartmentsTable() {
 
     const pagedData = departments.slice((page - 1) * recordsPerPage, page * recordsPerPage);
 
+    const dispatch = useDispatch();
     const fetchDepartments = () => {
-        SettingServices.fetchDepartments()
-            .then((res) => setDepartments(res))
+        SettingServices.fetchDepartments(dispatch)
+            .then((res) => {
+                setDepartments(res);
+            })
             .catch((err) => console.error(err));
     };
 
     useEffect(() => {
         fetchDepartments();
     }, []);
+    useEffect(() => {
+        if (!storedDepartments) return;
+        setDepartments(storedDepartments);
+    }, [storedDepartments]);
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -147,9 +157,9 @@ export default function DepartmentsTable() {
 
             {/* Modal */}
             <Transition appear show={isModalOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={closeModal}>
+                <Dialog as="div" className="relative z-50" onClose={closeModal}>
                     <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-                        <div className="fixed inset-0 bg-black bg-opacity-25" />
+                        <div className="fixed inset-0 bg-black bg-opacity-35" />
                     </Transition.Child>
 
                     <div className="fixed inset-0 overflow-y-auto">

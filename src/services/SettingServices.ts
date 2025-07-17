@@ -1,4 +1,6 @@
 import api from '../utils/api';
+import { setDepartmentList } from '../store/slices/settingSlice';
+
 export default class SettingServices {
     static async FetchPerformanceMonitoring() {
         try {
@@ -12,6 +14,15 @@ export default class SettingServices {
     static async AddPM(payload: any) {
         try {
             const response = await api.post('/company-performace/performance-monitoring/', payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async UpdatePM(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/company-performace/performance-monitoring/${id}/`, payload);
             return response.data;
         } catch (e) {
             console.log(e);
@@ -36,9 +47,19 @@ export default class SettingServices {
             throw e;
         }
     }
-    static async fetchDepartments() {
+    static async updateCompanyInfo(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/company-Setup/company-info/${id}/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async fetchDepartments(dispatch: any) {
         try {
             const response = await api.get(`/company-Setup/departments/`);
+            dispatch(setDepartmentList(response.data));
             return response.data;
         } catch (e) {
             console.log(e);
@@ -111,6 +132,34 @@ export default class SettingServices {
     static async updateDesignation(id: number, payload: any) {
         try {
             const response = await api.patch(`/company-Setup/designations/${id}/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async AddWorkingDay(payload: any) {
+        try {
+            const response = await api.post(`/company-Setup/working-days/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.day_name || 'Error Adding New day';
+            throw new Error(msg);
+        }
+    }
+    static async UpdateWorkingDay(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/company-Setup/working-days/${id}/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async DeleteWorkingDay(id: Number) {
+        try {
+            const response = await api.delete(`/company-Setup/working-days/${id}/`);
             return response.data;
         } catch (e) {
             console.log(e);

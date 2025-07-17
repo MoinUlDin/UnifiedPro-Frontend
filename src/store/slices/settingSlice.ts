@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     performanceMonitoringList: null,
+    departmentList: null,
     companyGoalsList: null,
     departmentGoalsList: null,
     sessionalGoalsList: null,
@@ -10,9 +11,12 @@ const initialState = {
 };
 
 const settingSlice = createSlice({
-    name: 'auth',
+    name: 'settings',
     initialState: initialState,
     reducers: {
+        setDepartmentList(state, { payload }) {
+            state.departmentList = payload;
+        },
         setPM(state, { payload }) {
             state.performanceMonitoringList = payload;
         },
@@ -34,5 +38,5 @@ const settingSlice = createSlice({
     },
 });
 
-export const { setPM, setCG, setDG, setSG, setKR, setKPI } = settingSlice.actions;
+export const { setPM, setCG, setDG, setSG, setKR, setKPI, setDepartmentList } = settingSlice.actions;
 export default settingSlice.reducer;

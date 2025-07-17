@@ -3,30 +3,46 @@ import { useEffect, useState } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import Company_Goals_List_Popup from './Company_Goals_List_Popup';
+import CompanyGoalServices from '../../../../services/CompanyGoalServices';
+import { options, render } from '@fullcalendar/core/preact';
+import toast, { Toaster } from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import ConfirmActionModal from '../../../ConfirmActionModel';
 
-interface RowData {
-    Goaltext: string;
-    Target: string;
-    Achieved: string;
-    Weight: string;
-    Actions: string;
+export interface RowData {
+    goal_text: string;
+    value: string | null;
+    achieved: string | null;
+    weight: string;
+    performance_monitoring?: { id: number; name: string };
     id: number;
 }
 
 const Company_Goals_List = () => {
-    const [jobTypeModal, setJobTypeModal] = useState(false);
+    const [goalPopup, setGoalPopup] = useState(false);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
+    const [goalsData, setGoalsData] = useState<RowData[] | null>(null);
+    const totalRecords = goalsData?.length;
+    const [recordsData, setRecordsData] = useState(goalsData?.slice(0, pageSize));
+    const [initialData, setInitialData] = useState<any>(null);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [refresh, setRefresh] = useState<boolean>(false);
+    const [openConfirmationModal, setOpenConfirmationModal] = useState<boolean>(false);
+    const [deleteId, setDeleteId] = useState<number | null>(null);
+    const dispatch = useDispatch();
 
-    const rowData: RowData[] = [
-        { id: 1, Goaltext: 'Pending', Target: 'Branch A', Achieved: 'Yes', Weight: '102', Actions: '' },
-        { id: 2, Goaltext: 'Success', Target: 'Branch B', Achieved: 'Yes', Weight: '55', Actions: '' },
-        // Add more rows as needed
-    ];
-
-    const totalRecords = rowData.length;
-    const [recordsData, setRecordsData] = useState(rowData.slice(0, pageSize));
+    useEffect(() => {
+        CompanyGoalServices.FetchGoals(dispatch)
+            .then((r) => {
+                console.log('company Goals: ', r);
+                setGoalsData(r);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    }, [refresh]);
 
     useEffect(() => {
         setPage(1);
@@ -35,24 +51,13 @@ const Company_Goals_List = () => {
     useEffect(() => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize;
-        setRecordsData(rowData.slice(from, to));
-    }, [page, pageSize, rowData]);
-
-    const handleEditClick = (item: RowData) => {
-        console.log('Edit clicked for:', item);
-    };
-
-    const handleDeleteClick = (id: number) => {
-        console.log('Delete clicked for ID:', id);
-    };
-
-    const JobTypePopup = () => setJobTypeModal(true);
+        setRecordsData(goalsData?.slice(from, to));
+    }, [page, pageSize, goalsData]);
 
     const columns = [
-        { accessor: 'Goal Text', title: 'Goal Text' },
-        { accessor: 'Target', title: 'Target' },
-        { accessor: 'Achieved', title: 'Achieved' },
-        { accessor: 'Weight', title: 'Weight' },
+        { accessor: 'goal_text', title: 'Goal Text' },
+        { accessor: 'weight', title: 'weight' },
+        { accessor: 'achieved', title: 'Achieved', render: (row: RowData) => <span>{row.achieved ? `${row.achieved} %` : '0 %'} </span> },
     ];
 
     const adjustedColumns = [
@@ -70,7 +75,7 @@ const Company_Goals_List = () => {
                         </button>
                     </Tippy>
                     <Tippy content="Delete">
-                        <button type="button" className="text-red-600 hover:text-red-800 ml-2" onClick={() => handleDeleteClick(item.id)}>
+                        <button type="button" className="text-red-600 hover:text-red-800 ml-2" onClick={() => handleDeleteClick(item?.id)}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -81,12 +86,77 @@ const Company_Goals_List = () => {
         },
     ];
 
+    const onSubmit = (data: any) => {
+        console.log('got upated data: ', data);
+        if (isEditing) {
+            CompanyGoalServices.UpdateGoal(data.id, data)
+                .then(() => {
+                    toast.success('Gaol Updated Successfully', { duration: 5000 });
+                    setRefresh((prev) => !prev); // forcing to fetch data again
+                    setIsEditing(false);
+                })
+                .catch((e) => {
+                    toast.error(e.message || 'Error Updating Goal', { duration: 5000 });
+                    console.log(e);
+                });
+        } else {
+            CompanyGoalServices.AddGoal(data)
+                .then(() => {
+                    toast.success('Gaol Updated Successfully', { duration: 5000 });
+                    setRefresh((prev) => !prev); // forcing to fetch data again
+                    setIsEditing(false);
+                })
+                .catch((e) => {
+                    toast.error(e.message || 'Error Updating Goal', { duration: 5000 });
+                    console.log(e);
+                });
+        }
+    };
+
+    const handleEditClick = (item: RowData) => {
+        console.log('Edit clicked for:', item);
+        const init = {
+            id: item.id,
+            goal_text: item.goal_text,
+            weight: item.weight,
+        };
+        setInitialData(init);
+        setIsEditing(true);
+        setGoalPopup(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!deleteId) {
+            toast.error('No Delete Id Found');
+            return;
+        }
+        CompanyGoalServices.DeleteGoal(deleteId)
+            .then(() => {
+                toast.success('Goal Deleted Succussfully', { duration: 5000 });
+                setRefresh((p) => !p);
+            })
+            .catch((e) => {
+                toast.error(e.message || 'Error Deleting Goal');
+            });
+    };
+
+    const handleDeleteClick = (id: number) => {
+        setDeleteId(id);
+        setOpenConfirmationModal(true);
+    };
+
+    const CreateNewClicked = () => {
+        setInitialData(null);
+        setIsEditing(false);
+        setGoalPopup(true);
+    };
+
     return (
         <div>
             <div className="panel mt-8">
                 <div className="flex justify-between items-center text-center">
                     <h5 className="font-semibold text-lg dark:text-white-light mb-4 pt-2">Company Goals List</h5>
-                    <button type="button" className="btn btn-primary mb-4" onClick={JobTypePopup}>
+                    <button type="button" className="btn btn-primary mb-4" onClick={CreateNewClicked}>
                         Create New Company Goal
                     </button>
                 </div>
@@ -110,7 +180,16 @@ const Company_Goals_List = () => {
                 </div>
             </div>
             {/* Uncomment this line and define Job_Type_Popup component when ready */}
-            {jobTypeModal && <Company_Goals_List_Popup closeModal={() => setJobTypeModal(false)} />}
+            {goalPopup && <Company_Goals_List_Popup initialData={initialData} isEditing={isEditing} onSubmit={onSubmit} closeModel={() => setGoalPopup(false)} />}
+            <Toaster position="top-right" reverseOrder={false} />
+            <ConfirmActionModal
+                opened={openConfirmationModal}
+                onClose={() => setOpenConfirmationModal(false)}
+                onConfirm={handleConfirmDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this goal? <br/> This Action will delete all child Goals. <br/>Continue?"
+                btnText="Delete"
+            />
         </div>
     );
 };

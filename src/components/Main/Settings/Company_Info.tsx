@@ -4,22 +4,34 @@ import { DataTable } from 'mantine-datatable';
 import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import CommonTable from '../Common_Table';
-import CommonPopup from '../Common_Popup';
+import CommonPopup, { FormField } from '../Common_Popup';
 import CompanyStandards from './Company_Info_Details/CompanyStandards';
 import WorkingDays from './Company_Info_Details/WorkingDays';
 import Branches from './Company_Info_Details/Branches';
 import SubCompanies from './Company_Info_Details/SubCompanies';
 import SettingServices from '../../../services/SettingServices';
 import { render } from '@fullcalendar/core/preact';
+import CompanyInfoPopup from './CompanyInfoPopup';
+import toast, { Toaster } from 'react-hot-toast';
+
 // Define the policy type to match the shape of policy objects
-interface Policy {
+
+interface WorkingDay {
     id: number;
+    day_name: string;
+    start: string;
+    end: string;
+    is_selected: boolean;
+}
+interface Policy {
+    id?: number;
     name: string;
     email: string;
     website: string;
     currency?: string;
     tax_id?: string;
     tax_percentage?: string;
+    working_days_details?: WorkingDay[];
     phone_number: string;
     working_time: string;
     office_open_time: string;
@@ -27,6 +39,19 @@ interface Policy {
     break_start_time: string;
     break_end_time: string;
 }
+interface Standard {
+    currency?: string;
+    tax_id?: string;
+    tax_percentage?: number;
+}
+
+interface ModalConfig {
+    title: string;
+    fields: FormField[];
+    initialValues: Record<string, any>;
+    onSubmit: (data: any) => Promise<void> | void;
+}
+
 function formatTimeToAMPM(timeStr: string): string {
     if (!timeStr) return 'N/A';
     // Construct a Date on epoch day so it ignores the date
@@ -49,6 +74,8 @@ const Company_Info = () => {
     const [currentEditId, setCurrentEditId] = useState<number | null>(null);
     const pagedData = policies.slice((page - 1) * recordsPerPage, page * recordsPerPage);
 
+    const [modalConfig, setModalConfig] = useState<ModalConfig | null>(null);
+
     useEffect(() => {
         dispatch(setPageTitle('Company Policies'));
     }, [dispatch]);
@@ -66,7 +93,7 @@ const Company_Info = () => {
 
     const initialFormFields: Policy = {
         id: 0,
-        name: 'None',
+        name: 'Moin',
         email: '',
         website: 'None',
         phone_number: '',
@@ -100,12 +127,26 @@ const Company_Info = () => {
     ];
     const WorkingDay = [
         { accessor: 'id', title: 'ID' },
-        { accessor: 'DayName', title: 'Day Name' },
-        { accessor: 'StartTime', title: 'Start Time' },
-        { accessor: 'EndTime', title: 'End Time' },
+        { accessor: 'day_name', title: 'Day Name' },
+        { accessor: 'start', title: 'Start Time', render: (row: any) => formatTimeToAMPM(row.start) },
+        { accessor: 'end', title: 'End Time', render: (row: any) => formatTimeToAMPM(row.end) },
+        {
+            accessor: 'action',
+            title: 'Action',
+            render: (row: any) => (
+                <span className="flex items-center gap-3">
+                    <button onClick={() => openWorkingDayForm(row.id)} key={'edit'} className="btn btn-sm btn-outline-primary">
+                        Edit
+                    </button>
+                    <button key={'delete'} className="btn btn-sm btn-outline-danger">
+                        Delete
+                    </button>
+                </span>
+            ),
+        },
     ];
 
-    const formFields = [
+    const formFields: FormField[] = [
         { id: 'name', label: 'Name', type: 'text', value: formData.name },
         { id: 'email', label: 'Email', type: 'email', value: formData.email },
         { id: 'website', label: 'Website', type: 'text', value: formData.website },
@@ -117,32 +158,150 @@ const Company_Info = () => {
         { id: 'break_end_time', label: 'Break End Time', type: 'time', value: formData.break_end_time },
     ];
 
-    const handleAddOrEditPolicy = (submittedData: typeof initialFormFields) => {
-        if (isEditMode && currentEditId !== null) {
-            setPolicies((prev) => prev.map((policy) => (policy.id === currentEditId ? { ...policy, ...submittedData } : policy)));
-            setIsEditMode(false);
-            setCurrentEditId(null);
-        } else {
-            const newPolicy = {
-                ...submittedData,
-                id: policies.length + 1,
-            };
-            setPolicies((prev) => [...prev, newPolicy]);
+    const standardFields: FormField[] = [
+        { id: 'currency', label: 'Currency', type: 'text' },
+        { id: 'tax_id', label: 'Tax ID', type: 'text' },
+        { id: 'tax_percentage', label: 'Tax Percentage', type: 'text' },
+    ];
+    // 1. Define FormField schema for working days:
+    const workingDayFields: FormField[] = [
+        { id: 'day_name', label: 'Day Name', type: 'text' },
+        { id: 'start', label: 'Start Time', type: 'time' },
+        { id: 'end', label: 'End Time', type: 'time' },
+        {
+            id: 'is_selected',
+            label: 'Is Selected',
+            type: 'select',
+            options: [
+                { value: 'Yes', label: 'Yes' },
+                { value: 'No', label: 'No' },
+            ],
+        },
+    ];
+
+    const closeModal = () => setModalConfig(null);
+
+    const onButtonClick = () => {};
+
+    const openInfoForm = () => {
+        const info = policies[0]!;
+        setModalConfig({
+            title: 'Update Company Info',
+            fields: formFields, // your array of FormField for info
+            initialValues: {
+                name: info.name,
+                email: info.email,
+                website: info.website,
+                phone_number: info.phone_number,
+                working_time: info.working_time,
+                office_open_time: info.office_open_time,
+                office_close_time: info.office_close_time,
+                break_start_time: info.break_start_time,
+                break_end_time: info.break_end_time,
+            },
+
+            onSubmit: async (data) => {
+                await SettingServices.updateCompanyInfo(info.id!, data);
+                toast.success('Company Info updated');
+                const updated = await SettingServices.fetchCompanyInfo();
+                setPolicies(updated);
+            },
+        });
+    };
+    // ─── open Standard form ───────────────────────
+    const openStandardForm = () => {
+        const std = policies[0]!;
+        setModalConfig({
+            title: 'Update Company Standard',
+            fields: standardFields, // your array of FormField for standard
+            initialValues: {
+                currency: std.currency,
+                tax_id: std.tax_id,
+                tax_percentage: std.tax_percentage,
+            },
+            onSubmit: async (data) => {
+                await SettingServices.updateCompanyInfo(std.id!, data);
+                toast.success('Standard updated');
+                const updated = await SettingServices.fetchCompanyInfo();
+                setPolicies(updated);
+            },
+        });
+    };
+    // ─── open Standard form ───────────────────────
+    // 2. In your component, add:
+    const openWorkingDayForm = (id: number) => {
+        console.log('Given Id: ', id);
+        const wd = policies[0]?.working_days_details?.find((w) => w.id === id); // or pick which day you want
+        if (!wd) {
+            toast.error('No working day to edit');
+            return;
         }
 
-        setFormData(initialFormFields);
-        closeModal();
+        setModalConfig({
+            title: `Edit Working Day: ${wd.day_name}`,
+            fields: workingDayFields,
+            initialValues: {
+                day_name: wd.day_name,
+                start: wd.start,
+                end: wd.end,
+                is_selected: wd.is_selected ? 'true' : 'false',
+            },
+            onSubmit: async (data) => {
+                const cleanData = {
+                    ...data,
+                    is_selected: data.is_selected === 'true',
+                    day_name: (data.day_name as string)
+                        .trim()
+                        .toLowerCase()
+                        .replace(/\b\w/g, (c) => c.toUpperCase()),
+                };
+                try {
+                    // call your API to update this one working day
+                    await SettingServices.UpdateWorkingDay(wd.id, cleanData);
+                    toast.success('Working day updated');
+                    // then reload full company info to refresh that nested list
+                    const updated = await SettingServices.fetchCompanyInfo();
+                    setPolicies(updated);
+                } catch {
+                    toast.error('Failed to update working day');
+                }
+            },
+        });
     };
-
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setFormData(initialFormFields);
-        setIsEditMode(false);
-        setCurrentEditId(null);
+    const openWorkingDayFormNew = () => {
+        const flag = false;
+        setModalConfig({
+            title: `Add Working Day`,
+            fields: workingDayFields,
+            initialValues: {
+                day_name: '',
+                start: '',
+                end: '',
+                is_selected: flag ? 'false' : 'true',
+            },
+            onSubmit: async (data) => {
+                const cleanData = {
+                    ...data,
+                    // day_name: data.day_name.strip,
+                    is_selected: data.is_selected === 'true',
+                    day_name: (data.day_name as string)
+                        .trim()
+                        .toLowerCase()
+                        .replace(/\b\w/g, (c) => c.toUpperCase()),
+                };
+                try {
+                    // call your API to update this one working day
+                    await SettingServices.AddWorkingDay(cleanData);
+                    toast.success('Working day updated');
+                    // then reload full company info to refresh that nested list
+                    const updated = await SettingServices.fetchCompanyInfo();
+                    setPolicies(updated);
+                } catch (e: any) {
+                    toast.error(e.message);
+                }
+            },
+        });
     };
-
-    const openModal = () => setIsModalOpen(true);
-    const onButtonClick = () => {};
 
     return (
         <div>
@@ -150,7 +309,7 @@ const Company_Info = () => {
             <div className="panel">
                 <div className="flex justify-between items-center mb-5">
                     <h5 className="font-semibold text-lg dark:text-white-light">Company Info</h5>
-                    <button type="button" className="btn btn-primary" onClick={onButtonClick}>
+                    <button type="button" className="btn btn-primary" onClick={openInfoForm}>
                         Update Info
                     </button>
                 </div>
@@ -175,7 +334,7 @@ const Company_Info = () => {
             <div className="panel">
                 <div className="flex justify-between items-center mb-5">
                     <h5 className="font-semibold text-lg dark:text-white-light">Company Standard</h5>
-                    <button type="button" className="btn btn-primary" onClick={onButtonClick}>
+                    <button type="button" className="btn btn-primary" onClick={openStandardForm}>
                         Update Standard
                     </button>
                 </div>
@@ -200,13 +359,13 @@ const Company_Info = () => {
             <div className="panel">
                 <div className="flex justify-between items-center mb-5">
                     <h5 className="font-semibold text-lg dark:text-white-light">Working Day</h5>
-                    <button type="button" className="btn btn-primary" onClick={onButtonClick}>
+                    <button type="button" className="btn btn-primary" onClick={openWorkingDayFormNew}>
                         Add Day
                     </button>
                 </div>
                 <div className="datatables">
                     <DataTable
-                        records={policies}
+                        records={policies[0]?.working_days_details}
                         columns={WorkingDay}
                         totalRecords={policies.length}
                         page={page}
@@ -222,7 +381,7 @@ const Company_Info = () => {
                 </div>
             </div>
 
-            <Transition appear show={isModalOpen} as={Fragment}>
+            <Transition appear show={!!modalConfig} as={Fragment}>
                 <Dialog as="div" className="relative z-50" onClose={closeModal}>
                     <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
                         <div className="fixed inset-0 bg-black bg-opacity-25" />
@@ -241,15 +400,33 @@ const Company_Info = () => {
                             >
                                 <Dialog.Panel className="w-full max-w-3xl p-6 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-xl">
                                     <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
-                                        {isEditMode ? 'Edit Policy' : 'Add Policy'}
+                                        {modalConfig?.title || 'Popup Editor'}
                                     </Dialog.Title>
-                                    <CommonPopup fields={formFields} onSubmit={handleAddOrEditPolicy} onCancel={closeModal} />
+                                    {modalConfig && (
+                                        <CommonPopup
+                                            fields={modalConfig.fields}
+                                            initialValues={modalConfig.initialValues}
+                                            onSubmit={async (formData) => {
+                                                await modalConfig.onSubmit(formData);
+                                                closeModal();
+                                            }}
+                                            onCancel={closeModal}
+                                        />
+                                    )}
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>
                     </div>
                 </Dialog>
             </Transition>
+
+            <Toaster
+                position="top-right"
+                reverseOrder={false}
+                toastOptions={{
+                    duration: 4000, // Default 4 seconds for all toasts
+                }}
+            />
         </div>
     );
 };
