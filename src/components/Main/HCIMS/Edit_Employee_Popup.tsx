@@ -4,6 +4,7 @@ import SettingServices from '../../../services/SettingServices';
 import IconX from '../../Icon/IconX';
 import IconCaretDown from '../../Icon/IconCaretDown';
 import EmployeeServices from '../../../services/EmployeeServices';
+import Swal from 'sweetalert2';
 
 interface Designation {
     id: number;
@@ -19,21 +20,22 @@ interface Department {
     expected_arrival_time: string | null;
     parent: number | null;
 }
-interface InitData {
+interface InitialDatatype {
     id: number;
     first_name: string;
     last_name: string;
-    department: string;
-    designation: string;
+    department: { id: number; name: string };
+    designation: { id: number; name: string };
     hire_date: string;
 }
 interface InputProps {
     closeModal: () => void;
     isEditMode?: boolean;
-    initailData?: InitData | null;
+    initailData?: InitialDatatype | null;
+    response?: (data: any) => void;
 }
 
-export default function Edit_Employee_Popup({ closeModal, isEditMode = false, initailData = null }: InputProps) {
+export default function Edit_Employee_Popup({ closeModal, isEditMode = false, initailData = null, response = () => {} }: InputProps) {
     const [params, setParams] = useState({
         email: '',
         password: '',
@@ -45,7 +47,7 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
         hire_date: '',
         profile_image: null as File | null,
     });
-
+    const [loadingInitialdata, setLoadingInitailData] = useState<boolean>(false);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [allDesignations, setAllDesignations] = useState<Designation[]>([]);
     const [filteredDesigs, setFilteredDesigs] = useState<Designation[]>([]);
@@ -63,6 +65,7 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
 
     // when department changes, recompute filtered designations
     useEffect(() => {
+        if (loadingInitialdata) return;
         if (params.department) {
             const depId = parseInt(params.department, 10);
             setFilteredDesigs(allDesignations.filter((d) => d.department === depId));
@@ -74,8 +77,9 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
     // 1) whenever initailData arrives, copy it into state
     useEffect(() => {
         if (isEditMode && initailData) {
+            setLoadingInitailData(true);
             console.log('initial data:', initailData);
-            const desigObj = allDesignations.find((d) => d.name === initailData.designation); // ← UPDATED
+            const desigObj = allDesignations.find((d) => d.id === Number(initailData.designation));
             const desigId = desigObj ? String(desigObj.id) : '';
             setParams({
                 email: '',
@@ -83,12 +87,14 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
                 password2: '',
                 first_name: initailData.first_name,
                 last_name: initailData.last_name,
-                department: String(initailData.department),
-                designation: desigId,
+                department: String(initailData.department.id),
+                designation: String(initailData.designation.id),
                 hire_date: initailData.hire_date,
                 profile_image: null, // you can’t prefill a File input
             });
         }
+
+        setLoadingInitailData(false);
     }, [isEditMode, initailData, allDesignations]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -131,26 +137,41 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('entering Submit');
+
         if (!validate()) return;
-        console.log('not Validated');
         const form = new FormData();
         Object.entries(params).forEach(([key, value]) => {
             if (value != null) form.append(key, value as any);
         });
         console.log('sending Update Reques with Data: ', FormData);
+        let responseToParent = null;
 
         try {
             if (isEditMode && initailData) {
                 // 3) call update endpoint
-                await EmployeeServices.UpdateEmployee(initailData.id, form);
+                await EmployeeServices.UpdateEmployee(initailData.id, form).then(() => {
+                    responseToParent = {
+                        error: false,
+                        message: 'Employee Updated Successfully',
+                    };
+                });
             } else {
-                await EmployeeServices.AddEmployee(form);
+                await EmployeeServices.AddEmployee(form).then(() => {
+                    responseToParent = {
+                        error: false,
+                        message: 'Employee Added Successfully',
+                    };
+                });
             }
+            response(responseToParent);
             closeModal();
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert(err || 'Error saving employee');
+            Swal.fire({
+                title: 'Error',
+                titleText: err,
+                icon: 'error',
+            });
         }
     };
 

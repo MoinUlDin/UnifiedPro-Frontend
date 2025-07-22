@@ -5,6 +5,8 @@ import { setPageTitle } from '../../../store/themeConfigSlice';
 import CommonTable from '../Common_Table';
 import FormComponent, { FormField } from '../Common_Popup';
 import SettingServices from '../../../services/SettingServices';
+import toast, { Toaster } from 'react-hot-toast';
+import ConfirmActionModal from '../../ConfirmActionModel';
 
 interface Designation {
     id: number;
@@ -25,7 +27,8 @@ const Create_Design = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [currentEditId, setCurrentEditId] = useState<number | null>(null);
-
+    const [openConfirmActionModel, setOpenConfirmActionModel] = useState<boolean>(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
     // form state
     const initialFormData = { name: '', department: '' };
     const [formData, setFormData] = useState<Record<string, any>>(initialFormData);
@@ -68,7 +71,11 @@ const Create_Design = () => {
         },
     ];
 
-    const openModal = () => setIsModalOpen(true);
+    const openModal = () => {
+        setFormData(initialFormData);
+        setIsEditMode(false);
+        setIsModalOpen(true);
+    };
     const closeModal = () => {
         setIsModalOpen(false);
         setFormData(initialFormData);
@@ -80,9 +87,12 @@ const Create_Design = () => {
     const handleAddOrEditDesignation = async (data: any) => {
         try {
             if (isEditMode && currentEditId) {
-                await SettingServices.updateDesignation(currentEditId, data);
+                await SettingServices.updateDesignation(currentEditId, data).then(() => {
+                    toast.success('Designation Added Successfuly', { duration: 4000 });
+                });
             } else {
                 await SettingServices.createDesignation(data);
+                toast.success('Designation Updated Successfuly', { duration: 4000 });
             }
             // re-fetch table data
             const fresh = await SettingServices.fetchDesignations();
@@ -90,13 +100,13 @@ const Create_Design = () => {
             closeModal();
         } catch (err) {
             console.error(err);
+            toast.error('Error Completing you action', { duration: 4000 });
         }
     };
 
     // start editing
     const handleEdit = (initailValues: any) => {
         console.log('Edit Called with Data:', initailValues);
-
         setFormData({ name: initailValues.name, department: initailValues.department });
         setCurrentEditId(initailValues.id);
         setIsEditMode(true);
@@ -104,14 +114,22 @@ const Create_Design = () => {
     };
 
     // delete
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('Delete this designation?')) return;
+    const handleConfirmDelete = () => {
+        if (!selectedId) {
+            toast.error('No Selected Id found, System Error');
+            return;
+        }
         try {
-            await SettingServices.deleteDesignation(id);
-            setDesignations((prev) => prev.filter((d) => d.id !== id));
+            SettingServices.deleteDesignation(selectedId);
+            toast.success('Designation Deleted Successfuly', { duration: 4000 });
+            setDesignations((prev) => prev.filter((d) => d.id !== selectedId));
         } catch (err) {
             console.error(err);
         }
+    };
+    const handleDelete = async (id: number) => {
+        setSelectedId(id);
+        setOpenConfirmActionModel(true);
     };
 
     return (
@@ -153,6 +171,15 @@ const Create_Design = () => {
                     </div>
                 </Dialog>
             </Transition>
+            <Toaster position="top-right" reverseOrder={false} />
+            <ConfirmActionModal
+                opened={openConfirmActionModel}
+                onClose={() => setOpenConfirmActionModel(false)}
+                onConfirm={handleConfirmDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this Designation? <br/> This Action will not be reversable <br/>Continue?"
+                btnText="Delete"
+            />
         </div>
     );
 };

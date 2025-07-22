@@ -1,64 +1,100 @@
 import { DataTable } from 'mantine-datatable';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import Departmental_Session_Goals_Popup from './Departmental_Session_Goals_Popup';
+import SessionalGoalServices from '../../../../services/SessionalGoalServices';
+import toast, { Toaster } from 'react-hot-toast';
+import ConfirmActionModal from '../../../ConfirmActionModel';
+import { useFilterRows, FilterControls, FilterConfig } from '../../../FilterControls';
 
-interface RowData {
-    Department: string;
-    Performance_Monitoring_Session: string;
-    Goal_Session: string;
-    GoalText: string;
-    Target: string;
-    Achieved: string;
-    Weight: string;
-    Actions: string;
+export interface SessionalGoalType {
     id: number;
+    department_goals: { id: number; name: string };
+    department: { id: number; name: string };
+    goal_text: string;
+    target: number;
+    weight: number;
+    session: string;
+    session_display?: string;
 }
 
 const Departmental_Session_Goals = () => {
-    const [jobTypeModal, setJobTypeModal] = useState(false);
+    const [sessionalGaolsPopup, setSessionalGaolsPopup] = useState<boolean>(false);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
+    const [initialData, setInitailData] = useState<SessionalGoalType | null>(null);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [refresh, setRefresh] = useState<boolean>(false);
+    const [openConfirmActionModel, setOpenConfirmActionModel] = useState<boolean>(false);
 
-    const rowData: RowData[] = [
-        { id: 1, Department: 'Technical', Performance_Monitoring_Session: 'OnHold', Goal_Session: 'Active', GoalText: 'Pending', Target: 'Branch A', Achieved: 'Yes', Weight: '102', Actions: '' },
-        // { id: 2, Goal_Text: 'Success', Target: 'Branch B', Achieved: 'Yes', Weight: '55', Actions: '' },
-        // Add more rows as needed
+    const [goalsData, setGoalsData] = useState<SessionalGoalType[]>([
+        {
+            id: 0,
+            department_goals: { id: 0, name: '' },
+            department: { id: 0, name: '' },
+            goal_text: '',
+            target: 0,
+            weight: 0,
+            session: 'string',
+        },
+    ]);
+
+    // 1) Define your filters once
+    const filters: FilterConfig[] = [
+        { type: 'text', key: 'department.name', placeholder: 'Search Department' },
+        { type: 'text', key: 'goal_text', placeholder: 'Search Goal Text' },
+        {
+            type: 'select',
+            key: 'session',
+            options: [
+                { value: 'Q1', label: 'Q1' },
+                { value: 'Q2', label: 'Q2' },
+                { value: 'Q3', label: 'Q3' },
+                { value: 'Q4', label: 'Q4' },
+            ],
+        },
     ];
+    // fetching Goals
+    useEffect(() => {
+        SessionalGoalServices.FetchGoals()
+            .then((r) => {
+                console.log(r);
+                setGoalsData(r);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    }, [refresh]);
 
-    const totalRecords = rowData.length;
-    const [recordsData, setRecordsData] = useState(rowData.slice(0, pageSize));
+    // 3) Plug in filtering
+    const { filtered: filteredGoals, filterValues, setFilter } = useFilterRows(goalsData, filters);
+
+    const totalRecords = filteredGoals.length;
+    const recordsData = useMemo(() => {
+        const from = (page - 1) * pageSize;
+        return filteredGoals.slice(from, from + pageSize);
+    }, [filteredGoals, page, pageSize]);
 
     useEffect(() => {
         setPage(1);
     }, [pageSize]);
 
-    useEffect(() => {
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize;
-        setRecordsData(rowData.slice(from, to));
-    }, [page, pageSize, rowData]);
-
-    const handleEditClick = (item: RowData) => {
-        console.log('Edit clicked for:', item);
-    };
-
-    const handleDeleteClick = (id: number) => {
-        console.log('Delete clicked for ID:', id);
-    };
-
-    const JobTypePopup = () => setJobTypeModal(true);
+    // useEffect(() => {
+    //     const from = (page - 1) * pageSize;
+    //     const to = from + pageSize;
+    //     setRecordsData(goalsData.slice(from, to));
+    // }, [page, pageSize, goalsData]);
 
     const columns = [
-        { accessor: 'Department', title: 'Department' },
-        { accessor: 'Performance Monitoring Session', title: 'Performance Monitoring Session' },
-        { accessor: 'Goal Session	', title: 'Goal Session' },
-        { accessor: 'Goal Text', title: 'Goal Text' },
-        { accessor: 'Target', title: 'Target' },
-        { accessor: 'Achieved', title: 'Achieved' },
-        { accessor: 'Weight', title: 'Weight' },
+        { accessor: 'department', title: 'Department', render: (row: SessionalGoalType) => row.department.name },
+        // { accessor: 'department_goals', title: 'Department Goal', render: (row: SessionalGoalType) => row.department_goals.name },
+        { accessor: 'session_display', title: 'Goal Session', render: (row: SessionalGoalType) => row.session_display },
+        { accessor: 'goal_text', title: 'Goal Text', render: (row: SessionalGoalType) => row.goal_text },
+        { accessor: 'target', title: 'Target', render: (row: SessionalGoalType) => Number(row.target).toFixed(0) },
+        { accessor: 'weight', title: 'Weight', render: (row: SessionalGoalType) => row.weight },
     ];
 
     const adjustedColumns = [
@@ -66,7 +102,7 @@ const Departmental_Session_Goals = () => {
         {
             accessor: 'action',
             title: 'Action',
-            render: (item: RowData) => (
+            render: (item: SessionalGoalType) => (
                 <div className="flex justify-start">
                     <Tippy content="Edit">
                         <button type="button" className="text-blue-600 hover:text-blue-800" onClick={() => handleEditClick(item)}>
@@ -87,13 +123,88 @@ const Departmental_Session_Goals = () => {
         },
     ];
 
+    const handleEditClick = (item: SessionalGoalType) => {
+        console.log('Edit clicked for:', item);
+        setSelectedId(item.id);
+        setInitailData(item);
+        setIsEditing(true);
+        setSessionalGaolsPopup(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!selectedId) {
+            toast.error('No Id found');
+            return;
+        }
+
+        SessionalGoalServices.DeleteGoal(selectedId)
+            .then(() => {
+                toast.success('Goal Deletd Successfully');
+                setRefresh((p) => !p);
+            })
+            .catch((e) => {
+                toast.error(e.message || 'Error Deleting Goal');
+            });
+    };
+    const handleDeleteClick = (id: number) => {
+        console.log('Delete clicked for ID:', id);
+        setSelectedId(id);
+        setOpenConfirmActionModel(true);
+    };
+
+    const handleNewGoalsClick = () => {
+        setIsEditing(false);
+        setInitailData(null);
+        setSelectedId(null);
+        setSessionalGaolsPopup(true);
+    };
+    const onSubmit = (data: any) => {
+        console.log('we got Data: ', data);
+        if (isEditing) {
+            if (!selectedId) return;
+            SessionalGoalServices.UpdateGoal(selectedId, data)
+                .then(() => {
+                    setRefresh((p) => !p);
+                    toast.success('Goal Updated Successfully', { duration: 4000 });
+                })
+                .catch((e) => {
+                    console.log('error', e);
+                    toast.error(e.message || 'Error updating Goal', { duration: 4000 });
+                });
+        } else {
+            SessionalGoalServices.AddGoal(data)
+                .then(() => {
+                    console.log('done');
+                    setRefresh((p) => !p);
+                    toast.success('Goal added Successfully', { duration: 4000 });
+                })
+                .catch((e) => {
+                    console.log('e', e);
+                    toast.error(e.message || 'Error Adding Goal', { duration: 4000 });
+                });
+        }
+    };
+
     return (
         <div>
             <div className="panel mt-8">
                 <div className="flex justify-between items-center text-center">
                     <h5 className="font-semibold text-lg dark:text-white-light mb-4 pt-2">Departmental Session Goals</h5>
-                    <button type="button" className="btn btn-primary mb-4" onClick={JobTypePopup}>
+                    <button type="button" className="btn btn-primary mb-4" onClick={handleNewGoalsClick}>
                         Create Departmental Session Goals
+                    </button>
+                </div>
+                <div className="flex items-center mb-4">
+                    <FilterControls filters={filters} values={filterValues} onChange={setFilter} />
+                    <button
+                        onClick={() => {
+                            // clear every filter in one go:
+                            filters.forEach((f) => setFilter(f.key, '' as any));
+                        }}
+                        title="Clear all filters"
+                        className="ml-2 p-1 hover:bg-gray-200 rounded"
+                    >
+                        Clear Filters
                     </button>
                 </div>
                 <div className="datatables">
@@ -116,7 +227,16 @@ const Departmental_Session_Goals = () => {
                 </div>
             </div>
             {/* Uncomment this line and define Job_Type_Popup component when ready */}
-            {jobTypeModal && <Departmental_Session_Goals_Popup closeModal={() => setJobTypeModal(false)} />}
+            {sessionalGaolsPopup && <Departmental_Session_Goals_Popup onSubmit={onSubmit} isEditing={isEditing} initialData={initialData} closeModel={() => setSessionalGaolsPopup(false)} />}
+            <Toaster position="top-right" reverseOrder={false} />
+            <ConfirmActionModal
+                opened={openConfirmActionModel}
+                onClose={() => setOpenConfirmActionModel(false)}
+                onConfirm={handleConfirmDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this goal? <br/> This Action will delete all child Goals. <br/>Continue?"
+                btnText="Delete"
+            />
         </div>
     );
 };

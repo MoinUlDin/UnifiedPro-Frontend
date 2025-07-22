@@ -57,25 +57,25 @@ const TaskProgressReports = () => {
 
     const formFields = [
         { id: 'taskName', label: 'Task Name', type: 'text', value: formData.taskName },
-        { id: 'Description', label: 'Description', type: 'text', value: formData.Description},    
-        { id: 'status', label: 'Status', type: 'select', value: formData.status, options: [
-            { value: 'In Progress', label: 'In Progress' },
-            { value: 'Completed', label: 'Completed' },
-            { value: 'Pending', label: 'Pending' },
-        ]},
+        { id: 'Description', label: 'Description', type: 'text', value: formData.Description },
+        {
+            id: 'status',
+            label: 'Status',
+            type: 'select',
+            value: formData.status,
+            options: [
+                { value: 'In Progress', label: 'In Progress' },
+                { value: 'Completed', label: 'Completed' },
+                { value: 'Pending', label: 'Pending' },
+            ],
+        },
         { id: 'progress', label: 'Progress', type: 'text', value: formData.progress },
         { id: 'timeTaken', label: 'Time Taken', type: 'text', value: formData.timeTaken },
     ];
 
-    const handleAddOrEditTask = (submittedData:any) => {
+    const handleAddOrEditTask = (submittedData: any) => {
         if (isEditMode && currentEditId !== null) {
-            setTasks((prev) =>
-                prev.map((task) =>
-                    task.id === currentEditId
-                        ? { ...task, ...submittedData }
-                        : task
-                )
-            );
+            setTasks((prev) => prev.map((task) => (task.id === currentEditId ? { ...task, ...submittedData } : task)));
             setIsEditMode(false);
             setCurrentEditId(null);
         } else {
@@ -103,13 +103,7 @@ const TaskProgressReports = () => {
             {/* Main Heading */}
             <h1 className="text-2xl font-semibold text-gray-800 mb-4">Task Progress and Completion Rates</h1>
 
-            <CommonTable
-                heading="Task"
-                buttonLabel="Task"
-                formFields={formFields}
-                columns={columns}
-                data={tasks}
-            />
+            <CommonTable heading="Task" buttonLabel="Task" formFields={formFields} columns={columns} data={tasks} />
 
             <Transition appear show={isModalOpen} as={Fragment}>
                 <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -132,14 +126,9 @@ const TaskProgressReports = () => {
                                     <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
                                         {isEditMode ? 'Edit Task' : 'Add Task'}
                                     </Dialog.Title>
-                                    
-                                    {/* Form with Quill Editor */}
-                                    <FormComponent
-                                        fields={formFields}
-                                        onSubmit={handleAddOrEditTask}
-                                        onCancel={closeModal}
-                                    />
 
+                                    {/* Form with Quill Editor */}
+                                    <FormComponent fields={formFields} onSubmit={handleAddOrEditTask} onCancel={closeModal} />
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>

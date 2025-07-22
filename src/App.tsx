@@ -32,7 +32,7 @@
 
 // export default App;
 
-import React, { PropsWithChildren, useEffect } from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from './store';
@@ -45,6 +45,7 @@ import useTokenRefresher from './TokenRefresh';
 function App({ children }: PropsWithChildren) {
     // Using useSelector to get the current state from Redux
     const themeConfig = useSelector((state: RootState) => state.themeConfig);
+    const [loadingDone, setLoadingDone] = useState<boolean>(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -61,6 +62,14 @@ function App({ children }: PropsWithChildren) {
         dispatch(toggleSemidark(localStorage.getItem('semidark') || themeConfig.semidark));
     }, [dispatch, themeConfig.theme, themeConfig.menu, themeConfig.layout, themeConfig.rtlClass, themeConfig.animation, themeConfig.navbar, themeConfig.locale, themeConfig.semidark]);
 
+    useEffect(() => {
+        setTimeout(() => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                navigate('/auth/boxed-signin');
+            }
+        }, 4000);
+    }, []);
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
 
@@ -84,6 +93,56 @@ function App({ children }: PropsWithChildren) {
             clearTimeout(timeoutId);
             events.forEach((event) => document.removeEventListener(event, handleUserActivity));
         };
+    }, [navigate]);
+
+    // watching local storage if token is removed then goto login page
+    useEffect(() => {
+        // 1) Delayed initial check
+        const timeoutId = setTimeout(() => {
+            const token = localStorage.getItem('token');
+            const rt = localStorage.getItem('refresh_token');
+            if (!token && !rt) {
+                navigate('/auth/boxed-signin', { replace: true });
+            }
+        }, 15000); // run once, 15s after mount
+
+        return () => clearTimeout(timeoutId);
+    }, [navigate]);
+
+    useEffect(() => {
+        // 2) Storage‑event listener
+        const onStorage = (e: StorageEvent) => {
+            if ((e.key === 'token' || e.key === 'refresh_token') && !localStorage.getItem('token') && !localStorage.getItem('refresh_token')) {
+                navigate('/auth/boxed-signin', { replace: true });
+            }
+        };
+
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, [navigate]);
+    useEffect(() => {
+        // 1) Delayed initial check
+        const timeoutId = setTimeout(() => {
+            const token = localStorage.getItem('token');
+            const rt = localStorage.getItem('refresh_token');
+            if (!token && !rt) {
+                navigate('/auth/boxed-signin', { replace: true });
+            }
+        }, 15000); // run once, 15s after mount
+
+        return () => clearTimeout(timeoutId);
+    }, [navigate]);
+
+    useEffect(() => {
+        // 2) Storage‑event listener
+        const onStorage = (e: StorageEvent) => {
+            if ((e.key === 'token' || e.key === 'refresh_token') && !localStorage.getItem('token') && !localStorage.getItem('refresh_token')) {
+                navigate('/auth/boxed-signin', { replace: true });
+            }
+        };
+
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
     }, [navigate]);
 
     return (

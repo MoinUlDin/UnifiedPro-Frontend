@@ -3,29 +3,53 @@ import { useEffect, useState } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import Key_Results_List_Popup from './Key_Results_List_Popup';
+import SessionalGoalServices from '../../../../services/SessionalGoalServices';
+import KeyResultServices from '../../../../services/KeyResultServices';
+import toast, { Toaster } from 'react-hot-toast';
+import ConfirmActionModal from '../../../ConfirmActionModel';
 
-interface RowData {
-    Department: string;
-    Department_Goals: string;
-    Session: string;
-    Actions: string;
+interface KRDataType {
     id: number;
+    departmental_session_goal: { id: number; name: string };
+    key_results_text: string;
+    weight: number;
+    target: number;
 }
 
 const Key_Results_List = () => {
-    const [jobTypeModal, setJobTypeModal] = useState(false);
+    const [openKeyPopup, setOpenKeyPopup] = useState(false);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [selectedId, setSelectedId] = useState<null | number>(null);
+    const [initialData, setInitialData] = useState<any | null>(null);
+    const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+    const [refresh, setRefresh] = useState<boolean>(false);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
 
-    const rowData: RowData[] = [
-        { id: 1, Department: 'Sales', Department_Goals: 'Pending', Session: 'Branch A', Actions: '' },
-        // { id: 2, Goal_Text: 'Success', Target: 'Branch B', Achieved: 'Yes', Weight: '55', Actions: '' },
-        // Add more rows as needed
-    ];
+    const [KRData, setKRData] = useState<KRDataType[]>([
+        {
+            id: 0,
+            departmental_session_goal: { id: 0, name: '' },
+            key_results_text: '',
+            weight: 0,
+            target: 0,
+        },
+    ]);
 
-    const totalRecords = rowData.length;
-    const [recordsData, setRecordsData] = useState(rowData.slice(0, pageSize));
+    const totalRecords = KRData.length;
+    const [recordsData, setRecordsData] = useState(KRData.slice(0, pageSize));
+
+    useEffect(() => {
+        KeyResultServices.FetchGoals()
+            .then((r) => {
+                setKRData(r);
+                console.log('Key results: ', r);
+            })
+            .catch((e) => {
+                toast.error('Error Fetching Key Results', { duration: 4000 });
+            });
+    }, [refresh]);
 
     useEffect(() => {
         setPage(1);
@@ -34,23 +58,14 @@ const Key_Results_List = () => {
     useEffect(() => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize;
-        setRecordsData(rowData.slice(from, to));
-    }, [page, pageSize, rowData]);
-
-    const handleEditClick = (item: RowData) => {
-        console.log('Edit clicked for:', item);
-    };
-
-    const handleDeleteClick = (id: number) => {
-        console.log('Delete clicked for ID:', id);
-    };
-
-    const JobTypePopup = () => setJobTypeModal(true);
+        setRecordsData(KRData.slice(from, to));
+    }, [page, pageSize, KRData]);
 
     const columns = [
-        { accessor: 'Department', title: 'Department' },
-        { accessor: 'Department Goals', title: 'Department Goals' },
-        { accessor: 'Session', title: 'Session' },
+        { accessor: 'departmental_session_goal', title: 'Sessional Goal', render: (row: KRDataType) => row.departmental_session_goal.name },
+        { accessor: 'key_results_text', title: 'KR Text' },
+        { accessor: 'target', title: 'Target' },
+        { accessor: 'weight', title: 'Weight' },
     ];
 
     const adjustedColumns = [
@@ -58,7 +73,7 @@ const Key_Results_List = () => {
         {
             accessor: 'action',
             title: 'Action',
-            render: (item: RowData) => (
+            render: (item: KRDataType) => (
                 <div className="flex justify-start">
                     <Tippy content="Edit">
                         <button type="button" className="text-blue-600 hover:text-blue-800" onClick={() => handleEditClick(item)}>
@@ -79,12 +94,75 @@ const Key_Results_List = () => {
         },
     ];
 
+    const handleSubmit = (data: any) => {
+        console.log('got Edited Data', data);
+        if (isEditing) {
+            if (!selectedId) {
+                toast.error('No Id selected to update');
+                return;
+            }
+            KeyResultServices.UpdateGoal(selectedId, data)
+                .then(() => {
+                    toast.success('Key Result Upated Successfully');
+                    setRefresh((p) => !p);
+                })
+                .catch((e) => {
+                    toast.error(e.message || 'Error Updating KR');
+                });
+        } else {
+            KeyResultServices.AddGoal(data)
+                .then(() => {
+                    toast.success('Key Resust Added Successfully', { duration: 4000 });
+                    setRefresh((p) => !p);
+                })
+                .catch((e) => {
+                    console.log(e, 'error Adding key Result');
+                    toast.error(e.message || 'Error adding KR');
+                });
+        }
+    };
+
+    const handleEditClick = (item: KRDataType) => {
+        console.log('Edit clicked for:', item);
+        setInitialData(item);
+        setSelectedId(item.id);
+        setIsEditing(true);
+        setOpenKeyPopup(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!selectedId) {
+            toast.error("No Id found, it's not your fault, It's a System errro");
+            return;
+        }
+        KeyResultServices.DeleteGoal(selectedId)
+            .then(() => {
+                toast.success('Key Result Deleted Successfully', { duration: 4000 });
+                setSelectedId(null);
+                setRefresh((p) => !p);
+            })
+            .catch((e) => {
+                toast.error(e.message || 'Error Deleting KR');
+            });
+    };
+    const handleDeleteClick = (id: number) => {
+        console.log('Delete clicked for ID:', id);
+        setSelectedId(id);
+        setOpenConfirmationModal(true);
+    };
+
+    const handleCreateNewKR = () => {
+        setIsEditing(false);
+        setInitialData(null);
+        setSelectedId(null);
+        setOpenKeyPopup(true);
+    };
     return (
         <div>
             <div className="panel mt-8">
                 <div className="flex justify-between items-center text-center">
                     <h5 className="font-semibold text-lg dark:text-white-light mb-4 pt-2">Key Results</h5>
-                    <button type="button" className="btn btn-primary mb-4" onClick={JobTypePopup}>
+                    <button type="button" className="btn btn-primary mb-4" onClick={handleCreateNewKR}>
                         Create Key Result
                     </button>
                 </div>
@@ -108,7 +186,16 @@ const Key_Results_List = () => {
                 </div>
             </div>
             {/* Uncomment this line and define Job_Type_Popup component when ready */}
-            {jobTypeModal && <Key_Results_List_Popup closeModal={() => setJobTypeModal(false)} />}
+            {openKeyPopup && <Key_Results_List_Popup isEditing={isEditing} initialData={initialData} onSubmit={handleSubmit} closeModel={() => setOpenKeyPopup(false)} />}
+            <Toaster position="top-right" reverseOrder={false} />
+            <ConfirmActionModal
+                opened={openConfirmationModal}
+                onClose={() => setOpenConfirmationModal(false)}
+                onConfirm={handleConfirmDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this Goal? <br/> This action will delete all it's childrens e.g KPI, Tasks <br/> Continue?"
+                btnText="Delete"
+            />
         </div>
     );
 };

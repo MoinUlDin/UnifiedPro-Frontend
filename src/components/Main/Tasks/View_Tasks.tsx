@@ -1,464 +1,263 @@
-import React, { useState,useEffect } from 'react';
-import IconEdit from '../../Icon/IconEdit';
-import IconTrash from '../../Icon/IconTrash';
+import React, { useState, useEffect } from 'react';
+import { DataTable, DataTableColumn } from 'mantine-datatable';
 import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2'; // Import SweetAlert2
-import axios from 'axios'
-// Define the Customer Type
-type Customer = {
-    id: number;
-    task_name: string;
-    summary: string;
-    status: string;
-    deadline: string;
-    file: string;
-    frequency: "at_once" | "daily" | "weekly" | "monthly"; // Assuming limited options
-    instructions: string;
-    start_date: string; 
-    designation: number;
-    employee: number;
-    priority: "low" | "medium" | "high"; //
-    department: number; // Add department property
-};
-interface Designation {
-    id: number;
-    name: string;
-    ParentDesignation: string;
-    ChildDesignation: string;
-}
-interface Department {
-    id: number;
-    name: string;
-    ParentDesignation: string;
-    ChildDesignation: string;
-}
-
-
-// Initial Dummy Data
-const initialCustomers: Customer[] = [];
+import { TaskType } from '../../../constantTypes/TasksTypes';
+import toast, { Toaster } from 'react-hot-toast';
+import Swal from 'sweetalert2';
+import axios from 'axios';
+import TaskServices from '../../../services/TaskServices';
+import TaskPopupForm from './TaskPopupForm';
 
 const View_Tasks: React.FC = () => {
-    const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-    const [search, setSearch] = useState<string>('');
-    const [showPopup, setShowPopup] = useState<boolean>(false);
-    const [editing, setEditing] = useState<boolean>(false);
-    const [editIndex, setEditIndex] = useState<number | null>(null);
-    const [actionMenuIndex, setActionMenuIndex] = useState<number | null>(null);
-    const [departments, setDepartments] = useState<Department[]>([]);
-const [designations, setDesignations] = useState<Designation[]>([]);
     const navigate = useNavigate();
+    const [tasks, setTasks] = useState<TaskType[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [initialData, setInitialData] = useState<any | null>(null);
+    const [openTaskPopupForm, setOpenTaskPopupForm] = useState<boolean>(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [refresh, setRefresh] = useState<boolean>(false);
 
-    // Initialize new customer
-    const initialCustomer: Customer = {
-        id: customers.length + 1,
-        task_name: '',
-        summary: '',
-        status: '',
-        deadline: '',
-        file: '',
-        frequency: 'at_once', // Default value
-        instructions: '',
-        start_date: '',
-        designation: 0, // Default value
-        employee: 0, // Default value
-        priority: 'low',
-        department: 0
-    };
-
-    const [newCustomer, setNewCustomer] = useState<Customer>(initialCustomer);
-
-    // Handle Search Input Change
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value);
-    };
-
-    // Add New Customer Button Handler
-    const handleAddCustomer = () => {
-        setNewCustomer(initialCustomer); // Reset form to default for new customer
-        setShowPopup(true);
-        setEditing(false); // Indicate we're adding new, not editing
-    };
-
-    // Handle Edit action
-    const handleEdit = (index: number) => {
-        setNewCustomer(customers[index]); // Set data of the selected customer for editing
-        setEditIndex(index);
-        setEditing(true);
-        setShowPopup(true); // Open the popup for editing
-        setActionMenuIndex(null); // Close menu after edit
-    };
-
-    // Handle Submit (Save Changes)
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-    
-        const authToken = localStorage.getItem('token');
-        if (!authToken) {
-            navigate('/auth/boxed-signin');
-            return;
-        }
-    
-        try {
-            if (editing && editIndex !== null) {
-                // Update existing customer
-                const updatedCustomers = [...customers];
-                updatedCustomers[editIndex] = newCustomer;
-                setCustomers(updatedCustomers);
-            } else {
-                // Add new customer
-                const response = await axios.post("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/task/", newCustomer, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${authToken}`,
-                    },
-                });
-                console.log(customers)
-                setCustomers([...customers, response.data]); // Add new customer from API response
-            }
-            setShowPopup(false); // Close the popup
-        } catch (error) {
-            console.error("Error submitting customer:", error);
-            if (axios.isAxiosError(error)) {
-                console.error("Axios Error Response:", error.response?.data);
-            }
-        }
-    };
-    
-
-    // Handle Action Menu Click (Toggle visibility of action menu)
-    const handleActionMenu = (index: number) => {
-        setActionMenuIndex(actionMenuIndex === index ? null : index);
-    };
-
-    // Handle Delete action with SweetAlert2
-    const handleDelete = (index: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'You won’t be able to revert this!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const updatedCustomers = customers.filter((_, i) => i !== index);
-                setCustomers(updatedCustomers);
-                Swal.fire('Deleted!', 'Your task has been deleted.', 'success');
-            }
-        });
-        setActionMenuIndex(null); // Close menu after delete
-    };
-
-    // Filtered Customers Based on Search
-    const filteredCustomers = customers.filter((customer) => customer.task_name.toLowerCase().includes(search.toLowerCase()));
-    const fetchDepartments = async () => {
-            const API_BASE_URL = "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me";
-            const authToken = localStorage.getItem('token');
-            if (!authToken) {
-                navigate('/auth/boxed-signin');
-                return;
-            }
-    
-            try {
-                const response = await axios.get(`${API_BASE_URL}/company-Setup/departments/`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                setDepartments(response.data);
-            } catch (err) {
-                console.error('Failed to fetch departments:', err);
-                setError('Failed to fetch departments');
-            }
-        };
-       useEffect(() => {
-         
-        fetchDepartments()
-       }, [])
-    
-       const fetchDesignation = async () => {
-        const API_BASE_URL = "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me";
-        const authToken = localStorage.getItem('token');
-        if (!authToken) {
-            navigate('/auth/boxed-signin');
-            return;
-        }
-        
-        try {
-            const response = await axios.get(`${API_BASE_URL}/company-Setup/designations/`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                }
-            });
-    
-            setDesignations(response.data);
-        } catch (err) {
-            console.error('Failed to fetch designations:', err);
-            setError('Failed to fetch designations');
-        }
-    };
-    
-    // ✅ Correct useEffect for fetching designations
+    // Fetching Tasks
     useEffect(() => {
-        fetchDesignation();
-    }, []);
-    return (
-        <div className="w-full bg-white p-4">
-            <h1 className="text-left my-4 text-xl font-semibold">Assigned Tasks</h1>
-            <div className="flex justify-between items-center mb-3">
-                <input type="text" placeholder={`Search: ${filteredCustomers.length} records`} className="form-control w-1/4 p-2 border" value={search} onChange={handleSearch} />
-                <button className="btn btn-primary" onClick={handleAddCustomer}>
-                    Add Task
-                </button>
-            </div>
+        TaskServices.FetchTasks()
+            .then((r) => {
+                setTasks(r);
+                console.log('Tasks: ', r);
+            })
+            .catch((e) => {
+                console.log(e);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [refresh]);
 
-            <div className="overflow-auto">
-                <table className="table-auto border-collapse w-full text-center">
-                    <thead>
-                        <tr>
-                            <th>Task Name</th>
-                            <th>Summary</th>
-                            <th>Status</th>
-                            <th>Deadline</th>
-                            <th>File</th>
-                            <th>Frequency</th>
-                            <th>Instructions</th>
-                            <th>Start Date</th>
-                            <th>Designation</th>
-                            <th>Employee</th>
-                            <th>Priority</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredCustomers.map((customer, index) => (
-                            <tr key={customer.id}>
-                                <td>{customer.task_name}</td>
-                                <td>{customer.summary}</td> {/* Displaying Summary */}
-                                <td>{customer.status}</td>
-                                <td>{customer.deadline}</td> {/* Displaying Deadline */}
-                                <td>
-                                    {customer.file ? (
-                                        <a
-                                            href={customer.file}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-500 underline"
-                                        >
-                                            View File
-                                        </a>
-                                    ) : (
-                                        "No File"
-                                    )}
-                                </td> {/* Displaying File */}
-                                <td>{customer.frequency}</td>
-                                <td>{customer.instructions}</td>
-                                <td>{customer.start_date}</td>
-                                <td>{customer.designation}</td>
-                                <td>{customer.employee}</td>
-                                <td>{customer.priority}</td>
-                                <td className="text-center">
-                                    <button
-                                        onClick={() => handleActionMenu(index)}
-                                        className="btn btn-outline-secondary"
-                                    >
-                                        <i className="bi bi-three-dots-vertical" />
-                                    </button>
-                                    {actionMenuIndex === index && (
-                                        <div className="absolute bg-white border shadow z-10">
-                                            <ul className="list-group">
-                                                <li
-                                                    className="list-group-item cursor-pointer"
-                                                    onClick={() => handleEdit(index)}
-                                                >
-                                                    Edit
-                                                </li>
-                                                <li
-                                                    className="list-group-item cursor-pointer"
-                                                    onClick={() => handleDelete(index)}
-                                                >
-                                                    Delete
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Popup Modal */}
-            {showPopup && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white rounded-lg w-full max-w-4xl">
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <h5 className="text-lg font-semibold">{editing ? 'Edit Task' : 'Add New Task'}</h5>
-                            <button type="button" className="btn-close" onClick={() => setShowPopup(false)}></button>
+    const columns: DataTableColumn<TaskType>[] = [
+        {
+            accessor: 'task_name',
+            title: 'Task',
+            render: (task) => {
+                const color = task.priority === 'low' ? 'yellow' : task.priority === 'medium' ? 'green' : 'red';
+                return (
+                    <div key={`name-${task.id}`}>
+                        <div className="mb-1 font-bold text-blue-900">{task.task_name}</div>
+                        <div className="flex items-center gap-3 font-semibold text-[14px] text-gray-600 ">
+                            <span>
+                                <span>Weight: </span>
+                                {task.weight}
+                            </span>
+                            <span>
+                                <span>Priority: </span>
+                                <span className={`bg-${color}-500 px-2 rounded-xl text-black`}>{task.priority}</span>
+                            </span>
                         </div>
-                        <form onSubmit={handleSubmit}>
-                            <div className="p-4">
-                                {/* Input Fields for Task Details */}
-                                <label htmlFor="TaskName" className="block mb-1">Task Name</label>
-                                <input
-                                    id='TaskName'
-                                    type="text"
-                                    className="form-control w-full p-2 mb-2"
-                                    placeholder="Task Name"
-                                    value={newCustomer.task_name}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, task_name: e.target.value })}
-                                    required
-                                />
-                                 <label htmlFor="summary" className="block mb-1">Summary</label>                                    
-                                <input
-                                    id='summary'
-                                    type="text"
-                                    className="form-control w-full p-2 mb-2"
-                                    placeholder="Summary"
-                                    value={newCustomer.summary}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, summary: e.target.value })}
-                                    required
-                                />
-                                 <label htmlFor="status" className="block mb-1">Status</label>
-                                <select id='status' className="form-control w-full p-2 mb-2" value={newCustomer.status} onChange={(e) => setNewCustomer({ ...newCustomer, status: e.target.value })} required>
-                                    <option value="">Select Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                </select>
-
-
-
-                                <label htmlFor="start_date" className="block mb-1">Start Date</label>                                
-                                <input
-                                    id='start_date'
-                                    type="date"
-                                    className="form-control w-full p-2 mb-2"
-                                    value={newCustomer.start_date}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, start_date: e.target.value })}
-                                    required
-                                />
-                                    <label htmlFor="end_date" className="block mb-1">End Date</label>
-                                <input
-                                    id='end_date'
-                                    type="date"
-                                    className="form-control w-full p-2 mb-2"
-                                    value={newCustomer.deadline}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, deadline: e.target.value })}
-                                    required
-                                />
-                                <label htmlFor="file" className="block mb-1">File</label>
-                                <input
-                                id='file'
-                                    type="text"
-                                    className="form-control w-full p-2 mb-2"
-                                    placeholder="File"
-                                    value={newCustomer.file}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, file: e.target.value })}
-                                    required
-                                />
-                                    <label htmlFor="frequency" className="block mb-1">Frequency</label>
-                                <select
-                                    id='frequency'
-                                    className="form-control w-full p-2 mb-2"
-                                    value={newCustomer.frequency}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, frequency: e.target.value as 'at_once' | 'daily' | 'weekly' | 'monthly' })}
-                                    required
-                                >
-                                    <option value="">Select Frequency</option>
-                                    <option value="at_once">At Once</option>
-                                    <option value="daily">Daily</option>
-                                    <option value="weekly">Weekly</option>
-                                    <option value="monthly">Monthly</option>
-                                </select>
-
-
-
-                                <label htmlFor="instructions" className="block mb-1">Instructions</label>
-                                <textarea
-                                    id='instructions'
-                                    className="form-control w-full p-2 mb-2"
-                                    placeholder="Instructions"
-                                    value={newCustomer.instructions}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, instructions: e.target.value })}
-                                    required
-                                />
-                                 <label htmlFor="designation" className="block mb-1">Designation</label>
-                                <select
-                                id='designation'
-                                    className="form-control w-full p-2 mb-2"
-                                    value={newCustomer.designation}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, designation: parseInt(e.target.value, 10) || 0 })}
-                                    required
-                                >
-                                    <option value="">Select Designation</option>
-                                    {designations.map((desig) => (
-                                        <option key={desig.id} value={desig.id}>
-                                            {desig.name}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                {/* Department */}
-                                <label htmlFor="department" className="block mb-1">Department</label>
-                                <select
-                                    id='department'
-                                    className="form-control w-full p-2 mb-2"
-                                    value={newCustomer.department}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, department: parseInt(e.target.value, 10) || 0 })}
-                                    required
-                                >
-                                    <option value="">Select Department</option>
-                                    {departments.map((department) => (
-                                        <option key={department.id} value={department.id}>
-                                            {department.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label htmlFor="employee" className="block mb-1">Employee ID</label>
-                                <input
-                                    id='employee'
-                                    type="number"
-                                    className="form-control w-full p-2 mb-2"
-                                    placeholder="Employee ID"
-                                    value={newCustomer.employee}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, employee: parseInt(e.target.value, 10) || 0 })}
-                                    required
-                                />
-                                <label htmlFor="priority" className="block mb-1">Priority</label>
-                                <select
-                                id='priority'
-                                    className="form-control w-full p-2 mb-2"
-                                    value={newCustomer.priority}
-                                    onChange={(e) => setNewCustomer({ ...newCustomer, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                                    required
-                                >
-                                    <option value="">Select Priority</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                </select>
-
-                                <div className="flex justify-end">
-                                    <button type="submit" className="btn btn-primary">
-                                        {editing ? 'Save Changes' : 'Add Task'}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                    </div>
+                );
+            },
+        },
+        {
+            accessor: 'due_date',
+            title: 'Dates',
+            render: (task) => (
+                <div key={`date-${task.id}`}>
+                    <div className="flex items-center gap-2">
+                        <span className="text-black font-semibold">Start Date</span>
+                        <span className="text-gray-800 text-[12px]">{task.start_date?.split('T')[0]}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-black font-semibold">Due Date</span>
+                        <span className="text-gray-800 text-[12px]">{task.start_date?.split('T')[0]}</span>
                     </div>
                 </div>
+            ),
+        },
+        {
+            accessor: 'department_kpi',
+            title: 'KPI',
+            render: (task) => (
+                <div key={`kpi-${task.id}`}>
+                    <div className="mb-1 font-bold text-gray-900">{task.department_kpi.kpi_text}</div>
+                    <div className="flex items-center gap-3 text-[12px] text-gray-600 ">
+                        <span>
+                            <span>Target: </span>
+                            <span>{task.department_kpi.target}</span>
+                        </span>
+                        <span>
+                            <span>Weight: </span>
+                            {task.department_kpi.weight}
+                        </span>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            accessor: 'key_result',
+            title: 'Key Result',
+            render: (task) => (
+                <div key={`key_result-${task.id}`}>
+                    <div className="mb-1 font-bold text-gray-900">{task.key_result.key_result_text}</div>
+                    <div className="text-[12px] text-gray-600">
+                        target: {task.key_result.target} weight: {task.key_result.weight}
+                    </div>
+                </div>
+            ),
+        },
+        {
+            accessor: 'departmental_session_goal',
+            title: 'Session Goal',
+            render: (task) => (
+                <div key={`SG-${task.id}`}>
+                    <div className="mb-1 font-bold text-gray-900">{task.departmental_session_goal.goal_text}</div>
+                    <div className="text-[12px] text-gray-600">
+                        target: {task.departmental_session_goal.target} weight: {task.departmental_session_goal.weight}
+                    </div>
+                </div>
+            ),
+        },
+        {
+            accessor: 'department_goal',
+            title: 'Department Goal',
+            render: (task) => (
+                <div key={`DG-${task.id}`}>
+                    <div className="mb-1 font-bold text-gray-900">{task.department_goal.goal_text}</div>
+                    <div className="text-[12px] text-gray-600">
+                        target: {task.department_goal.target} weight: {task.department_goal.weight}
+                    </div>
+                </div>
+            ),
+        },
+        // {
+        //     accessor: 'company_goal',
+        //     title: 'Company Goal',
+        //     render: (task) => (
+        //         <div>
+        //             <div className="mb-1 font-bold text-gray-900">{task.company_goal.goal_text}</div>
+        //             <div className="text-[12px] text-gray-600">weight: {task.company_goal.weight}</div>
+        //         </div>
+        //     ),
+        // },
+        {
+            accessor: 'Actions',
+            title: 'Actions',
+            render: (task) => (
+                <div key={`Action-${task.id}`} className="sticky right-0">
+                    <div className="flex flex-col items-start gap-2">
+                        <button onClick={() => handleEdit(task)} className="flex items-center gap-2 btn btn-sm btn-outline-primary min-w-20">
+                            <i className="bi bi-pencil-square"></i>
+                            Edit
+                        </button>
+                        <button onClick={() => console.log('clicked')} className="flex items-center gap-2 btn btn-sm btn-outline-primary min-w-20">
+                            <i className="bi bi-person-plus" /> Assign
+                        </button>
+                        <button onClick={() => handleDeleteTask(task.id)} className="flex items-center gap-2 btn btn-sm btn-outline-danger min-w-20">
+                            <i className="bi bi-trash"></i>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            ),
+        },
+
+        // you can add more columns or an actions column here...
+    ];
+
+    const handleCreateUpdateSubmit = (data: FormData) => {
+        console.log('Submitted Data', data);
+        if (isEditing) {
+            if (!selectedId) {
+                toast.error('No ID found. System Error', { duration: 4000 });
+                return;
+            }
+            TaskServices.UpdateTask(selectedId, data)
+                .then(() => {
+                    toast.success('Task Updated Succussfully', { duration: 4000 });
+                    setRefresh((p) => !p);
+                })
+                .catch((e) => {
+                    toast.error(e.message || 'Error Updating Task.', { duration: 4000 });
+                });
+        } else {
+            TaskServices.AddTask(data)
+                .then(() => {
+                    console.log('added');
+                    toast.success('Task Added Succussfully', { duration: 4000 });
+                    setRefresh((p) => !p);
+                })
+                .catch((e) => {
+                    toast.error(e.message || 'Error Adding Task.', { duration: 4000 });
+                });
+        }
+    };
+    const handleCreateTask = () => {
+        setInitialData(null);
+        setIsEditing(false);
+        setSelectedId(null);
+        setOpenTaskPopupForm(true);
+    };
+    const handleEdit = (data: TaskType) => {
+        console.log('Initial Data: ', data);
+        setInitialData(data);
+        setIsEditing(true);
+        setSelectedId(data.id);
+        setOpenTaskPopupForm(true);
+    };
+
+    const handleDeleteTask = (id: number) => {
+        console.log('deleting ID: ', id);
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you really want to delete this Task?',
+            timerProgressBar: true,
+            position: 'top-right',
+            timer: 8000,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+            reverseButtons: true,
+        }).then((res) => {
+            if (res.isConfirmed) {
+                console.log('wow');
+            }
+        });
+    };
+    return (
+        <div className="panel">
+            <div className="mb-4 px-3 flex justify-between items-center">
+                <h1 className="text-2xl font-semibold">Task List</h1>
+                <button onClick={handleCreateTask} className="btn btn-xl btn-success">
+                    Create Task
+                </button>
+            </div>
+            <div className="datatables">
+                <DataTable
+                    withBorder
+                    striped
+                    className="whitespace-nowrap table-hover"
+                    highlightOnHover
+                    records={tasks}
+                    columns={columns}
+                    fetching={loading}
+                    noRecordsText="No tasks to display"
+                    // pagination, sorting, etc. props as needed
+                />
+            </div>
+
+            {openTaskPopupForm && (
+                <TaskPopupForm
+                    isEditing={isEditing}
+                    initialData={initialData}
+                    onSubmit={handleCreateUpdateSubmit}
+                    closeModel={() => {
+                        setOpenTaskPopupForm(false);
+                    }}
+                />
             )}
+            <Toaster position="top-right" reverseOrder={false} />
         </div>
     );
 };
 
 export default View_Tasks;
-function setError(arg0: string) {
-    throw new Error('Function not implemented.');
-}
-

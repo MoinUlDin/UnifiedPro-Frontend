@@ -1,9 +1,9 @@
 import api from '../utils/api';
 
-export default class DepartmentGoalServices {
+export default class SessionalGoalServices {
     static async FetchGoals() {
         try {
-            const response = await api.get(`/company-performace/department-goal/`);
+            const response = await api.get(`/company-performace/department-session-goal/`);
             return response.data;
         } catch (e) {
             console.log(e);
@@ -12,7 +12,7 @@ export default class DepartmentGoalServices {
     }
     static async FetchChildGoals(id: number) {
         try {
-            const response = await api.get(`/company-performace/department-goal/${id}/child_goals/`);
+            const response = await api.get(`/company-performace/department-session-goal/`);
             return response.data;
         } catch (e) {
             console.log(e);
@@ -21,7 +21,7 @@ export default class DepartmentGoalServices {
     }
     static async AddGoal(payload: any) {
         try {
-            const response = await api.post(`/company-performace/department-goal/`, payload);
+            const response = await api.post(`/company-performace/department-session-goal/`, payload);
             return response.data;
         } catch (e: any) {
             console.log('Add Gaol error: ', e);
@@ -31,7 +31,7 @@ export default class DepartmentGoalServices {
     }
     static async UpdateGoal(id: number, payload: any) {
         try {
-            const response = await api.patch(`/company-performace/department-goal/${id}/`, payload);
+            const response = await api.patch(`/company-performace/department-session-goal/${id}/`, payload);
             return response.data;
         } catch (e: any) {
             console.log(e);
@@ -41,7 +41,7 @@ export default class DepartmentGoalServices {
     }
     static async DeleteGoal(id: number) {
         try {
-            const response = await api.delete(`/company-performace/department-goal/${id}/`);
+            const response = await api.delete(`/company-performace/department-session-goal/${id}/`);
             return response.data;
         } catch (e: any) {
             console.log('Delete Goal Error:', e);

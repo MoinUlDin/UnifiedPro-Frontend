@@ -1,27 +1,27 @@
 import api from '../utils/api';
 
-export default class DepartmentGoalServices {
+export default class KPIServices {
     static async FetchGoals() {
         try {
-            const response = await api.get(`/company-performace/department-goal/`);
+            const response = await api.get(`/company-performace/department-kpi/`);
             return response.data;
         } catch (e) {
             console.log(e);
             throw e;
         }
     }
-    static async FetchChildGoals(id: number) {
-        try {
-            const response = await api.get(`/company-performace/department-goal/${id}/child_goals/`);
-            return response.data;
-        } catch (e) {
-            console.log(e);
-            throw e;
-        }
-    }
+    // static async FetchChildGoals(id: number) {
+    //     try {
+    //         const response = await api.get(`/company-performace/department-kpi/`);
+    //         return response.data;
+    //     } catch (e) {
+    //         console.log(e);
+    //         throw e;
+    //     }
+    // }
     static async AddGoal(payload: any) {
         try {
-            const response = await api.post(`/company-performace/department-goal/`, payload);
+            const response = await api.post(`/company-performace/department-kpi/`, payload);
             return response.data;
         } catch (e: any) {
             console.log('Add Gaol error: ', e);
@@ -31,7 +31,7 @@ export default class DepartmentGoalServices {
     }
     static async UpdateGoal(id: number, payload: any) {
         try {
-            const response = await api.patch(`/company-performace/department-goal/${id}/`, payload);
+            const response = await api.patch(`/company-performace/department-kpi/${id}/`, payload);
             return response.data;
         } catch (e: any) {
             console.log(e);
@@ -41,7 +41,7 @@ export default class DepartmentGoalServices {
     }
     static async DeleteGoal(id: number) {
         try {
-            const response = await api.delete(`/company-performace/department-goal/${id}/`);
+            const response = await api.delete(`/company-performace/department-kpi/${id}/`);
             return response.data;
         } catch (e: any) {
             console.log('Delete Goal Error:', e);

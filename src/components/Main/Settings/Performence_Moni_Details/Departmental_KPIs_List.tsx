@@ -3,32 +3,34 @@ import { useEffect, useState } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import Departmental_KPIs_List_Popup from './Departmental_KPIs_List_Popup';
-
-interface RowData {
-    Departmental_KPI: string;
-    Key_Results: string;
-    KPI_Value: string;
-    Weight: string;
-    Achieved: string;
-    Actions: string;
-    id: number;
-}
+import { KPIType } from '../../../../constantTypes/Types';
+import KPIServices from '../../../../services/KPIServices';
+import toast, { Toaster } from 'react-hot-toast';
+import ConfirmActionModal from '../../../ConfirmActionModel';
 
 const Departmental_KPIs_List = () => {
-    const [jobTypeModal, setJobTypeModal] = useState(false);
+    const [openKPIPopup, setopenKPIPopup] = useState(false);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
+    const [KPIs, setKPIs] = useState<KPIType[] | null>(null);
+    const [initialData, setInitialData] = useState<KPIType | null>(null);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [zz, setzz] = useState<boolean>(false);
+    const [openConfrimActionModel, setopenConfrimActionModel] = useState<boolean>(false);
 
-    const rowData: RowData[] = [
-        { id: 1, Departmental_KPI: 'Pending', Key_Results: 'Branch A', KPI_Value: 'None', Weight: '102', Achieved: 'Yes', Actions: '' },
-        // { id: 2, Goal_Text: 'Success', Target: 'Branch B', Achieved: 'Yes', Weight: '55', Actions: '' },
-        // Add more rows as needed
-    ];
-
-    const totalRecords = rowData.length;
-    const [recordsData, setRecordsData] = useState(rowData.slice(0, pageSize));
-
+    const totalRecords = KPIs?.length;
+    const [recordsData, setRecordsData] = useState(KPIs?.slice(0, pageSize));
+    useEffect(() => {
+        KPIServices.FetchGoals()
+            .then((r) => {
+                setKPIs(r);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    }, [zz]);
     useEffect(() => {
         setPage(1);
     }, [pageSize]);
@@ -36,25 +38,15 @@ const Departmental_KPIs_List = () => {
     useEffect(() => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize;
-        setRecordsData(rowData.slice(from, to));
-    }, [page, pageSize, rowData]);
-
-    const handleEditClick = (item: RowData) => {
-        console.log('Edit clicked for:', item);
-    };
-
-    const handleDeleteClick = (id: number) => {
-        console.log('Delete clicked for ID:', id);
-    };
-
-    const JobTypePopup = () => setJobTypeModal(true);
+        setRecordsData(KPIs?.slice(from, to));
+    }, [page, pageSize, KPIs]);
 
     const columns = [
-        { accessor: 'Departmental KPI', title: 'Departmental KPI' },
-        { accessor: 'Key Results', title: 'Key Results' },
-        { accessor: 'KPI Value', title: 'KPI  Value' },
-        { accessor: 'Weight', title: 'Weight' },
-        { accessor: 'Achieved', title: 'Achieved' },
+        { accessor: 'key_result', title: 'Key Results', render: (row: KPIType) => row.key_result.text },
+        { accessor: 'kpi_text', title: 'Departmental KPI' },
+        { accessor: 'target', title: 'Target' },
+        { accessor: 'weight', title: 'Weight' },
+        // { accessor: 'Achieved', title: 'Achieved' },
     ];
 
     const adjustedColumns = [
@@ -62,7 +54,7 @@ const Departmental_KPIs_List = () => {
         {
             accessor: 'action',
             title: 'Action',
-            render: (item: RowData) => (
+            render: (item: KPIType) => (
                 <div className="flex justify-start">
                     <Tippy content="Edit">
                         <button type="button" className="text-blue-600 hover:text-blue-800" onClick={() => handleEditClick(item)}>
@@ -83,12 +75,72 @@ const Departmental_KPIs_List = () => {
         },
     ];
 
+    const handleEditClick = (item: KPIType) => {
+        console.log('Edit clicked for:', item);
+        setSelectedId(item.id);
+        setInitialData(item);
+        setIsEditing(true);
+        setopenKPIPopup(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!selectedId) {
+            toast.error("No Id Selected to Delete. Not your fault! It's a system error", { duration: 4000 });
+            return;
+        }
+        KPIServices.DeleteGoal(selectedId)
+            .then(() => {
+                toast.success('KPI Deleted Successfully', { duration: 4000 });
+                setzz((p) => !p);
+            })
+            .catch((e) => {
+                toast.error(e.message || 'Error Deleting KPI', { duration: 5000 });
+            });
+    };
+
+    const handleDeleteClick = (id: number) => {
+        console.log('Delete clicked for ID:', id);
+        setSelectedId(id);
+        setopenConfrimActionModel(true);
+    };
+
+    const handleCreateKPI = () => {
+        setIsEditing(false);
+        setInitialData(null);
+        setopenKPIPopup(true);
+    };
+    const onSubmit = (data: any) => {
+        console.log('we Got data', data);
+        if (isEditing) {
+            if (!selectedId) {
+                toast.error("No Selected ID found. Not your fault! It's System Error");
+                return;
+            }
+            KPIServices.UpdateGoal(selectedId, data)
+                .then(() => {
+                    toast.success('KPI upated Successfully', { duration: 4000 });
+                    setzz((p) => !p);
+                })
+                .catch((e) => {
+                    toast.error(e.message || 'Error Updating KPI', { duration: 5000 });
+                });
+        } else {
+            KPIServices.AddGoal(data)
+                .then(() => {
+                    toast.success('KPI Created Successfully', { duration: 4000 });
+                    setzz((p) => !p);
+                })
+                .catch((e) => {
+                    toast.error(e.message || 'Error Adding KPI', { duration: 5000 });
+                });
+        }
+    };
     return (
         <div>
             <div className="panel mt-8">
                 <div className="flex justify-between items-center text-center">
                     <h5 className="font-semibold text-lg dark:text-white-light mb-4 pt-2">Departmental KPIs List</h5>
-                    <button type="button" className="btn btn-primary mb-4" onClick={JobTypePopup}>
+                    <button type="button" className="btn btn-primary mb-4" onClick={handleCreateKPI}>
                         Create New Departmental KPI
                     </button>
                 </div>
@@ -112,7 +164,19 @@ const Departmental_KPIs_List = () => {
                 </div>
             </div>
             {/* Uncomment this line and define Job_Type_Popup component when ready */}
-            {jobTypeModal && <Departmental_KPIs_List_Popup closeModal={() => setJobTypeModal(false)} />}
+            {openKPIPopup && <Departmental_KPIs_List_Popup initialData={initialData} isEditing={isEditing} onSubmit={onSubmit} closeModel={() => setopenKPIPopup(false)} />}
+            <Toaster position="top-right" reverseOrder={false} />
+            <ConfirmActionModal
+                onConfirm={handleConfirmDelete}
+                opened={openConfrimActionModel}
+                onClose={() => {
+                    setopenConfrimActionModel(false);
+                }}
+                message="Are you sure you want to delete this KPI? <br/> 
+                This action will also delete all child items E.g. Tasks. <br/>
+                Still Continue?
+                "
+            />
         </div>
     );
 };

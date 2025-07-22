@@ -5,53 +5,36 @@ import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import Edit_Employee_Popup from './Edit_Employee_Popup';
 import EmployeeServices from '../../../services/EmployeeServices';
-import { render } from '@fullcalendar/core/preact';
-type FormData = {
-    id: number;
-    email?: string;
-    department: string;
-    designation: string;
-    first_name: string;
-    last_name: string;
-    hire_date: string;
-    password?: string;
-    confirm_password?: string;
-};
+import toast, { Toaster } from 'react-hot-toast';
+import { EmployeeType } from '../../../constantTypes/Types';
+import Swal from 'sweetalert2';
 
 const Edit_Employee = () => {
     const dispatch = useDispatch();
+    const [employees, setEmployees] = useState<EmployeeType[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [initailData, setInitialData] = useState<EmployeeType | null>(null);
+    const [page, setPage] = useState(1);
+    const [recordsPerPage, setRecordsPerPage] = useState(10);
+    const [refresh, setRefresh] = useState<boolean>(false);
 
     useEffect(() => {
         dispatch(setPageTitle('Create Employee'));
     }, [dispatch]);
 
-    interface Employee {
-        id: number;
-        department: string;
-        designation: string;
-        first_name: string;
-        last_name: string;
-        hire_date: string;
-    }
-
-    const [employees, setEmployees] = useState<Employee[]>([]);
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [currentEditId, setCurrentEditId] = useState<number | null>(null);
-    const [page, setPage] = useState(1);
-    const [recordsPerPage, setRecordsPerPage] = useState(10);
-
-    const initialFormFields: FormData = {
-        id: 0,
-        department: '',
-        designation: '',
-        first_name: '',
-        last_name: '',
-        hire_date: '',
-    };
-
-    const [formData, setFormData] = useState(initialFormFields);
+    // fetching Employess
+    useEffect(() => {
+        EmployeeServices.FetchEmployees()
+            .then((response) => {
+                console.log('Employess', response);
+                setEmployees(response);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }, [refresh]);
 
     const columns = [
         {
@@ -64,8 +47,8 @@ const Edit_Employee = () => {
             ),
         },
 
-        { accessor: 'department', title: 'department', render: (row: any) => <div style={{ minWidth: 140 }}>{row.department}</div> },
-        { accessor: 'designation', title: 'designation' },
+        { accessor: 'department', title: 'department', render: (row: EmployeeType) => <div style={{ minWidth: 140 }}>{row.department?.name}</div> },
+        { accessor: 'designation', title: 'designation', render: (row: EmployeeType) => row.designation?.name },
         { accessor: 'hire_date', title: 'Hire Date' },
         {
             accessor: 'actions',
@@ -75,18 +58,7 @@ const Edit_Employee = () => {
                     <button
                         className="btn btn-sm btn-outline-primary"
                         onClick={() => {
-                            setIsEditMode(true);
-                            setCurrentEditId(row.id);
-                            setFormData({
-                                id: row.id,
-                                email: row.email,
-                                department: row.department,
-                                designation: row.designation,
-                                first_name: row.first_name,
-                                last_name: row.last_name,
-                                hire_date: row.hire_date,
-                            });
-                            openModal();
+                            handleEditClick(row);
                         }}
                     >
                         Edit
@@ -99,68 +71,74 @@ const Edit_Employee = () => {
         },
     ];
 
-    const handleAddOrEditEmployee = async (submittedData: typeof formData) => {
-        console.log('Submitted Data:', submittedData);
-        const updatedEmployee = {
-            id: submittedData.id,
-            department: submittedData.department,
-            designation: submittedData.designation,
-            first_name: submittedData.first_name,
-            last_name: submittedData.last_name,
-            hire_date: submittedData.hire_date,
-        };
-
-        if (isEditMode) {
-            setEmployees((prev) => prev.map((emp) => (emp.id === currentEditId ? updatedEmployee : emp)));
-        } else {
-            setEmployees((prev) => [...prev, updatedEmployee]);
-        }
-
-        setIsModalOpen(false);
-        setIsEditMode(false);
-        setCurrentEditId(null);
-        setFormData(initialFormFields);
-    };
-
     // Compute only the records for the active page:
     const pagedRecords = useMemo(() => {
         const start = (page - 1) * recordsPerPage;
         return employees.slice(start, start + recordsPerPage);
     }, [employees, page, recordsPerPage]);
 
-    useEffect(() => {
-        EmployeeServices.FetchEmployees()
-            .then((response) => {
-                console.log('Employess', response);
-                const filtered = response.filter((emp: any) => emp.department != null && emp.designation != null);
-                const formattedEmployees = filtered.map((emp: { id: any; department: any; designation: any; first_name: any; last_name: any; hire_date: any }) => ({
-                    id: emp.id,
-                    department: emp.department || 'N/A', // Handle null values
-                    designation: emp.designation || 'N/A',
-                    first_name: emp.first_name,
-                    last_name: emp.last_name,
-                    hire_date: emp.hire_date || 'N/A',
-                }));
-
-                setEmployees(formattedEmployees);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    }, []);
-
     const closeModal = () => {
         setIsModalOpen(false);
-        setFormData(initialFormFields);
         setIsEditMode(false);
-        setCurrentEditId(null);
+        setSelectedId(null);
     };
     useEffect(() => {
         setPage(1);
     }, [recordsPerPage]);
 
-    const openModal = () => setIsModalOpen(true);
-    const handleDelete = (id: number) => {};
+    const openModal = () => {
+        setSelectedId(null);
+        setInitialData(null);
+        setIsEditMode(false);
+        setIsModalOpen(true);
+    };
+    const handleEditClick = (data: any) => {
+        console.log('Initial Data: ', data);
+        setInitialData(data);
+        setIsEditMode(true);
+        setSelectedId(data.id);
+        setIsModalOpen(true);
+    };
+    const handleDelete = (id: number) => {
+        console.log(id);
+        Swal.fire({
+            title: '<strong>Are You Sure?</strong>',
+            html: 'Do you really want to delete this Employee?<br><em>This action is irreversible.</em>',
+            iconHtml: '<i class="bi bi-exclamation-triangle-fill text-yellow-500" style="font-size: 2rem;"></i>',
+
+            showCancelButton: true,
+            cancelButtonText: 'No, Cancel',
+            confirmButtonText: 'Yes, Delete',
+            buttonsStyling: false,
+            timer: 8000,
+            timerProgressBar: true,
+            customClass: {
+                actions: 'flex justify-end gap-6 mt-4',
+                confirmButton: 'btn btn-outline-danger',
+                cancelButton: 'btn btn-outline-success',
+            },
+        }).then((res) => {
+            if (res.isConfirmed) {
+                EmployeeServices.DeleteEmployee(id)
+                    .then(() => {
+                        toast.success('Employee Deleted Succcessfully', { duration: 4000 });
+                        setEmployees(employees.filter((e) => e.id !== id));
+                    })
+                    .catch((e) => {
+                        toast.error(e.message);
+                    });
+            }
+        });
+    };
+    const handleResponse = (data: any) => {
+        console.log('response', data);
+        if (data.error) {
+            toast.error(data.message, { duration: 4000 });
+        } else {
+            toast.success(data.message, { duration: 4000 });
+            setRefresh((p) => !p);
+        }
+    };
 
     return (
         <div>
@@ -193,9 +171,10 @@ const Edit_Employee = () => {
                         <div className="fixed inset-0 bg-black bg-opacity-25" />
                     </Transition.Child>
 
-                    <Edit_Employee_Popup initailData={formData} closeModal={closeModal} isEditMode={isEditMode} />
+                    <Edit_Employee_Popup response={handleResponse} initailData={initailData} closeModal={closeModal} isEditMode={isEditMode} />
                 </Dialog>
             </Transition>
+            <Toaster position="top-right" reverseOrder={false} />
         </div>
     );
 };

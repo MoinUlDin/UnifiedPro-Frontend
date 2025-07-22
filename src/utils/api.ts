@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 
 const baseURL = import.meta.env.VITE_API_URL;
-console.log('baseUrl: ', baseURL);
 const api: AxiosInstance = axios.create({
     baseURL: baseURL,
     timeout: 10000,
@@ -13,6 +12,7 @@ api.interceptors.request.use((config) => {
     if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
 });
 
@@ -21,7 +21,9 @@ let pendingRequests: Array<(token: string) => void> = [];
 
 async function refreshToken(): Promise<string> {
     const refresh = localStorage.getItem('refreshToken');
-    if (!refresh) throw new Error('No refresh token');
+    if (!refresh) {
+        throw new Error('No refresh token');
+    }
     const response = await axios.post(`${baseURL}/Auth/token/refresh/`, { refresh });
     const { access, refresh: newRefresh } = response.data;
     localStorage.setItem('token', access);
@@ -41,10 +43,9 @@ api.interceptors.response.use(
     // Handle errors
     async (error: AxiosError) => {
         const originalRequest = error.config!;
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
             // mark this request so we don’t loop
             (originalRequest as any)._retry = true;
-
             if (!isRefreshing) {
                 isRefreshing = true;
                 try {
@@ -54,7 +55,7 @@ api.interceptors.response.use(
                     // Refresh has failed: force logout
                     localStorage.removeItem('token');
                     localStorage.removeItem('refreshToken');
-                    window.location.href = '/login';
+
                     return Promise.reject(refreshError);
                 } finally {
                     isRefreshing = false;

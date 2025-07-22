@@ -1,43 +1,123 @@
 import { useState, Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-// import { useDispatch } from 'react-redux';
-// import { setPageTitle } from '../../store/themeConfigSlice';
-// import IconUserPlus from '../../components/Icon/IconUserPlus';
 import IconX from '../../../Icon/IconX';
 import IconCaretDown from '../../../Icon/IconCaretDown';
-// import Edit from '../../../pages/Apps/Invoice/Edit';
-// import Job_Type from './Job_Type';
+import CompanyGoalServices from '../../../../services/CompanyGoalServices';
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { resourceUsage } from 'process';
+import { set } from 'date-fns';
+import { AllGoalsType, DepartmentGoalType, SessionalGoalType, KeyResultType, KPIType } from '../../../../constantTypes/Types';
 
-const Departmental_KPIs_List_Popup = ({ closeModal }: { closeModal: () => void }) => {
-    const [params, setParams] = useState({
-        Performance_Monitoring_Session: '',
-        Session: '',
-        Department: '',
-        Department_Session_Goal: '',
-        Department_Goal: '',
-        Select_key_result: '',
-        KPI_Text: '',
-        KPi_Target: '',
-        Weight: '',
+interface SubmitDataType {
+    key_result: string;
+    kpi_text: string;
+    target: string;
+    weight: string;
+}
 
-        // email: '',
-        // password: '',
-        // confirm_password: '',
-        // department: '',
-        // assign_designation: '',
-        // report_to: '',
-        // hire_date: '',
-        // employee_id: '',
+export interface Props {
+    closeModel: () => void;
+    onSubmit: (data: SubmitDataType) => void;
+    initialData?: KPIType | null;
+    isEditing: boolean;
+}
+
+const Departmental_KPIs_List_Popup = ({ closeModel, onSubmit, initialData = null, isEditing = false }: Props) => {
+    const allGoalsList: AllGoalsType = useSelector((s: any) => s.settings.allGoalsList || null);
+    const [DG, setDG] = useState<DepartmentGoalType[]>(); // Department Goals
+    const [SG, setSG] = useState<SessionalGoalType[]>(); // Sessional Goals
+    const [KR, setKR] = useState<KeyResultType[]>(); // Key Results Goals
+    const [SGF, setSGF] = useState<SessionalGoalType[]>(); // Sessional Goals Filltered
+    const [KRF, setKRF] = useState<KeyResultType[]>(); // Key Results Goals Filltered
+
+    const [params, setParams] = useState<any>({
+        key_result: '',
+        kpi_text: '',
+        target: 0,
+        weight: 0,
     });
+    const dispatch = useDispatch();
+    useEffect(() => {
+        CompanyGoalServices.FetchAllGoalsInOneGo(dispatch).catch((e) => {
+            console.log(e);
+        });
+    }, []);
+    useEffect(() => {
+        if (!isEditing || !initialData) return;
+
+        setParams((p: any) => ({
+            ...p,
+            // these two must match your `id=` on the <select>
+            department_goal: String(initialData.department_goal.id),
+            sessional_goal: String(initialData.sessional_goal.id),
+            key_result: String(initialData.key_result.id),
+            kpi_text: initialData.kpi_text,
+            target: initialData.target,
+            weight: initialData.weight,
+        }));
+    }, [isEditing, initialData]);
+
+    useEffect(() => {
+        if (!allGoalsList) return;
+        setDG(allGoalsList.department_goals);
+        setSG(allGoalsList.session_goals);
+        setKR(allGoalsList.key_results);
+    }, [allGoalsList]);
 
     const changeValue = (e: any) => {
-        const { value, id } = e.target;
-        setParams({ ...params, [id]: value });
+        const { id, value } = e.target;
+
+        // If you’re picking a department, clear session & key_result immediately
+        if (id === 'department_goal') {
+            setParams((p: any) => ({
+                ...p,
+                department_goal: value,
+                sessional_goal: '',
+                key_result: '',
+            }));
+            return;
+        }
+
+        // If you’re picking a session, clear key_result
+        if (id === 'sessional_goal') {
+            setParams((p: any) => ({
+                ...p,
+                sessional_goal: value,
+                key_result: '',
+            }));
+            return;
+        }
+
+        // Otherwise just set the field
+        setParams((p: any) => ({ ...p, [id]: value }));
+    };
+    useEffect(() => {
+        if (params.department_goal) {
+            setSGF(SG?.filter((s) => Number(s.department_goals.id) === Number(params.department_goal)) ?? []);
+        } else {
+            setSGF([]);
+        }
+    }, [params.department_goal, SG]);
+
+    // Filter key‑results for the chosen session
+    useEffect(() => {
+        if (params.sessional_goal) {
+            setKRF(KR?.filter((k) => k.departmental_session_goal.id === Number(params.sessional_goal)) ?? []);
+        } else {
+            setKRF([]);
+        }
+    }, [params.sessional_goal, KR]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSubmit(params);
+        closeModel();
     };
 
     return (
         <Transition appear show={true} as={Fragment}>
-            <Dialog as="div" open={true} onClose={closeModal} className="relative z-[51]">
+            <Dialog as="div" open={true} onClose={closeModel} className="relative z-[51]">
                 <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
                     <div className="fixed inset-0 bg-[black]/60" />
                 </Transition.Child>
@@ -53,95 +133,80 @@ const Departmental_KPIs_List_Popup = ({ closeModal }: { closeModal: () => void }
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-xl text-black dark:text-white-dark">
-                                <button type="button" onClick={closeModal} className="absolute top-4 ltr:right-4 rtl:left-4 text-gray-400 hover:text-gray-800 dark:hover:text-gray-600 outline-none">
+                                <button type="button" onClick={closeModel} className="absolute top-4 ltr:right-4 rtl:left-4 text-gray-400 hover:text-gray-800 dark:hover:text-gray-600 outline-none">
                                     <IconX />
                                 </button>
                                 <div className="text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">Create Departmental KPI</div>
                                 <div className="p-5">
-                                    <form>
+                                    <form onSubmit={handleSubmit}>
                                         <div className="mb-5">
-                                            <label htmlFor="Department">Department</label>
+                                            <label htmlFor="department_goal">Department Goal</label>
                                             <div className="relative">
-                                                <select id="Department" className="form-input appearance-none pr-10" value={params.Department} onChange={(e) => changeValue(e)}>
+                                                <select id="department_goal" className="form-input appearance-none pr-10" value={params.department_goal} onChange={(e) => changeValue(e)}>
                                                     <option value="" disabled>
                                                         --------
                                                     </option>
-                                                    <option value="Session 1">Technical</option>
-                                                    <option value="Session 2">Engineering 2</option>
-                                                    <option value="Session 3">High Court</option>
-                                                </select>
-                                                <i className="bi bi-chevron-down absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none"></i>
-                                            </div>
-                                        </div>
-                                        <div className="mb-5">
-                                            <label htmlFor="Department_Goal">Department Goal</label>
-                                            <div className="relative">
-                                                <select id="Department_Goal" className="form-input appearance-none pr-10" value={params.Department_Goal} onChange={(e) => changeValue(e)}>
-                                                    <option value="" disabled>
-                                                        --------
-                                                    </option>
-                                                    <option value="Session 1">Technical</option>
-                                                    <option value="Session 2">Engineering 2</option>
-                                                    <option value="Session 3">High Court</option>
+                                                    {DG?.map((item: DepartmentGoalType) => (
+                                                        <option key={`DG-${item.id}`} value={item.id}>
+                                                            {item.goal_text}{' '}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                                 <i className="bi bi-chevron-down absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none"></i>
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-4">
-                                            <div className="mb-5 w-[48%]">
-                                                <label htmlFor="Department_Session_Goal">Department Session Goal</label>
-                                                <div className="relative">
-                                                    <select
-                                                        id="Department_Session_Goal"
-                                                        className="form-input appearance-none pr-10"
-                                                        value={params.Department_Session_Goal}
-                                                        onChange={(e) => changeValue(e)}
-                                                    >
-                                                        <option value="" disabled>
-                                                            --------
+                                        <div className="mb-5 w-full">
+                                            <label htmlFor="sessional_goal">Department Session Goal</label>
+                                            <div className="relative">
+                                                <select id="sessional_goal" className="form-input appearance-none pr-10" value={params.sessional_goal} onChange={(e) => changeValue(e)}>
+                                                    <option value="" disabled>
+                                                        --------
+                                                    </option>
+                                                    {SGF?.map((ssg: SessionalGoalType) => (
+                                                        <option key={`SG-${ssg.id}`} value={ssg.id}>
+                                                            {ssg.goal_text}
                                                         </option>
-                                                        <option value="Session 1">Technical</option>
-                                                        <option value="Session 2">Engineering 2</option>
-                                                        <option value="Session 3">High Court</option>
-                                                    </select>
-                                                    <i className="bi bi-chevron-down absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none"></i>
-                                                </div>
+                                                    ))}
+                                                </select>
+                                                <i className="bi bi-chevron-down absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none"></i>
                                             </div>
+                                        </div>
 
-                                            <div className="mb-5 w-[48%]">
-                                                <label htmlFor="Select_key_result">Select Key Result</label>
-                                                <div className="relative">
-                                                    <select id="Select_key_result" className="form-input appearance-none pr-10" value={params.Select_key_result} onChange={(e) => changeValue(e)}>
-                                                        <option value="" disabled>
-                                                            --------
+                                        <div className="mb-5 w-full">
+                                            <label htmlFor="key_result">Select Key Result</label>
+                                            <div className="relative">
+                                                <select id="key_result" className="form-input appearance-none pr-10" value={params.key_result} onChange={(e) => changeValue(e)}>
+                                                    <option value="" disabled>
+                                                        --------
+                                                    </option>
+                                                    {KRF?.map((item: KeyResultType) => (
+                                                        <option key={`KR-${item.id}`} value={item.id}>
+                                                            {item.key_results_text}
                                                         </option>
-                                                        <option value="Session 1">Technical</option>
-                                                        <option value="Session 2">Engineering 2</option>
-                                                        <option value="Session 3">High Court</option>
-                                                    </select>
-                                                    <i className="bi bi-chevron-down absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none"></i>
-                                                </div>
+                                                    ))}
+                                                </select>
+                                                <i className="bi bi-chevron-down absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none"></i>
                                             </div>
                                         </div>
 
                                         <div className="mb-5">
-                                            <label htmlFor="KPI_Text">KPI Text</label>
-                                            <textarea id="KPI_Text" placeholder="" className="form-input" value={params.KPI_Text} onChange={(e) => changeValue(e)} />
+                                            <label htmlFor="kpi_text">KPI Text</label>
+                                            <textarea id="kpi_text" placeholder="" className="form-input" value={params.kpi_text} onChange={(e) => changeValue(e)} />
                                         </div>
                                         <div className="flex gap-4">
                                             <div className="mb-5 w-[48%]">
-                                                <label htmlFor="KPi_Target">KPI Target</label>
-                                                <input id="KPi_Target" type="text" placeholder="" className="form-input" value={params.KPi_Target} onChange={(e) => changeValue(e)} />
+                                                <label htmlFor="target">KPI Target</label>
+                                                <input id="target" type="text" placeholder="" className="form-input" value={params.target} onChange={(e) => changeValue(e)} />
                                             </div>
                                             <div className="mb-5 w-[48%]">
-                                                <label htmlFor="Weight">Weight</label>
-                                                <input id="Weight" type="text" placeholder="" className="form-input" value={params.Weight} onChange={(e) => changeValue(e)} />
+                                                <label htmlFor="weight">Weight</label>
+                                                <input id="weight" type="text" placeholder="" className="form-input" value={params.weight} onChange={(e) => changeValue(e)} />
                                             </div>
                                         </div>
 
                                         <div className="flex justify-end items-center mt-8">
-                                            <button type="button" className="btn btn-outline-danger" onClick={closeModal}>
+                                            <button type="button" className="btn btn-outline-danger" onClick={closeModel}>
                                                 Cancel
                                             </button>
                                             <button type="submit" className="btn btn-primary ltr:ml-4 rtl:mr-4">
