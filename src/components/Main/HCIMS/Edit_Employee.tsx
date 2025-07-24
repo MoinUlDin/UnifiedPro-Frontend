@@ -26,7 +26,7 @@ const Edit_Employee = () => {
 
     // fetching Employess
     useEffect(() => {
-        EmployeeServices.FetchEmployees()
+        EmployeeServices.FetchEmployees(dispatch)
             .then((response) => {
                 console.log('Employess', response);
                 setEmployees(response);

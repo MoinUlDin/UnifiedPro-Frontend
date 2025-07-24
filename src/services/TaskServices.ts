@@ -22,6 +22,16 @@ export default class TaskServices {
             throw new Error(msg);
         }
     }
+    static async AssignTasks(payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/task/assign-tasks/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log('Add Gaol error: ', e);
+            const msg = e.response.data?.co_workers[0] || e.response.data?.tasks[0] || 'Error Assigning Task';
+            throw new Error(msg);
+        }
+    }
     static async UpdateTask(id: number, payload: any) {
         try {
             const response = await api.patch(`/routine-tasks/task/${id}/`, payload, {
@@ -31,6 +41,16 @@ export default class TaskServices {
         } catch (e: any) {
             console.log(e);
             const msg = e.response.data.weight || 'Error Updating Task';
+            throw new Error(msg);
+        }
+    }
+    static async UpdateTaskProgress(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/routine-tasks/task/${id}/update-progress/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.weight || 'Error Updating Progress of Task';
             throw new Error(msg);
         }
     }

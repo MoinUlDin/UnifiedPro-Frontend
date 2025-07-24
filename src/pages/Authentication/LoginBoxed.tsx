@@ -34,6 +34,7 @@ const LoginBoxed: React.FC = () => {
     const slideTexts = ['Revolutionize your HR experience', 'Empower your workforce', 'Innovate with AI-driven insights'];
 
     useEffect(() => {
+        console.log('we are in ');
         const interval = setInterval(() => {
             setActiveIndex((prev) => (prev + 1) % modernImages.length);
         }, 3000);
@@ -49,71 +50,41 @@ const LoginBoxed: React.FC = () => {
 
     const handleLogin = async () => {
         setError('');
-
+        console.log('Loging in Bhai sahab');
         // const API_BASE_URL = 'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me';
         // const API_BASE_URL = 'http://127.0.0.1:8000';
 
-        try {
-            const payload = {
-                email,
-                password,
-            };
-            const response = AuthServices.login(payload);
-            navigate('/');
-        } catch (err: any) {
-            console.error('❌ Login Error:', err);
+        const payload = {
+            email,
+            password,
+        };
+        AuthServices.login(payload)
+            .then(() => {
+                navigate('/');
+            })
+            .catch((err) => {
+                console.error('❌ Login Error:', err);
 
-            if (err.response) {
-                const { status } = err.response;
+                if (err.response) {
+                    const { status } = err.response;
 
-                if (status === 400) {
-                    setError('Invalid credentials. Please check your email and password.');
-                } else if (status === 401) {
-                    setError('No active account found with the given credentials');
-                } else if (status === 404) {
-                    setError('Email not found. Please check your email address.');
+                    if (status === 400) {
+                        setError('Invalid credentials. Please check your email and password.');
+                    } else if (status === 401) {
+                        setError('No active account found with the given credentials');
+                    } else if (status === 404) {
+                        setError('Email not found. Please check your email address.');
+                    } else {
+                        setError('Login failed. Please try again later.');
+                    }
                 } else {
-                    setError('Login failed. Please try again later.');
+                    setError('Network error. Please check your connection.');
                 }
-            } else {
-                setError('Network error. Please check your connection.');
-            }
-        } finally {
-            setIsLoading(false);
-        }
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     };
-
-    // Function to refresh access token
-
-    // const refreshAccessToken = async () => {
-    //     try {
-    //       const refreshToken = localStorage.getItem("refreshToken");
-
-    //       if (!refreshToken) throw new Error("No refresh token available");
-
-    //       const response = await axios.post(`https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/auth/token/refresh`, {
-    //         refresh: refreshToken,
-    //       });
-
-    //       const { access, refresh } = response.data;
-
-    //       localStorage.setItem("token", access);
-    //       localStorage.setItem("refreshToken", refresh);
-
-    //       return access;
-    //     } catch (error) {
-    //       console.error("Failed to refresh token:", error);
-    //       return null;
-    //     }
-    //   };
-
-    //   useEffect(() => {
-    //     const interval = setInterval(() => {
-    //       refreshAccessToken();
-    //     }, 1000 * 60 * 3); // Refresh every 3 minutes
-
-    //     return () => clearInterval(interval); // Cleanup
-    //   }, []);
 
     return (
         <div className="flex min-h-screen">

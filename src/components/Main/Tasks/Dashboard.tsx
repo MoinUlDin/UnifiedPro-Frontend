@@ -18,6 +18,11 @@ import IconHorizontalDots from '../../../components/Icon/IconHorizontalDots';
 import IconPlus from '../../../components/Icon/IconPlus';
 import themeConfig from '../../../theme.config';
 
+// My imports
+import Header from './TaskDashboardCompo/Header';
+import StatsCard from './TaskDashboardCompo/StatsCard';
+import StatsGrid from './TaskDashboardCompo/StatusGrid';
+
 // Interfaces
 interface Task {
     id: string;
@@ -106,11 +111,11 @@ const mockTasks: Task[] = [
             id: 'emp1',
             name: 'John Doe',
             team: 'UI/UX',
-            department: 'Design'
+            department: 'Design',
         },
         startDate: '2024-12-05T09:00:00',
         description: 'Redesign the user dashboard with modern UI elements',
-        tags: ['design', 'frontend']
+        tags: ['design', 'frontend'],
     },
     {
         id: '2',
@@ -123,11 +128,11 @@ const mockTasks: Task[] = [
             id: 'emp2',
             name: 'Jane Doe',
             team: 'Backend',
-            department: 'Development'
+            department: 'Development',
         },
         startDate: '2024-12-10T09:00:00',
         description: 'Create API documentation for the new feature',
-        tags: ['api', 'backend']
+        tags: ['api', 'backend'],
     },
     {
         id: '3',
@@ -140,12 +145,12 @@ const mockTasks: Task[] = [
             id: 'emp3',
             name: 'Bob Smith',
             team: 'QA',
-            department: 'Testing'
+            department: 'Testing',
         },
         startDate: '2024-12-05T09:00:00',
         completedDate: '2024-12-07T16:00:00',
         description: 'Review code changes for the new feature',
-        tags: ['code-review', 'testing']
+        tags: ['code-review', 'testing'],
     },
     {
         id: '4',
@@ -158,12 +163,12 @@ const mockTasks: Task[] = [
             id: 'emp4',
             name: 'Alice Johnson',
             team: 'Security',
-            department: 'Security'
+            department: 'Security',
         },
         startDate: '2024-12-08T09:00:00',
         description: 'Fix security vulnerabilities in the application',
-        tags: ['security', 'vulnerabilities']
-    }
+        tags: ['security', 'vulnerabilities'],
+    },
 ];
 
 const teamPerformance: TeamPerformance[] = [
@@ -178,15 +183,15 @@ const teamPerformance: TeamPerformance[] = [
                 id: 'emp1',
                 name: 'John Doe',
                 tasksCompleted: 10,
-                currentLoad: 5
+                currentLoad: 5,
             },
             {
                 id: 'emp2',
                 name: 'Jane Doe',
                 tasksCompleted: 15,
-                currentLoad: 3
-            }
-        ]
+                currentLoad: 3,
+            },
+        ],
     },
     {
         teamId: 't2',
@@ -199,15 +204,15 @@ const teamPerformance: TeamPerformance[] = [
                 id: 'emp3',
                 name: 'Bob Smith',
                 tasksCompleted: 8,
-                currentLoad: 4
+                currentLoad: 4,
             },
             {
                 id: 'emp4',
                 name: 'Alice Johnson',
                 tasksCompleted: 12,
-                currentLoad: 6
-            }
-        ]
+                currentLoad: 6,
+            },
+        ],
     },
     {
         teamId: 't3',
@@ -220,15 +225,15 @@ const teamPerformance: TeamPerformance[] = [
                 id: 'emp5',
                 name: 'Mike Brown',
                 tasksCompleted: 6,
-                currentLoad: 2
+                currentLoad: 2,
             },
             {
                 id: 'emp6',
                 name: 'Emily Davis',
                 tasksCompleted: 8,
-                currentLoad: 3
-            }
-        ]
+                currentLoad: 3,
+            },
+        ],
     },
     {
         teamId: 't4',
@@ -241,73 +246,73 @@ const teamPerformance: TeamPerformance[] = [
                 id: 'emp7',
                 name: 'David Lee',
                 tasksCompleted: 5,
-                currentLoad: 4
+                currentLoad: 4,
             },
             {
                 id: 'emp8',
                 name: 'Sophia Kim',
                 tasksCompleted: 10,
-                currentLoad: 5
-            }
-        ]
-    }
+                currentLoad: 5,
+            },
+        ],
+    },
 ];
 
 // Utility functions for task analysis
 const getTaskMetrics = () => {
     const now = new Date();
     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    
+
     return {
-        pending: mockTasks.filter(t => t.status !== 'Completed').length,
-        completed: mockTasks.filter(t => t.status === 'Completed').length,
-        overdue: mockTasks.filter(t => new Date(t.deadline) < now && t.status !== 'Completed').length,
-        upcoming: mockTasks.filter(t => {
+        pending: mockTasks.filter((t) => t.status !== 'Completed').length,
+        completed: mockTasks.filter((t) => t.status === 'Completed').length,
+        overdue: mockTasks.filter((t) => new Date(t.deadline) < now && t.status !== 'Completed').length,
+        upcoming: mockTasks.filter((t) => {
             const deadline = new Date(t.deadline);
             return deadline <= sevenDaysFromNow && deadline > now;
         }).length,
-        inProgress: mockTasks.filter(t => t.status === 'In Progress').length,
-        notStarted: mockTasks.filter(t => t.status === 'Not Started').length,
-        onHold: mockTasks.filter(t => t.status === 'On Hold').length
+        inProgress: mockTasks.filter((t) => t.status === 'In Progress').length,
+        notStarted: mockTasks.filter((t) => t.status === 'Not Started').length,
+        onHold: mockTasks.filter((t) => t.status === 'On Hold').length,
     };
 };
 
 const generateTaskReport = () => {
     const metrics = getTaskMetrics();
-    const teamStats = teamPerformance.map(team => ({
+    const teamStats = teamPerformance.map((team) => ({
         teamName: team.teamName,
         performance: {
             tasksCompleted: team.tasksCompleted,
             averageCompletionTime: team.averageCompletionTime,
-            productivityScore: team.productivityScore
-        }
+            productivityScore: team.productivityScore,
+        },
     }));
 
     const report = {
         generatedAt: new Date().toISOString(),
         overview: {
             totalTasks: mockTasks.length,
-            ...metrics
+            ...metrics,
         },
         teamPerformance: teamStats,
         taskDistribution: {
             byPriority: {
-                high: mockTasks.filter(t => t.priority === 'High').length,
-                medium: mockTasks.filter(t => t.priority === 'Medium').length,
-                low: mockTasks.filter(t => t.priority === 'Low').length
+                high: mockTasks.filter((t) => t.priority === 'High').length,
+                medium: mockTasks.filter((t) => t.priority === 'Medium').length,
+                low: mockTasks.filter((t) => t.priority === 'Low').length,
             },
             byDepartment: mockTasks.reduce((acc, task) => {
                 const dept = task.assignedTo.department;
                 acc[dept] = (acc[dept] || 0) + 1;
                 return acc;
-            }, {} as Record<string, number>)
-        }
+            }, {} as Record<string, number>),
+        },
     };
 
     // Convert to CSV and trigger download
     const csv = convertToCSV(report);
     downloadCSV(csv, `task-report-${new Date().toISOString().split('T')[0]}.csv`);
-    
+
     // Also return JSON for potential API integration
     return report;
 };
@@ -326,20 +331,15 @@ const convertToCSV = (report: any) => {
         [''],
         ['Team Performance'],
         ['Team', 'Tasks Completed', 'Avg Completion Time (days)', 'Productivity Score'],
-        ...report.teamPerformance.map((t: any) => [
-            t.teamName,
-            t.performance.tasksCompleted,
-            t.performance.averageCompletionTime,
-            t.performance.productivityScore
-        ]),
+        ...report.teamPerformance.map((t: any) => [t.teamName, t.performance.tasksCompleted, t.performance.averageCompletionTime, t.performance.productivityScore]),
         [''],
         ['Task Distribution by Priority'],
         ['High', report.taskDistribution.byPriority.high],
         ['Medium', report.taskDistribution.byPriority.medium],
-        ['Low', report.taskDistribution.byPriority.low]
+        ['Low', report.taskDistribution.byPriority.low],
     ];
 
-    return rows.map(row => row.join(',')).join('\n');
+    return rows.map((row) => row.join(',')).join('\n');
 };
 
 const downloadCSV = (csv: string, filename: string) => {
@@ -458,7 +458,7 @@ const teamPerformanceSeries = [
 const Avatar = ({ name = '', className = '' }: { name: string; className?: string }) => {
     const initials = name
         .split(' ')
-        .map(word => word[0])
+        .map((word) => word[0])
         .join('')
         .toUpperCase();
 
@@ -480,6 +480,7 @@ const Dashboard = () => {
     const [filterStatus, setFilterStatus] = useState<'all' | Task['status']>('all');
     const isDark = document.documentElement.classList.contains('dark');
 
+    // Relative states
     // Utility Functions
     const getTaskMetrics = (): DashboardMetrics['tasks'] => {
         const now = new Date();
@@ -488,34 +489,35 @@ const Dashboard = () => {
 
         return {
             total: mockTasks.length,
-            pending: mockTasks.filter(t => t.status !== 'Completed').length,
-            completed: mockTasks.filter(t => t.status === 'Completed').length,
-            overdue: mockTasks.filter(t => new Date(t.deadline) < now && t.status !== 'Completed').length,
-            upcoming: mockTasks.filter(t => {
+            pending: mockTasks.filter((t) => t.status !== 'Completed').length,
+            completed: mockTasks.filter((t) => t.status === 'Completed').length,
+            overdue: mockTasks.filter((t) => new Date(t.deadline) < now && t.status !== 'Completed').length,
+            upcoming: mockTasks.filter((t) => {
                 const deadline = new Date(t.deadline);
                 return deadline > now && deadline <= upcoming && t.status !== 'Completed';
             }).length,
-            inProgress: mockTasks.filter(t => t.status === 'In Progress').length,
-            notStarted: mockTasks.filter(t => t.status === 'Not Started').length,
-            onHold: mockTasks.filter(t => t.status === 'On Hold').length
+            inProgress: mockTasks.filter((t) => t.status === 'In Progress').length,
+            notStarted: mockTasks.filter((t) => t.status === 'Not Started').length,
+            onHold: mockTasks.filter((t) => t.status === 'On Hold').length,
         };
     };
 
     const getPerformanceMetrics = (): DashboardMetrics['performance'] => {
-        const completedTasks = mockTasks.filter(t => t.status === 'Completed');
-        const avgTime = completedTasks.reduce((acc, task) => {
-            if (task.completedDate && task.startDate) {
-                const start = new Date(task.startDate);
-                const end = new Date(task.completedDate);
-                return acc + (end.getTime() - start.getTime()) / (1000 * 3600 * 24);
-            }
-            return acc;
-        }, 0) / (completedTasks.length || 1);
+        const completedTasks = mockTasks.filter((t) => t.status === 'Completed');
+        const avgTime =
+            completedTasks.reduce((acc, task) => {
+                if (task.completedDate && task.startDate) {
+                    const start = new Date(task.startDate);
+                    const end = new Date(task.completedDate);
+                    return acc + (end.getTime() - start.getTime()) / (1000 * 3600 * 24);
+                }
+                return acc;
+            }, 0) / (completedTasks.length || 1);
 
         return {
             averageCompletionTime: Number(avgTime.toFixed(1)),
             completionRate: Math.round((completedTasks.length / mockTasks.length) * 100),
-            productivityTrend: [65, 70, 75, 80, 85, 82, 85] // Mock trend data
+            productivityTrend: [65, 70, 75, 80, 85, 82, 85], // Mock trend data
         };
     };
 
@@ -524,7 +526,7 @@ const Dashboard = () => {
         const byDepartment: Record<string, number> = {};
         const byPriority: Record<string, number> = {};
 
-        mockTasks.forEach(task => {
+        mockTasks.forEach((task) => {
             // Team distribution
             const team = task.assignedTo.team;
             byTeam[team] = (byTeam[team] || 0) + 1;
@@ -547,22 +549,22 @@ const Dashboard = () => {
                 title: 'Task Deadline Approaching',
                 message: 'Project Documentation due in 2 days',
                 time: '2 hours ago',
-                actionable: true
+                actionable: true,
             },
             {
                 type: 'priority',
                 title: 'High Priority Task Assigned',
                 message: 'New UI Design Review assigned to your team',
                 time: '4 hours ago',
-                actionable: true
+                actionable: true,
             },
             {
                 type: 'update',
                 title: 'Task Status Updated',
                 message: 'Backend Integration moved to In Progress',
                 time: '6 hours ago',
-                actionable: false
-            }
+                actionable: false,
+            },
         ];
     };
 
@@ -571,161 +573,178 @@ const Dashboard = () => {
             {
                 user: 'John Doe',
                 action: 'completed the API Documentation task',
-                time: '30 minutes ago'
+                time: '30 minutes ago',
             },
             {
                 user: 'Jane Smith',
                 action: 'started working on UI Components',
-                time: '1 hour ago'
+                time: '1 hour ago',
             },
             {
                 user: 'Mike Johnson',
                 action: 'added comments to Code Review',
-                time: '2 hours ago'
-            }
+                time: '2 hours ago',
+            },
         ];
     };
 
     // Chart Options
-    const chartOptions = useMemo(() => ({
-        chart: {
-            height: 350,
-            type: 'area',
-            fontFamily: 'Inter, sans-serif',
-            zoom: { enabled: false },
-            toolbar: { show: false },
-            background: 'transparent',
-        },
-        dataLabels: { enabled: false },
-        stroke: {
-            curve: 'smooth',
-            width: 2,
-        },
-        colors: ['#4f46e5', '#06b6d4', '#10b981'],  // Indigo, Cyan, Emerald
-        grid: {
-            borderColor: isDark ? '#1e293b' : '#e2e8f0',
-            strokeDashArray: 5,
-            xaxis: { lines: { show: true } },
-            yaxis: { lines: { show: true } },
-            padding: { top: 0, right: 0, bottom: 0, left: 0 },
-        },
-        tooltip: {
-            theme: isDark ? 'dark' : 'light',
-            x: { show: true },
-            y: {
-                formatter: (value: number) => `${value}%`,
-            },
-            style: {
-                fontSize: '12px',
+    const chartOptions = useMemo(
+        () => ({
+            chart: {
+                height: 350,
+                type: 'area',
                 fontFamily: 'Inter, sans-serif',
+                zoom: { enabled: false },
+                toolbar: { show: false },
+                background: 'transparent',
             },
-        },
-        xaxis: {
-            categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            labels: {
+            dataLabels: { enabled: false },
+            stroke: {
+                curve: 'smooth',
+                width: 2,
+            },
+            colors: ['#4f46e5', '#06b6d4', '#10b981'], // Indigo, Cyan, Emerald
+            grid: {
+                borderColor: isDark ? '#1e293b' : '#e2e8f0',
+                strokeDashArray: 5,
+                xaxis: { lines: { show: true } },
+                yaxis: { lines: { show: true } },
+                padding: { top: 0, right: 0, bottom: 0, left: 0 },
+            },
+            tooltip: {
+                theme: isDark ? 'dark' : 'light',
+                x: { show: true },
+                y: {
+                    formatter: (value: number) => `${value}%`,
+                },
                 style: {
-                    colors: isDark ? '#94a3b8' : '#64748b',
                     fontSize: '12px',
                     fontFamily: 'Inter, sans-serif',
                 },
             },
-            axisBorder: { show: false },
-            axisTicks: { show: false },
-        },
-        yaxis: {
-            labels: {
-                style: {
-                    colors: isDark ? '#94a3b8' : '#64748b',
-                    fontSize: '12px',
-                    fontFamily: 'Inter, sans-serif',
+            xaxis: {
+                categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: {
+                    style: {
+                        colors: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: '12px',
+                        fontFamily: 'Inter, sans-serif',
+                    },
                 },
-                formatter: (value: number) => `${value}%`,
+                axisBorder: { show: false },
+                axisTicks: { show: false },
             },
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                type: 'vertical',
-                shadeIntensity: 1,
-                inverseColors: false,
-                opacityFrom: 0.45,
-                opacityTo: 0.1,
-                stops: [45, 100]
+            yaxis: {
+                labels: {
+                    style: {
+                        colors: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: '12px',
+                        fontFamily: 'Inter, sans-serif',
+                    },
+                    formatter: (value: number) => `${value}%`,
+                },
             },
-        },
-    }), [isDark]);
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    type: 'vertical',
+                    shadeIntensity: 1,
+                    inverseColors: false,
+                    opacityFrom: 0.45,
+                    opacityTo: 0.1,
+                    stops: [45, 100],
+                },
+            },
+        }),
+        [isDark]
+    );
 
-    const donutOptions = useMemo(() => ({
-        ...chartOptions,
-        chart: {
-            type: 'donut',
-            height: 250,
-        },
-        plotOptions: {
-            pie: {
-                donut: {
-                    size: '75%',
-                    labels: {
-                        show: true,
-                        name: { show: true },
-                        value: { show: true },
-                        total: {
+    const donutOptions = useMemo(
+        () => ({
+            ...chartOptions,
+            chart: {
+                type: 'donut',
+                height: 250,
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '75%',
+                        labels: {
                             show: true,
-                            label: 'Completion',
-                            formatter: () => `${getPerformanceMetrics().completionRate}%`
-                        }
-                    }
-                }
-            }
-        },
-        legend: { show: false },
-        dataLabels: { enabled: false },
-    }), [isDark]);
-
-    const distributionOptions = useMemo(() => ({
-        ...chartOptions,
-        chart: {
-            type: 'bar',
-            height: 250,
-            stacked: true,
-            stackType: '100%'
-        },
-        plotOptions: {
-            bar: {
-                horizontal: true,
-                borderRadius: 4,
+                            name: { show: true },
+                            value: { show: true },
+                            total: {
+                                show: true,
+                                label: 'Completion',
+                                formatter: () => `${getPerformanceMetrics().completionRate}%`,
+                            },
+                        },
+                    },
+                },
             },
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'left',
-        },
-    }), [isDark]);
+            legend: { show: false },
+            dataLabels: { enabled: false },
+        }),
+        [isDark]
+    );
 
-    const taskCompletionSeries = useMemo(() => [{
-        name: 'Completion Rate',
-        data: getPerformanceMetrics().productivityTrend
-    }], []);
+    const distributionOptions = useMemo(
+        () => ({
+            ...chartOptions,
+            chart: {
+                type: 'bar',
+                height: 250,
+                stacked: true,
+                stackType: '100%',
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    borderRadius: 4,
+                },
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'left',
+            },
+        }),
+        [isDark]
+    );
+
+    const taskCompletionSeries = useMemo(
+        () => [
+            {
+                name: 'Completion Rate',
+                data: getPerformanceMetrics().productivityTrend,
+            },
+        ],
+        []
+    );
 
     const donutSeries = useMemo(() => {
         const metrics = getTaskMetrics();
         return [metrics.completed, metrics.inProgress, metrics.notStarted];
     }, []);
 
-    const distributionSeries = useMemo(() => [
-        {
-            name: 'High',
-            data: [getTaskMetrics().pending, getTaskMetrics().completed, getTaskMetrics().overdue]
-        },
-        {
-            name: 'Medium',
-            data: [getTaskMetrics().upcoming, getTaskMetrics().inProgress, getTaskMetrics().notStarted]
-        },
-        {
-            name: 'Low',
-            data: [getTaskMetrics().onHold, getTaskMetrics().total - getTaskMetrics().onHold, 0]
-        }
-    ], []);
+    const distributionSeries = useMemo(
+        () => [
+            {
+                name: 'High',
+                data: [getTaskMetrics().pending, getTaskMetrics().completed, getTaskMetrics().overdue],
+            },
+            {
+                name: 'Medium',
+                data: [getTaskMetrics().upcoming, getTaskMetrics().inProgress, getTaskMetrics().notStarted],
+            },
+            {
+                name: 'Low',
+                data: [getTaskMetrics().onHold, getTaskMetrics().total - getTaskMetrics().onHold, 0],
+            },
+        ],
+        []
+    );
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
@@ -748,21 +767,16 @@ const Dashboard = () => {
             'Not Started': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500',
             'In Progress': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500',
             'On Hold': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500',
-            'Completed': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500'
+            Completed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500',
         };
 
-        return (
-            <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${statusClasses[status]}`}>
-                {status}
-            </span>
-        );
+        return <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${statusClasses[status]}`}>{status}</span>;
     };
 
     // Filter and Search Tasks
     const filteredTasks = useMemo(() => {
-        return mockTasks.filter(task => {
-            const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                task.description.toLowerCase().includes(searchQuery.toLowerCase());
+        return mockTasks.filter((task) => {
+            const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) || task.description.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
             const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
             return matchesSearch && matchesPriority && matchesStatus;
@@ -772,15 +786,15 @@ const Dashboard = () => {
     // Shimmer loading animation
     const shimmerAnimation = {
         hidden: { opacity: 0, x: -50 },
-        visible: { 
-            opacity: 1, 
+        visible: {
+            opacity: 1,
             x: 0,
             transition: {
-                type: "spring",
+                type: 'spring',
                 stiffness: 100,
-                damping: 15
-            }
-        }
+                damping: 15,
+            },
+        },
     };
 
     // Notification badge animation
@@ -789,8 +803,8 @@ const Dashboard = () => {
         transition: {
             duration: 1,
             repeat: Infinity,
-            ease: "easeInOut"
-        }
+            ease: 'easeInOut',
+        },
     };
 
     const handleDragEnd = (result: DropResult) => {
@@ -798,37 +812,22 @@ const Dashboard = () => {
         // Handle drag and drop logic here
     };
 
+    const MM = {
+        pending: 4,
+        completed: 2,
+        overdue: 1,
+        upcoming: 1,
+        total: 8,
+    };
+
     return (
         <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
             <div className="p-6 space-y-6">
                 {/* Header with Period Selection */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Tasks Dashboard</h1>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                            Track and manage your team's tasks and performance
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                            {(['daily', 'weekly', 'monthly'] as const).map((period) => (
-                                <button
-                                    key={period}
-                                    onClick={() => setSelectedPeriod(period)}
-                                    className={`px-4 py-2 text-sm font-medium ${
-                                        selectedPeriod === period
-                                            ? 'bg-primary-500 text-gray-600'
-                                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                    } transition-colors duration-200`}
-                                >
-                                    {period.charAt(0).toUpperCase() + period.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                <Header selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} />
 
                 {/* Overview Stats Grid */}
+                <StatsGrid metrics={MM} />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Pending Tasks */}
                     <motion.div
@@ -842,9 +841,7 @@ const Dashboard = () => {
                                 <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
                                     <IconPencilPaper className="w-6 h-6 text-amber-600 dark:text-amber-500" />
                                 </div>
-                                <span className="text-sm font-medium text-amber-600 dark:text-amber-500">
-                                    Pending
-                                </span>
+                                <span className="text-sm font-medium text-amber-600 dark:text-amber-500">Pending</span>
                             </div>
                             <div className="flex items-baseline gap-2">
                                 <p className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -857,7 +854,7 @@ const Dashboard = () => {
                                     <div
                                         className="h-full bg-amber-500 rounded-full transition-all duration-500"
                                         style={{
-                                            width: `${(getTaskMetrics().pending / getTaskMetrics().total) * 100}%`
+                                            width: `${(getTaskMetrics().pending / getTaskMetrics().total) * 100}%`,
                                         }}
                                     />
                                 </div>
@@ -877,9 +874,7 @@ const Dashboard = () => {
                                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                     <IconCircleCheck className="w-6 h-6 text-green-600 dark:text-green-500" />
                                 </div>
-                                <span className="text-sm font-medium text-green-600 dark:text-green-500">
-                                    Completed
-                                </span>
+                                <span className="text-sm font-medium text-green-600 dark:text-green-500">Completed</span>
                             </div>
                             <div className="flex items-baseline gap-2">
                                 <p className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -892,7 +887,7 @@ const Dashboard = () => {
                                     <div
                                         className="h-full bg-green-500 rounded-full transition-all duration-500"
                                         style={{
-                                            width: `${(getTaskMetrics().completed / getTaskMetrics().total) * 100}%`
+                                            width: `${(getTaskMetrics().completed / getTaskMetrics().total) * 100}%`,
                                         }}
                                     />
                                 </div>
@@ -912,9 +907,7 @@ const Dashboard = () => {
                                 <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                                     <IconClock className="w-6 h-6 text-red-600 dark:text-red-500" />
                                 </div>
-                                <span className="text-sm font-medium text-red-600 dark:text-red-500">
-                                    Overdue
-                                </span>
+                                <span className="text-sm font-medium text-red-600 dark:text-red-500">Overdue</span>
                             </div>
                             <div className="flex items-baseline gap-2">
                                 <p className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -927,7 +920,7 @@ const Dashboard = () => {
                                     <div
                                         className="h-full bg-red-500 rounded-full transition-all duration-500"
                                         style={{
-                                            width: `${(getTaskMetrics().overdue / getTaskMetrics().total) * 100}%`
+                                            width: `${(getTaskMetrics().overdue / getTaskMetrics().total) * 100}%`,
                                         }}
                                     />
                                 </div>
@@ -947,9 +940,7 @@ const Dashboard = () => {
                                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                     <IconCalendar className="w-6 h-6 text-blue-600 dark:text-blue-500" />
                                 </div>
-                                <span className="text-sm font-medium text-blue-600 dark:text-blue-500">
-                                    Upcoming
-                                </span>
+                                <span className="text-sm font-medium text-blue-600 dark:text-blue-500">Upcoming</span>
                             </div>
                             <div className="flex items-baseline gap-2">
                                 <p className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -962,7 +953,7 @@ const Dashboard = () => {
                                     <div
                                         className="h-full bg-blue-500 rounded-full transition-all duration-500"
                                         style={{
-                                            width: `${(getTaskMetrics().upcoming / getTaskMetrics().total) * 100}%`
+                                            width: `${(getTaskMetrics().upcoming / getTaskMetrics().total) * 100}%`,
                                         }}
                                     />
                                 </div>
@@ -977,26 +968,18 @@ const Dashboard = () => {
                     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-4">
-                                <p className="text-small font-semibold text-slate-900 dark:text-white">
-                                    Average Completion Time
-                                </p>
+                                <p className="text-small font-semibold text-slate-900 dark:text-white">Average Completion Time</p>
                                 <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
                                     <IconClock className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                                 </div>
                             </div>
                             <div className="flex items-baseline gap-2 mb-2">
                                 <span className="text-4xl font-bold text-slate-900 dark:text-white">
-                                    <CountUp 
-                                        end={getPerformanceMetrics().averageCompletionTime} 
-                                        duration={2}
-                                        decimals={1}
-                                    />
+                                    <CountUp end={getPerformanceMetrics().averageCompletionTime} duration={2} decimals={1} />
                                 </span>
                                 <span className="text-small text-slate-600 dark:text-slate-400">days</span>
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Average time to complete tasks
-                            </p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Average time to complete tasks</p>
                         </div>
                     </div>
 
@@ -1004,25 +987,18 @@ const Dashboard = () => {
                     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-4">
-                                <p className="text-small font-semibold text-slate-900 dark:text-white">
-                                    Task Completion Rate
-                                </p>
+                                <p className="text-small font-semibold text-slate-900 dark:text-white">Task Completion Rate</p>
                                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                     <IconCircleCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 </div>
                             </div>
                             <div className="flex items-baseline gap-2 mb-2">
                                 <span className="text-4xl font-bold text-slate-900 dark:text-white">
-                                    <CountUp 
-                                        end={getPerformanceMetrics().completionRate} 
-                                        duration={2}
-                                    />
+                                    <CountUp end={getPerformanceMetrics().completionRate} duration={2} />
                                 </span>
                                 <span className="text-small text-slate-600 dark:text-slate-400">%</span>
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Tasks completed vs total tasks
-                            </p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Tasks completed vs total tasks</p>
                         </div>
                     </div>
 
@@ -1030,9 +1006,7 @@ const Dashboard = () => {
                     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-4">
-                                <p className="text-small font-semibold text-slate-900 dark:text-white">
-                                    Productivity Trend
-                                </p>
+                                <p className="text-small font-semibold text-slate-900 dark:text-white">Productivity Trend</p>
                                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                     <IconTrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
@@ -1044,35 +1018,37 @@ const Dashboard = () => {
                                         chart: {
                                             ...chartOptions.chart,
                                             sparkline: {
-                                                enabled: true
-                                            }
+                                                enabled: true,
+                                            },
                                         },
                                         stroke: {
                                             curve: 'smooth',
-                                            width: 2
+                                            width: 2,
                                         },
                                         colors: ['#3b82f6'],
                                         tooltip: {
                                             fixed: {
-                                                enabled: false
+                                                enabled: false,
                                             },
                                             x: {
-                                                show: false
+                                                show: false,
                                             },
                                             y: {
                                                 title: {
-                                                    formatter: () => 'Productivity'
-                                                }
+                                                    formatter: () => 'Productivity',
+                                                },
                                             },
                                             marker: {
-                                                show: false
-                                            }
-                                        }
+                                                show: false,
+                                            },
+                                        },
                                     }}
-                                    series={[{
-                                        name: 'Productivity',
-                                        data: getPerformanceMetrics().productivityTrend
-                                    }]}
+                                    series={[
+                                        {
+                                            name: 'Productivity',
+                                            data: getPerformanceMetrics().productivityTrend,
+                                        },
+                                    ]}
                                     type="line"
                                     height="100%"
                                 />
@@ -1089,9 +1065,7 @@ const Dashboard = () => {
                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <p className="text-small font-semibold text-slate-900 dark:text-white">
-                                        Productivity Trend
-                                    </p>
+                                    <p className="text-small font-semibold text-slate-900 dark:text-white">Productivity Trend</p>
                                     <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
                                         <IconTrendingUp className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                                     </div>
@@ -1102,17 +1076,17 @@ const Dashboard = () => {
                                             ...chartOptions,
                                             chart: {
                                                 ...chartOptions.chart,
-                                                type: 'area'
+                                                type: 'area',
                                             },
                                             stroke: {
                                                 curve: 'smooth',
-                                                width: 3
+                                                width: 3,
                                             },
                                             markers: {
                                                 size: 4,
                                                 strokeWidth: 2,
-                                                hover: { size: 6 }
-                                            }
+                                                hover: { size: 6 },
+                                            },
                                         }}
                                         series={taskCompletionSeries}
                                         type="area"
@@ -1126,20 +1100,13 @@ const Dashboard = () => {
                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <p className="text-small font-semibold text-slate-900 dark:text-white">
-                                        Task Distribution
-                                    </p>
+                                    <p className="text-small font-semibold text-slate-900 dark:text-white">Task Distribution</p>
                                     <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
                                         <IconUsers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                     </div>
                                 </div>
                                 <div className="h-[250px]">
-                                    <ReactApexChart
-                                        options={distributionOptions}
-                                        series={distributionSeries}
-                                        type="bar"
-                                        height="100%"
-                                    />
+                                    <ReactApexChart options={distributionOptions} series={distributionSeries} type="bar" height="100%" />
                                 </div>
                             </div>
                         </div>
@@ -1151,20 +1118,13 @@ const Dashboard = () => {
                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <p className="text-small font-semibold text-slate-900 dark:text-white">
-                                        Task Completion
-                                    </p>
+                                    <p className="text-small font-semibold text-slate-900 dark:text-white">Task Completion</p>
                                     <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                         <IconCircleCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
                                     </div>
                                 </div>
                                 <div className="h-[250px]">
-                                    <ReactApexChart
-                                        options={donutOptions}
-                                        series={donutSeries}
-                                        type="donut"
-                                        height="100%"
-                                    />
+                                    <ReactApexChart options={donutOptions} series={donutSeries} type="donut" height="100%" />
                                 </div>
                                 <div className="grid grid-cols-1 gap-3 mt-4">
                                     <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
@@ -1172,27 +1132,21 @@ const Dashboard = () => {
                                             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                                             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Completed</span>
                                         </div>
-                                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                                            {getTaskMetrics().completed}
-                                        </span>
+                                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">{getTaskMetrics().completed}</span>
                                     </div>
                                     <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                                         <div className="flex items-center gap-2">
                                             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                                             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">In Progress</span>
                                         </div>
-                                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                                            {getTaskMetrics().inProgress}
-                                        </span>
+                                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{getTaskMetrics().inProgress}</span>
                                     </div>
                                     <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                                         <div className="flex items-center gap-2">
                                             <div className="w-3 h-3 bg-slate-500 rounded-full"></div>
                                             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Not Started</span>
                                         </div>
-                                        <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-                                            {getTaskMetrics().notStarted}
-                                        </span>
+                                        <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">{getTaskMetrics().notStarted}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1201,27 +1155,19 @@ const Dashboard = () => {
                         {/* Quick Stats */}
                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
                             <div className="p-6">
-                                <p className="text-small font-semibold text-slate-900 dark:text-white mb-4">
-                                    Quick Stats
-                                </p>
+                                <p className="text-small font-semibold text-slate-900 dark:text-white mb-4">Quick Stats</p>
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-slate-600 dark:text-slate-400">Total Tasks</span>
-                                        <span className="text-small font-semibold text-slate-900 dark:text-white">
-                                            {getTaskMetrics().total}
-                                        </span>
+                                        <span className="text-small font-semibold text-slate-900 dark:text-white">{getTaskMetrics().total}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-slate-600 dark:text-slate-400">Overdue</span>
-                                        <span className="text-small font-semibold text-red-600 dark:text-red-400">
-                                            {getTaskMetrics().overdue}
-                                        </span>
+                                        <span className="text-small font-semibold text-red-600 dark:text-red-400">{getTaskMetrics().overdue}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-slate-600 dark:text-slate-400">Upcoming</span>
-                                        <span className="text-small font-semibold text-blue-600 dark:text-blue-400">
-                                            {getTaskMetrics().upcoming}
-                                        </span>
+                                        <span className="text-small font-semibold text-blue-600 dark:text-blue-400">{getTaskMetrics().upcoming}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1236,50 +1182,62 @@ const Dashboard = () => {
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-small font-semibold text-slate-900 dark:text-white">Task Alerts</h2>
-                                    <button className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
-                                        View All
-                                    </button>
+                                    <button className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">View All</button>
                                 </div>
                                 <div className="space-y-4">
                                     {getTaskAlerts().map((alert, index) => (
-                                        <div 
+                                        <div
                                             key={index}
                                             className={`flex items-start gap-4 p-4 rounded-lg ${
-                                                alert.type === 'deadline' ? 'bg-red-50 dark:bg-red-900/20' :
-                                                alert.type === 'priority' ? 'bg-amber-50 dark:bg-amber-900/20' :
-                                                'bg-blue-50 dark:bg-blue-900/20'
+                                                alert.type === 'deadline'
+                                                    ? 'bg-red-50 dark:bg-red-900/20'
+                                                    : alert.type === 'priority'
+                                                    ? 'bg-amber-50 dark:bg-amber-900/20'
+                                                    : 'bg-blue-50 dark:bg-blue-900/20'
                                             }`}
                                         >
-                                            <div className={`p-2 rounded-full ${
-                                                alert.type === 'deadline' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
-                                                alert.type === 'priority' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
-                                                'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                                            }`}>
-                                                {alert.type === 'deadline' ? <IconInfoTriangle className="w-5 h-5" /> :
-                                                alert.type === 'priority' ? <IconPencilPaper className="w-5 h-5" /> :
-                                                <IconBell className="w-5 h-5" />}
+                                            <div
+                                                className={`p-2 rounded-full ${
+                                                    alert.type === 'deadline'
+                                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                                                        : alert.type === 'priority'
+                                                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                                                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                                }`}
+                                            >
+                                                {alert.type === 'deadline' ? (
+                                                    <IconInfoTriangle className="w-5 h-5" />
+                                                ) : alert.type === 'priority' ? (
+                                                    <IconPencilPaper className="w-5 h-5" />
+                                                ) : (
+                                                    <IconBell className="w-5 h-5" />
+                                                )}
                                             </div>
                                             <div className="flex-1">
-                                                <p className={`text-sm font-medium ${
-                                                    alert.type === 'deadline' ? 'text-red-900 dark:text-red-300' :
-                                                    alert.type === 'priority' ? 'text-amber-900 dark:text-amber-300' :
-                                                    'text-blue-900 dark:text-blue-300'
-                                                }`}>
+                                                <p
+                                                    className={`text-sm font-medium ${
+                                                        alert.type === 'deadline'
+                                                            ? 'text-red-900 dark:text-red-300'
+                                                            : alert.type === 'priority'
+                                                            ? 'text-amber-900 dark:text-amber-300'
+                                                            : 'text-blue-900 dark:text-blue-300'
+                                                    }`}
+                                                >
                                                     {alert.title}
                                                 </p>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                                    {alert.message}
-                                                </p>
+                                                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{alert.message}</p>
                                                 <div className="flex items-center gap-4 mt-2">
-                                                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                        {alert.time}
-                                                    </span>
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400">{alert.time}</span>
                                                     {alert.actionable && (
-                                                        <button className={`text-xs font-medium ${
-                                                            alert.type === 'deadline' ? 'text-red-600 dark:text-red-400' :
-                                                            alert.type === 'priority' ? 'text-amber-600 dark:text-amber-400' :
-                                                            'text-blue-600 dark:text-blue-400'
-                                                        }`}>
+                                                        <button
+                                                            className={`text-xs font-medium ${
+                                                                alert.type === 'deadline'
+                                                                    ? 'text-red-600 dark:text-red-400'
+                                                                    : alert.type === 'priority'
+                                                                    ? 'text-amber-600 dark:text-amber-400'
+                                                                    : 'text-blue-600 dark:text-blue-400'
+                                                            }`}
+                                                        >
                                                             Take Action
                                                         </button>
                                                     )}
@@ -1302,12 +1260,9 @@ const Dashboard = () => {
                                             <Avatar name={update.user} className="w-8 h-8" />
                                             <div className="flex-1">
                                                 <p className="text-sm text-slate-900 dark:text-white">
-                                                    <span className="font-medium">{update.user}</span>
-                                                    {' '}{update.action}
+                                                    <span className="font-medium">{update.user}</span> {update.action}
                                                 </p>
-                                                <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                    {update.time}
-                                                </span>
+                                                <span className="text-xs text-slate-500 dark:text-slate-400">{update.time}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -1322,12 +1277,10 @@ const Dashboard = () => {
                     <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                         <div className="flex items-center justify-between">
                             <h2 className="text-small font-semibold text-slate-900 dark:text-white">Current Tasks</h2>
-                            <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200">
-                                View All
-                            </button>
+                            <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200">View All</button>
                         </div>
                     </div>
-                    
+
                     <div className="p-6">
                         <DragDropContext onDragEnd={handleDragEnd}>
                             <Droppable droppableId="taskList">
@@ -1345,19 +1298,21 @@ const Dashboard = () => {
                                                     >
                                                         <div className="flex items-center justify-between">
                                                             <div>
-                                                                <p className="text-base font-medium text-slate-900 dark:text-white">
-                                                                    {task.title}
-                                                                </p>
+                                                                <p className="text-base font-medium text-slate-900 dark:text-white">{task.title}</p>
                                                                 <div className="mt-1 flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300">
                                                                     <span className="flex items-center">
                                                                         <IconCalendar className="w-4 h-4 mr-1" />
                                                                         {task.deadline}
                                                                     </span>
-                                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
-                                                                        task.priority === 'High' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
-                                                                        task.priority === 'Medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
-                                                                        'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                                                                    }`}>
+                                                                    <span
+                                                                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
+                                                                            task.priority === 'High'
+                                                                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                                                                : task.priority === 'Medium'
+                                                                                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                                                                                : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                                                        }`}
+                                                                    >
                                                                         {task.priority}
                                                                     </span>
                                                                 </div>
@@ -1367,16 +1322,16 @@ const Dashboard = () => {
                                                                     <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden transition-colors duration-200">
                                                                         <div
                                                                             className={`h-1.5 rounded-full transition-all duration-500 ${
-                                                                                task.progress >= 80 ? 'bg-green-500 dark:bg-green-400' :
-                                                                                task.progress >= 40 ? 'bg-primary-500 dark:bg-primary-400' :
-                                                                                'bg-yellow-500 dark:bg-yellow-400'
+                                                                                task.progress >= 80
+                                                                                    ? 'bg-green-500 dark:bg-green-400'
+                                                                                    : task.progress >= 40
+                                                                                    ? 'bg-primary-500 dark:bg-primary-400'
+                                                                                    : 'bg-yellow-500 dark:bg-yellow-400'
                                                                             }`}
                                                                             style={{ width: `${task.progress}%` }}
                                                                         ></div>
                                                                     </div>
-                                                                    <span className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                                                                        {task.progress}% Complete
-                                                                    </span>
+                                                                    <span className="mt-1 text-xs text-slate-600 dark:text-slate-300">{task.progress}% Complete</span>
                                                                 </div>
                                                                 <button className="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-400 transition-colors duration-200">
                                                                     <IconHorizontalDots className="w-5 h-5" />
@@ -1436,8 +1391,8 @@ const Dashboard = () => {
                                     <option value="On Hold">On Hold</option>
                                     <option value="Completed">Completed</option>
                                 </select>
-  {/* Delegation Button */}
-  <button
+                                {/* Delegation Button */}
+                                <button
                                     onClick={() => setShowDelegationModal(true)}
                                     className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 dark:bg-primary-500 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600"
                                 >
@@ -1473,7 +1428,7 @@ const Dashboard = () => {
                                                             if (e.target.checked) {
                                                                 setSelectedTasks([...selectedTasks, task.id]);
                                                             } else {
-                                                                setSelectedTasks(selectedTasks.filter(id => id !== task.id));
+                                                                setSelectedTasks(selectedTasks.filter((id) => id !== task.id));
                                                             }
                                                         }}
                                                         className="h-4 w-4 text-primary-600 border-slate-300 rounded"
@@ -1494,47 +1449,45 @@ const Dashboard = () => {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                    task.status === 'Completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                                                    task.status === 'In Progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-                                                    task.status === 'On Hold' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                                    'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400'
-                                                }`}>
+                                                <span
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                        task.status === 'Completed'
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                            : task.status === 'In Progress'
+                                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                                            : task.status === 'On Hold'
+                                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                            : 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400'
+                                                    }`}
+                                                >
                                                     {task.status}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                    task.priority === 'High' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                                                    task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                                    'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                }`}>
+                                                <span
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                        task.priority === 'High'
+                                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                                            : task.priority === 'Medium'
+                                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                            : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                    }`}
+                                                >
                                                     {task.priority}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-slate-900 dark:text-white">
-                                                    {new Date(task.deadline).toLocaleDateString()}
-                                                </div>
-                                                <div className="text-sm text-slate-500 dark:text-slate-400">
-                                                    {new Date(task.deadline).toLocaleTimeString()}
-                                                </div>
+                                                <div className="text-sm text-slate-900 dark:text-white">{new Date(task.deadline).toLocaleDateString()}</div>
+                                                <div className="text-sm text-slate-500 dark:text-slate-400">{new Date(task.deadline).toLocaleTimeString()}</div>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
                                                 <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full">
-                                                    <div
-                                                        className="h-full rounded-full bg-primary-500"
-                                                        style={{ width: `${task.progress}%` }}
-                                                    />
+                                                    <div className="h-full rounded-full bg-primary-500" style={{ width: `${task.progress}%` }} />
                                                 </div>
-                                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right">
-                                                    {task.progress}%
-                                                </div>
+                                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right">{task.progress}%</div>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">
-                                                    Edit
-                                                </button>
+                                                <button className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">Edit</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -1550,10 +1503,7 @@ const Dashboard = () => {
                         <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-2xl w-full mx-4">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Task Delegation</h2>
-                                <button
-                                    onClick={() => setShowDelegationModal(false)}
-                                    className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
-                                >
+                                <button onClick={() => setShowDelegationModal(false)} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
                                     <IconClose className="w-5 h-5" />
                                 </button>
                             </div>
@@ -1561,17 +1511,15 @@ const Dashboard = () => {
                             <div className="space-y-6">
                                 {/* Selected Tasks */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                        Selected Tasks ({selectedTasks.length})
-                                    </label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Selected Tasks ({selectedTasks.length})</label>
                                     <div className="max-h-48 overflow-y-auto space-y-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4">
-                                        {selectedTasks.map(taskId => {
-                                            const task = mockTasks.find(t => t.id === taskId);
+                                        {selectedTasks.map((taskId) => {
+                                            const task = mockTasks.find((t) => t.id === taskId);
                                             return task ? (
                                                 <div key={task.id} className="flex items-center justify-between">
                                                     <span className="text-sm text-slate-900 dark:text-white">{task.title}</span>
                                                     <button
-                                                        onClick={() => setSelectedTasks(selectedTasks.filter(id => id !== task.id))}
+                                                        onClick={() => setSelectedTasks(selectedTasks.filter((id) => id !== task.id))}
                                                         className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                                                     >
                                                         <IconClose className="w-4 h-4" />
@@ -1584,12 +1532,10 @@ const Dashboard = () => {
 
                                 {/* Assignee Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                        Assign To
-                                    </label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Assign To</label>
                                     <select className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white px-3 py-2">
                                         <option value="">Select Team Member</option>
-                                        {mockTeamMembers.map(member => (
+                                        {mockTeamMembers.map((member) => (
                                             <option key={member.id} value={member.id}>
                                                 {member.name} - {member.team}
                                             </option>
@@ -1626,4 +1572,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-                              

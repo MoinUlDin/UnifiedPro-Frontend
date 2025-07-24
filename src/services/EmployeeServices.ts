@@ -1,8 +1,11 @@
 import api from '../utils/api';
+import { setEmployees } from '../store/slices/employeeSlice';
+
 export default class EmployeeServices {
-    static async FetchEmployees() {
+    static async FetchEmployees(dispatch: any) {
         try {
             const response = await api.get(`/auth/employees/`);
+            dispatch(setEmployees(response.data));
             return response.data;
         } catch (e) {
             console.log(e);
