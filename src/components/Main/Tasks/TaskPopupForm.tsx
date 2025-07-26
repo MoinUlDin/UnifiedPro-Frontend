@@ -130,6 +130,20 @@ const TaskPopupForm = ({ initialData = null, isEditing = false, onSubmit, closeM
         closeModel();
     };
 
+    // Filtering  SessionalGaols when Department goal slected
+    useEffect(() => {
+        if (loadingInitial) return; // guard when laoding initail data
+        if (!selectedDepartment) {
+            setFilteredSessionGoals([]);
+            return;
+        }
+        const filtered = sessionGoals.filter((sg) => Number(sg.department_goals.id) === Number(selectedDepartment));
+        setFilteredSessionGoals(filtered);
+        setValue('departmental_session_goal', '');
+        setValue('key_result', '');
+        setValue('department_kpi', '');
+    }, [selectedDepartment, sessionGoals]);
+
     // loading initail Data. keep this at the end. Moin you know that order does matter.
     // because the state upate is done in bulk the guard class don't work if you put it on top of oter filtering logics
     useEffect(() => {
@@ -159,20 +173,6 @@ const TaskPopupForm = ({ initialData = null, isEditing = false, onSubmit, closeM
         setValue('task_file', null);
         setLoadingInitail(false);
     }, [loading, initialData, departments, keyResults, allGoalsList, kpis, sessionGoals]);
-
-    // Filtering  SessionalGaols when Department goal slected
-    useEffect(() => {
-        if (loadingInitial) return; // guard when laoding initail data
-        if (!selectedDepartment) {
-            setFilteredSessionGoals([]);
-            return;
-        }
-        const filtered = sessionGoals.filter((sg) => Number(sg.department_goals.id) === Number(selectedDepartment));
-        setFilteredSessionGoals(filtered);
-        setValue('departmental_session_goal', '');
-        setValue('key_result', '');
-        setValue('department_kpi', '');
-    }, [selectedDepartment, sessionGoals]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 overflow-y-auto">

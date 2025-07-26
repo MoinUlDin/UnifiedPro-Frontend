@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { resourceUsage } from 'process';
 import { set } from 'date-fns';
 import { AllGoalsType, DepartmentGoalType, SessionalGoalType, KeyResultType, KPIType } from '../../../../constantTypes/Types';
+import { all } from 'axios';
 
 interface SubmitDataType {
     key_result: string;
@@ -43,26 +44,18 @@ const Departmental_KPIs_List_Popup = ({ closeModel, onSubmit, initialData = null
             console.log(e);
         });
     }, []);
-    useEffect(() => {
-        if (!isEditing || !initialData) return;
-
-        setParams((p: any) => ({
-            ...p,
-            // these two must match your `id=` on the <select>
-            department_goal: String(initialData.department_goal.id),
-            sessional_goal: String(initialData.sessional_goal.id),
-            key_result: String(initialData.key_result.id),
-            kpi_text: initialData.kpi_text,
-            target: initialData.target,
-            weight: initialData.weight,
-        }));
-    }, [isEditing, initialData]);
 
     useEffect(() => {
         if (!allGoalsList) return;
         setDG(allGoalsList.department_goals);
+
         setSG(allGoalsList.session_goals);
         setKR(allGoalsList.key_results);
+        setParams({
+            ...params,
+            department_goal: allGoalsList.department_goals[0].id,
+            sessional_goal: allGoalsList.session_goals[0].id,
+        });
     }, [allGoalsList]);
 
     const changeValue = (e: any) => {
@@ -115,6 +108,18 @@ const Departmental_KPIs_List_Popup = ({ closeModel, onSubmit, initialData = null
         closeModel();
     };
 
+    useEffect(() => {
+        if (!isEditing || !initialData) return;
+        setParams((p: any) => ({
+            ...p,
+            department_goal: String(initialData.department_goal.id),
+            sessional_goal: String(initialData.sessional_goal.id),
+            key_result: String(initialData.key_result.id),
+            kpi_text: initialData.kpi_text,
+            target: initialData.target,
+            weight: initialData.weight,
+        }));
+    }, [isEditing, initialData]);
     return (
         <Transition appear show={true} as={Fragment}>
             <Dialog as="div" open={true} onClose={closeModel} className="relative z-[51]">
@@ -136,7 +141,9 @@ const Departmental_KPIs_List_Popup = ({ closeModel, onSubmit, initialData = null
                                 <button type="button" onClick={closeModel} className="absolute top-4 ltr:right-4 rtl:left-4 text-gray-400 hover:text-gray-800 dark:hover:text-gray-600 outline-none">
                                     <IconX />
                                 </button>
-                                <div className="text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">Create Departmental KPI</div>
+                                <h1 className="text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">
+                                    {isEditing ? 'Update Departmental KPI' : 'Create Departmental KPI'}
+                                </h1>
                                 <div className="p-5">
                                     <form onSubmit={handleSubmit}>
                                         <div className="mb-5">
@@ -210,7 +217,7 @@ const Departmental_KPIs_List_Popup = ({ closeModel, onSubmit, initialData = null
                                                 Cancel
                                             </button>
                                             <button type="submit" className="btn btn-primary ltr:ml-4 rtl:mr-4">
-                                                Create
+                                                {isEditing ? 'Update' : 'Create'}
                                             </button>
                                         </div>
                                     </form>

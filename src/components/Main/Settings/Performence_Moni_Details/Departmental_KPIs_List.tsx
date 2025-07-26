@@ -135,6 +135,12 @@ const Departmental_KPIs_List = () => {
                 });
         }
     };
+    const handleCloseModel = () => {
+        setSelectedId(null);
+        setInitialData(null);
+        setIsEditing(false);
+        setopenKPIPopup(false);
+    };
     return (
         <div>
             <div className="panel mt-8">
@@ -164,7 +170,7 @@ const Departmental_KPIs_List = () => {
                 </div>
             </div>
             {/* Uncomment this line and define Job_Type_Popup component when ready */}
-            {openKPIPopup && <Departmental_KPIs_List_Popup initialData={initialData} isEditing={isEditing} onSubmit={onSubmit} closeModel={() => setopenKPIPopup(false)} />}
+            {openKPIPopup && <Departmental_KPIs_List_Popup initialData={initialData} isEditing={isEditing} onSubmit={onSubmit} closeModel={handleCloseModel} />}
             <Toaster position="top-right" reverseOrder={false} />
             <ConfirmActionModal
                 onConfirm={handleConfirmDelete}

@@ -50,7 +50,7 @@ export default class TaskServices {
             return response.data;
         } catch (e: any) {
             console.log(e);
-            const msg = e.response.data.weight || 'Error Updating Progress of Task';
+            const msg = e.response.data.weight || e.response.data.error || e.response.data.non_field_errors || 'Error Updating Progress of Task';
             throw new Error(msg);
         }
     }
@@ -60,7 +60,19 @@ export default class TaskServices {
             return response.data;
         } catch (e: any) {
             console.log('Delete Goal Error:', e);
-            const msg = 'Error Deleting Task';
+            const msg = e.response.data.detail || 'Error Deleting Task';
+            throw new Error(msg);
+        }
+    }
+
+    // Analytics and Performance Related
+    static async TaskAnalytics() {
+        try {
+            const response = await api.get(`/routine-tasks/task/analytics/`);
+            return response.data;
+        } catch (e: any) {
+            console.log('Error Get Task Analytics:', e);
+            const msg = e.response.data.detail || 'Error Get Task Analytics';
             throw new Error(msg);
         }
     }

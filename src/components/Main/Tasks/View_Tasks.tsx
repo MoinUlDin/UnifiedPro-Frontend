@@ -9,6 +9,7 @@ import TaskServices from '../../../services/TaskServices';
 import TaskPopupForm from './TaskPopupForm';
 import AssignTasksPopup from './AssignTasksPopup';
 import ProgressUpdatePopup from './ProgressUpdatePopup';
+import { useFilterRows, FilterControls, FilterConfig } from '../../FilterControls';
 
 function formatName(name: string): string {
     if (!name.trim()) return '';
@@ -19,9 +20,27 @@ function formatName(name: string): string {
         .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 }
+// Filtering Logic
+const taskFilters: FilterConfig[] = [
+    { type: 'text', key: 'task_name', placeholder: 'Search Task Name' },
+    { type: 'text', key: 'department_kpi.kpi_text', placeholder: 'Search KPI' },
+    { type: 'text', key: 'key_result.key_result_text', placeholder: 'Search Key Result' },
+    { type: 'text', key: 'departmental_session_goal.goal_text', placeholder: 'Search Session Goal' },
+    {
+        type: 'select',
+        key: 'priority',
+        options: [
+            { value: 'low', label: 'Low' },
+            { value: 'medium', label: 'Medium' },
+            { value: 'high', label: 'High' },
+        ],
+    },
+    { type: 'text', key: 'assigned_to', placeholder: 'Search Assignee' },
+    // you can add more, e.g. date ranges or nested keys
+];
 const View_Tasks: React.FC = () => {
     const navigate = useNavigate();
-    const [tasks, setTasks] = useState<TaskType[]>([]);
+    const [allTasks, setAllTasks] = useState<TaskType[]>([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [initialData, setInitialData] = useState<any | null>(null);
@@ -31,12 +50,13 @@ const View_Tasks: React.FC = () => {
     const [openAssignTask, setOpenAssignTask] = useState<boolean>(false);
     const [openProgress, setOpenProgress] = useState(false);
     const [selectedTask, setSelectedTask] = useState<TaskType | null>(null);
+    const { filtered: tasks, filterValues, setFilter } = useFilterRows(allTasks, taskFilters);
 
     // Fetching Tasks
     useEffect(() => {
         TaskServices.FetchTasks()
             .then((r) => {
-                setTasks(r);
+                setAllTasks(r);
                 console.log('Tasks: ', r);
             })
             .catch((e) => {
@@ -177,8 +197,6 @@ const View_Tasks: React.FC = () => {
         //         </div>
         //     ),
         // },
-
-        // you can add more columns or an actions column here...
     ];
 
     const handleCreateUpdateSubmit = (data: FormData) => {
@@ -238,7 +256,14 @@ const View_Tasks: React.FC = () => {
             reverseButtons: true,
         }).then((res) => {
             if (res.isConfirmed) {
-                console.log('wow');
+                TaskServices.DeleteTask(id)
+                    .then(() => {
+                        toast.success(`Task#${id} Deleted Successfully`, { duration: 4000 });
+                        setRefresh((p) => !p);
+                    })
+                    .catch((e) => {
+                        toast.error(e.message || `Error Deleting Task#${id}`);
+                    });
             }
         });
     };
@@ -280,6 +305,20 @@ const View_Tasks: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            <FilterControls filters={taskFilters} values={filterValues} onChange={setFilter} />
+
+            {/* Clear Filters */}
+            <button
+                onClick={() => {
+                    // reset every filter by key
+                    taskFilters.forEach((f: any) => setFilter(f.key, ''));
+                }}
+                className="btn btn-sm btn-outline-secondary mb-3"
+            >
+                Clear Filters
+            </button>
+
             <div className="datatables">
                 <DataTable
                     withBorder
