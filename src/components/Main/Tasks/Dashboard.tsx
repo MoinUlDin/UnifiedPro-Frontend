@@ -310,7 +310,7 @@ const Avatar = ({ name = '', className = '' }: { name: string; className?: strin
 
 const Dashboard = () => {
     // State Management
-    const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+    const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('yearly');
     const [showDelegationModal, setShowDelegationModal] = useState(false);
     const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -667,7 +667,7 @@ const Dashboard = () => {
                 <Header selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} />
 
                 {/* Overview Stats Grid */}
-                <StatsGrid metrics={taskAnalytics!} />
+                <StatsGrid period={selectedPeriod} metrics={taskAnalytics!} />
 
                 {/* Performance Metrics Section */}
                 {taskAnalytics && <PerformanceSection metrics={taskAnalytics} />}

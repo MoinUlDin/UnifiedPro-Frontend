@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 interface HeaderProps {
-    selectedPeriod: 'daily' | 'weekly' | 'monthly';
-    setSelectedPeriod: (p: 'daily' | 'weekly' | 'monthly') => void;
+    selectedPeriod: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    setSelectedPeriod: (p: 'daily' | 'weekly' | 'monthly' | 'yearly') => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ selectedPeriod, setSelectedPeriod }) => (
@@ -14,7 +14,7 @@ const Header: React.FC<HeaderProps> = ({ selectedPeriod, setSelectedPeriod }) =>
         </div>
         <div className="flex items-center gap-4">
             <div className="flex rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                {(['daily', 'weekly', 'monthly'] as const).map((period) => (
+                {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((period) => (
                     <button
                         key={period}
                         onClick={() => setSelectedPeriod(period)}

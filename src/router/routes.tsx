@@ -1,4 +1,5 @@
-import { lazy } from 'react';
+import { lazy, ReactElement } from 'react';
+
 import PrivateRoute from './Privateroute'; // Import the PrivateRoute component
 // import DefaultLayout from '../components/Layouts/DefaultLayout';
 import BlankLayout from '../components/Layouts/BlankLayout';
@@ -59,6 +60,7 @@ const CreateDesignation = lazy(() => import('../components/Main/Settings/Create_
 const CreateSalary = lazy(() => import('../components/Main/Settings/Create_Salary'));
 const PerformanceMoni = lazy(() => import('../components/Main/Settings/Performance_Moni'));
 const SettingsPermission = lazy(() => import('../components/Main/Settings/Permissions'));
+const StandalonePermissionsPage = lazy(() => import('../components/Main/Settings/StandalonePermissionsPage'));
 const Departments = lazy(() => import('../components/Main/Settings/Departments'));
 // Training Section
 const TrainingAssess = lazy(() => import('../components/Main/Training/Train_Assess'));
@@ -350,7 +352,7 @@ const routes: AppRoute[] = [
     },
     {
         path: '/permissions',
-        element: <SettingsPermission />,
+        element: <StandalonePermissionsPage />,
         layout: 'default',
     },
     // Training Routes

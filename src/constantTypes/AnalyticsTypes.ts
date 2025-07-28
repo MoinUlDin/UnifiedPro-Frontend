@@ -1,11 +1,60 @@
 export interface TaskAnalyticsType {
-    total_tasks: number;
-    status_counts: {
-        Completed: number;
-        Pending: number;
-        OverDue: number;
-        Upcoming: number;
+    all_time: {
+        total: number;
+        status_counts: {
+            Completed: number;
+            In_Progress: number;
+            Pending: number;
+            Overdue: number;
+            Upcoming: number;
+        };
+        completion_rate: number;
+        average_completion_seconds: number;
     };
-    completion_rate_percent: number;
-    average_completion_time_seconds: number;
+    today: {
+        total: number;
+        status_counts: {
+            In_Progress: number;
+            Pending: number;
+            Overdue: number;
+            Upcoming: number;
+        };
+        completion_rate: number;
+        average_completion_seconds: number;
+    };
+    this_week: {
+        total: number;
+        status_counts: {
+            In_Progress: number;
+            Pending: number;
+            Overdue: number;
+            Upcoming: number;
+        };
+        completion_rate: number;
+        average_completion_seconds: number;
+    };
+    this_month: {
+        total: number;
+        status_counts: {
+            Completed: number;
+            In_Progress: number;
+            Pending: number;
+            Overdue: number;
+            Upcoming: number;
+        };
+        completion_rate: number;
+        average_completion_seconds: number;
+    };
+    this_year: {
+        total: number;
+        status_counts: {
+            Completed: number;
+            In_Progress: number;
+            Pending: number;
+            Overdue: number;
+            Upcoming: number;
+        };
+        completion_rate: number;
+        average_completion_seconds: number;
+    };
 }
