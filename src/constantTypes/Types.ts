@@ -1,3 +1,11 @@
+export interface CompanyGoalsType {
+    id: number;
+    goal_text: string;
+    performance: number;
+    weight: number;
+    dg_counts: number;
+}
+
 export interface DepartmentGoalType {
     id: number;
     company_goal: { id: number; text: string };
@@ -5,6 +13,8 @@ export interface DepartmentGoalType {
     goal_text: string;
     target: number;
     weight: number;
+    performance?: number;
+    sg_counts?: number;
     start_date: string;
     due_date: string;
     combined: null;
@@ -18,7 +28,9 @@ export interface SessionalGoalType {
     target: number;
     weight: number;
     session: string;
-    session_display: string;
+    performance?: number;
+    kr_counts?: number;
+    session_display?: string;
 }
 export interface KPIType {
     id: number;
@@ -30,7 +42,9 @@ export interface KPIType {
     target: number;
     start_date?: string | null;
     due_date?: string | null;
+    performance_percent?: number;
     weight: number;
+    task_count: number;
     achieved?: number | null;
     sessional_goal: {
         id: number;
@@ -50,11 +64,13 @@ export interface KPIType {
 export interface KeyResultType {
     id: number;
     departmental_session_goal: { id: number; name: string };
-    department_goal: { id: number; goal_text: string };
+    department_goal?: { id: number; goal_text: string };
     key_results_text: string;
+    kpis_count?: number;
+    performance?: number;
     target: number;
     weight: number;
-    achieved: string;
+    achieved?: string;
 }
 export interface AllGoalsType {
     company_goals: number; // fix this later

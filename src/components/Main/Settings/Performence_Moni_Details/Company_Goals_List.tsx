@@ -8,22 +8,20 @@ import { options, render } from '@fullcalendar/core/preact';
 import toast, { Toaster } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import ConfirmActionModal from '../../../ConfirmActionModel';
+import { CompanyGoalsType } from '../../../../constantTypes/Types';
+import { Progress } from '@mantine/core';
 
-export interface RowData {
-    goal_text: string;
-    value: string | null;
-    achieved: string | null;
-    weight: string;
-    performance_monitoring?: { id: number; name: string };
-    id: number;
+export interface ChildParent {
+    parentState: number;
+    setparentState: (num: number) => void;
 }
 
-const Company_Goals_List = () => {
+const Company_Goals_List = ({ parentState, setparentState }: ChildParent) => {
     const [goalPopup, setGoalPopup] = useState(false);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
-    const [goalsData, setGoalsData] = useState<RowData[] | null>(null);
+    const [goalsData, setGoalsData] = useState<CompanyGoalsType[] | null>(null);
     const totalRecords = goalsData?.length;
     const [recordsData, setRecordsData] = useState(goalsData?.slice(0, pageSize));
     const [initialData, setInitialData] = useState<any>(null);
@@ -42,7 +40,7 @@ const Company_Goals_List = () => {
             .catch((e) => {
                 console.log(e);
             });
-    }, [refresh]);
+    }, [refresh, parentState]);
 
     useEffect(() => {
         setPage(1);
@@ -55,9 +53,46 @@ const Company_Goals_List = () => {
     }, [page, pageSize, goalsData]);
 
     const columns = [
-        { accessor: 'goal_text', title: 'Goal Text' },
-        { accessor: 'weight', title: 'weight' },
-        { accessor: 'achieved', title: 'Achieved', render: (row: RowData) => <span>{row.achieved ? `${row.achieved} %` : '0 %'} </span> },
+        {
+            accessor: 'goal_text',
+            title: 'Goal Text',
+            render: (row: CompanyGoalsType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col gap-2">
+                        <div>{row.goal_text}</div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-gray-600 text-[12px]">Weight: {row.weight}</span>
+                        </div>
+                    </div>
+                );
+            },
+        },
+        {
+            accessor: 'progress',
+            title: 'Performance',
+            render: (row: CompanyGoalsType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col ">
+                        <span className="text-sm">{row.performance} %</span>
+                        <Progress value={row.performance} size="sm" animate striped radius="sm" />
+                    </div>
+                );
+            },
+        },
+        {
+            accessor: 'dg_counts',
+            title: 'D Goals',
+            style: { padding: '0px', width: '1%' },
+            render: (row: CompanyGoalsType) => {
+                return (
+                    <div key={`kpis-${row.id}`} className="flex items-center justify-start">
+                        <div className="text-[10px] bg-[#ECEEF2] px-4  rounded-xl">
+                            {row.dg_counts} {row?.dg_counts! <= 1 ? 'DG' : 'DGs'}
+                        </div>
+                    </div>
+                );
+            },
+        },
     ];
 
     const adjustedColumns = [
@@ -65,7 +100,7 @@ const Company_Goals_List = () => {
         {
             accessor: 'action',
             title: 'Action',
-            render: (item: RowData) => (
+            render: (item: CompanyGoalsType) => (
                 <div className="flex justify-start">
                     <Tippy content="Edit">
                         <button type="button" className="text-blue-600 hover:text-blue-800" onClick={() => handleEditClick(item)}>
@@ -94,6 +129,7 @@ const Company_Goals_List = () => {
                     toast.success('Gaol Updated Successfully', { duration: 5000 });
                     setRefresh((prev) => !prev); // forcing to fetch data again
                     setIsEditing(false);
+                    setparentState(parentState + 1);
                 })
                 .catch((e) => {
                     toast.error(e.message || 'Error Updating Goal', { duration: 5000 });
@@ -105,6 +141,7 @@ const Company_Goals_List = () => {
                     toast.success('Gaol Updated Successfully', { duration: 5000 });
                     setRefresh((prev) => !prev); // forcing to fetch data again
                     setIsEditing(false);
+                    setparentState(parentState + 1);
                 })
                 .catch((e) => {
                     toast.error(e.message || 'Error Updating Goal', { duration: 5000 });
@@ -113,7 +150,7 @@ const Company_Goals_List = () => {
         }
     };
 
-    const handleEditClick = (item: RowData) => {
+    const handleEditClick = (item: CompanyGoalsType) => {
         console.log('Edit clicked for:', item);
         const init = {
             id: item.id,
@@ -134,6 +171,7 @@ const Company_Goals_List = () => {
             .then(() => {
                 toast.success('Goal Deleted Succussfully', { duration: 5000 });
                 setRefresh((p) => !p);
+                setparentState(parentState + 1);
             })
             .catch((e) => {
                 toast.error(e.message || 'Error Deleting Goal');

@@ -7,19 +7,11 @@ import SessionalGoalServices from '../../../../services/SessionalGoalServices';
 import toast, { Toaster } from 'react-hot-toast';
 import ConfirmActionModal from '../../../ConfirmActionModel';
 import { useFilterRows, FilterControls, FilterConfig } from '../../../FilterControls';
+import { ChildParent } from './Company_Goals_List';
+import { Progress } from '@mantine/core';
+import { SessionalGoalType } from '../../../../constantTypes/Types';
 
-export interface SessionalGoalType {
-    id: number;
-    department_goals: { id: number; name: string };
-    department: { id: number; name: string };
-    goal_text: string;
-    target: number;
-    weight: number;
-    session: string;
-    session_display?: string;
-}
-
-const Departmental_Session_Goals = () => {
+const Departmental_Session_Goals = ({ parentState, setparentState }: ChildParent) => {
     const [sessionalGaolsPopup, setSessionalGaolsPopup] = useState<boolean>(false);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
@@ -29,7 +21,6 @@ const Departmental_Session_Goals = () => {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [refresh, setRefresh] = useState<boolean>(false);
     const [openConfirmActionModel, setOpenConfirmActionModel] = useState<boolean>(false);
-
     const [goalsData, setGoalsData] = useState<SessionalGoalType[]>([
         {
             id: 0,
@@ -41,6 +32,18 @@ const Departmental_Session_Goals = () => {
             session: 'string',
         },
     ]);
+
+    // fetching Goals
+    useEffect(() => {
+        SessionalGoalServices.FetchGoals()
+            .then((r) => {
+                console.log('Sessional Goals', r);
+                setGoalsData(r);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    }, [refresh, parentState]);
 
     // 1) Define your filters once
     const filters: FilterConfig[] = [
@@ -57,18 +60,10 @@ const Departmental_Session_Goals = () => {
             ],
         },
     ];
-    // fetching Goals
-    useEffect(() => {
-        SessionalGoalServices.FetchGoals()
-            .then((r) => {
-                console.log(r);
-                setGoalsData(r);
-            })
-            .catch((e) => {
-                console.log(e);
-            });
-    }, [refresh]);
 
+    useEffect(() => {
+        setparentState(parentState + 1);
+    }, [refresh]);
     // 3) Plug in filtering
     const { filtered: filteredGoals, filterValues, setFilter } = useFilterRows(goalsData, filters);
 
@@ -89,12 +84,51 @@ const Departmental_Session_Goals = () => {
     // }, [page, pageSize, goalsData]);
 
     const columns = [
+        {
+            accessor: 'goal_text',
+            title: 'Goal Text',
+            render: (row: SessionalGoalType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col gap-2">
+                        <div>{row.goal_text}</div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-gray-600 text-[12px]">Target: {Number(row.target).toFixed(0)}</span>
+                            <span className="text-gray-600 ">|</span>
+                            <span className="text-gray-600 text-[12px]">Weight: {row.weight}</span>
+                        </div>
+                    </div>
+                );
+            },
+        },
         { accessor: 'department', title: 'Department', render: (row: SessionalGoalType) => row.department.name },
         // { accessor: 'department_goals', title: 'Department Goal', render: (row: SessionalGoalType) => row.department_goals.name },
         { accessor: 'session_display', title: 'Goal Session', render: (row: SessionalGoalType) => row.session_display },
-        { accessor: 'goal_text', title: 'Goal Text', render: (row: SessionalGoalType) => row.goal_text },
-        { accessor: 'target', title: 'Target', render: (row: SessionalGoalType) => Number(row.target).toFixed(0) },
-        { accessor: 'weight', title: 'Weight', render: (row: SessionalGoalType) => row.weight },
+        {
+            accessor: 'progress',
+            title: 'Performance',
+            render: (row: SessionalGoalType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col ">
+                        <span className="text-sm">{row.performance} %</span>
+                        <Progress value={row.performance} size="sm" animate striped radius="sm" />
+                    </div>
+                );
+            },
+        },
+        {
+            accessor: 'kr_counts',
+            title: 'Key Results',
+            style: { padding: '0px', width: '1%' },
+            render: (row: SessionalGoalType) => {
+                return (
+                    <div key={`kpis-${row.id}`} className="flex items-center justify-center">
+                        <div className="text-[10px] bg-[#ECEEF2] px-4  rounded-xl">
+                            {row.kr_counts} {row?.kr_counts! <= 1 ? 'KR' : 'KRs'}
+                        </div>
+                    </div>
+                );
+            },
+        },
     ];
 
     const adjustedColumns = [

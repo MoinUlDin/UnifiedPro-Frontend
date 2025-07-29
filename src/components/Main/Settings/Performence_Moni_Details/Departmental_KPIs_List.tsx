@@ -7,8 +7,10 @@ import { KPIType } from '../../../../constantTypes/Types';
 import KPIServices from '../../../../services/KPIServices';
 import toast, { Toaster } from 'react-hot-toast';
 import ConfirmActionModal from '../../../ConfirmActionModel';
+import { ChildParent } from './Company_Goals_List';
+import { Progress } from '@mantine/core';
 
-const Departmental_KPIs_List = () => {
+const Departmental_KPIs_List = ({ parentState, setparentState }: ChildParent) => {
     const [openKPIPopup, setopenKPIPopup] = useState(false);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
@@ -30,6 +32,9 @@ const Departmental_KPIs_List = () => {
             .catch((e) => {
                 console.log(e);
             });
+    }, [zz, parentState]);
+    useEffect(() => {
+        setparentState(parentState + 1);
     }, [zz]);
     useEffect(() => {
         setPage(1);
@@ -42,11 +47,47 @@ const Departmental_KPIs_List = () => {
     }, [page, pageSize, KPIs]);
 
     const columns = [
+        {
+            accessor: 'kpi_text',
+            title: 'Departmental KPI',
+            render: (row: KPIType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col gap-2">
+                        <div>{row.key_result.text}</div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-gray-600 text-[12px]">Target: {row.target}</span>
+                            <span className="text-gray-600 ">|</span>
+                            <span className="text-gray-600 text-[12px]">Weight: {row.weight}</span>
+                        </div>
+                    </div>
+                );
+            },
+        },
         { accessor: 'key_result', title: 'Key Results', render: (row: KPIType) => row.key_result.text },
-        { accessor: 'kpi_text', title: 'Departmental KPI' },
-        { accessor: 'target', title: 'Target' },
-        { accessor: 'weight', title: 'Weight' },
-        // { accessor: 'Achieved', title: 'Achieved' },
+        {
+            accessor: 'progress',
+            title: 'Progress',
+            render: (row: KPIType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col ">
+                        <span className="text-sm">{row.performance_percent} %</span>
+                        <Progress value={row.performance_percent} size="sm" animate striped radius="sm" />
+                    </div>
+                );
+            },
+        },
+        {
+            accessor: 'task_count',
+            title: 'KPIs',
+            style: { padding: '0px', width: '1%' },
+            render: (row: KPIType) => {
+                return (
+                    <div key={`kpis-${row.id}`} className="flex text-[10px] bg-[#ECEEF2] rounded-xl items-center justify-center">
+                        {row.task_count} {row.task_count <= 1 ? 'Task' : 'Tasks'}
+                    </div>
+                );
+            },
+        },
     ];
 
     const adjustedColumns = [

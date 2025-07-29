@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, Button, Badge, Switch, TextInput, Select, Tabs, Avatar, Group, Text, Stack, Grid, Container, Paper, ActionIcon, Flex, Title, Divider } from '@mantine/core';
 import {
     BiShield,
@@ -37,6 +37,8 @@ import { BiTargetLock } from 'react-icons/bi';
 import { BsMegaphone } from 'react-icons/bs';
 import { FiActivity, FiEye } from 'react-icons/fi';
 import { FaFileAlt } from 'react-icons/fa';
+import CompanySetupServices from '../../../services/CompanySetupServices';
+
 // Mock data - same as before but simplified for standalone use
 const PERMISSION_TYPES = [
     'Dashboard',
@@ -226,7 +228,6 @@ const iconMap = {
     BiTrendingUp,
     BiTargetLock,
     FiActivity,
-    // BiClipboard,
     BiSend,
     BiCalendar,
     BiTime,

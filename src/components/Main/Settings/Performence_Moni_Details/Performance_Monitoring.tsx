@@ -34,7 +34,6 @@ export default function Performance_Moni_List() {
     const fetchPerfMoni = async () => {
         try {
             const resp: any = await SettingServices.FetchPerformanceMonitoring();
-            console.log('response', resp);
             const arr = Array.isArray(resp) ? resp : [resp];
             const mapped: RowData[] = arr.map((item) => ({
                 id: item.id,
@@ -43,7 +42,7 @@ export default function Performance_Moni_List() {
                 raw_end: item.end_date.slice(0, 10),
                 start_date: formatDate(item.start_date),
                 end_date: formatDate(item.end_date),
-                session_type: toCapitalize(item.session_type),
+                session_type: item.session_type,
             }));
             setAllData(mapped);
         } catch (err) {

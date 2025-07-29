@@ -7,16 +7,11 @@ import SessionalGoalServices from '../../../../services/SessionalGoalServices';
 import KeyResultServices from '../../../../services/KeyResultServices';
 import toast, { Toaster } from 'react-hot-toast';
 import ConfirmActionModal from '../../../ConfirmActionModel';
+import { ChildParent } from './Company_Goals_List';
+import { KeyResultType } from '../../../../constantTypes/Types';
+import { Progress } from '@mantine/core';
 
-interface KRDataType {
-    id: number;
-    departmental_session_goal: { id: number; name: string };
-    key_results_text: string;
-    weight: number;
-    target: number;
-}
-
-const Key_Results_List = () => {
+const Key_Results_List = ({ parentState, setparentState }: ChildParent) => {
     const [openKeyPopup, setOpenKeyPopup] = useState(false);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [selectedId, setSelectedId] = useState<null | number>(null);
@@ -27,7 +22,7 @@ const Key_Results_List = () => {
     const PAGE_SIZES = [10, 20, 30, 50, 100];
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
 
-    const [KRData, setKRData] = useState<KRDataType[]>([
+    const [KRData, setKRData] = useState<KeyResultType[]>([
         {
             id: 0,
             departmental_session_goal: { id: 0, name: '' },
@@ -49,8 +44,10 @@ const Key_Results_List = () => {
             .catch((e) => {
                 toast.error('Error Fetching Key Results', { duration: 4000 });
             });
+    }, [refresh, parentState]);
+    useEffect(() => {
+        setparentState(parentState + 1);
     }, [refresh]);
-
     useEffect(() => {
         setPage(1);
     }, [pageSize]);
@@ -62,10 +59,47 @@ const Key_Results_List = () => {
     }, [page, pageSize, KRData]);
 
     const columns = [
-        { accessor: 'departmental_session_goal', title: 'Sessional Goal', render: (row: KRDataType) => row.departmental_session_goal.name },
-        { accessor: 'key_results_text', title: 'KR Text' },
-        { accessor: 'target', title: 'Target' },
-        { accessor: 'weight', title: 'Weight' },
+        {
+            accessor: 'key_results_text',
+            title: 'KR Text',
+            render: (row: KeyResultType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col gap-2">
+                        <div>{row.key_results_text}</div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-gray-600 text-[12px]">Target: {row.target}</span>
+                            <span className="text-gray-600 ">|</span>
+                            <span className="text-gray-600 text-[12px]">Weight: {row.weight}</span>
+                        </div>
+                    </div>
+                );
+            },
+        },
+        { accessor: 'departmental_session_goal', title: 'Sessional Goal', render: (row: KeyResultType) => row.departmental_session_goal.name },
+        {
+            accessor: 'progress',
+            title: 'Progress',
+            render: (row: KeyResultType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col ">
+                        <span className="text-sm">{row.performance} %</span>
+                        <Progress value={row.performance} size="sm" animate striped radius="sm" />
+                    </div>
+                );
+            },
+        },
+        {
+            accessor: 'kpis_count',
+            title: 'KPIs',
+            style: { padding: '0px', width: '1%' },
+            render: (row: KeyResultType) => {
+                return (
+                    <div key={`kpis-${row.id}`} className="flex text-[10px] bg-[#ECEEF2] rounded-xl items-center justify-center">
+                        {row.kpis_count} {row?.kpis_count! <= 1 ? 'KPI' : 'KPIs'}
+                    </div>
+                );
+            },
+        },
     ];
 
     const adjustedColumns = [
@@ -73,7 +107,7 @@ const Key_Results_List = () => {
         {
             accessor: 'action',
             title: 'Action',
-            render: (item: KRDataType) => (
+            render: (item: KeyResultType) => (
                 <div className="flex justify-start">
                     <Tippy content="Edit">
                         <button type="button" className="text-blue-600 hover:text-blue-800" onClick={() => handleEditClick(item)}>
@@ -122,7 +156,7 @@ const Key_Results_List = () => {
         }
     };
 
-    const handleEditClick = (item: KRDataType) => {
+    const handleEditClick = (item: KeyResultType) => {
         console.log('Edit clicked for:', item);
         setInitialData(item);
         setSelectedId(item.id);

@@ -28,4 +28,13 @@ export default class PerformanceServices {
             throw e;
         }
     }
+    static async FetchCompanyPerformance() {
+        try {
+            const response = await api.get(`/company-performace/company/performance/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
 }

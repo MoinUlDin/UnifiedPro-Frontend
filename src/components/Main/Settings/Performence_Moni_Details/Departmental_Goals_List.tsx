@@ -9,8 +9,10 @@ import { render } from '@fullcalendar/core/preact';
 import { spacing } from 'react-select/dist/declarations/src/theme';
 import toast, { Toaster } from 'react-hot-toast';
 import ConfirmActionModal from '../../../ConfirmActionModel';
+import { ChildParent } from './Company_Goals_List';
+import { Progress } from '@mantine/core';
 
-const Departmental_Goals_List = () => {
+const Departmental_Goals_List = ({ parentState, setparentState }: ChildParent) => {
     const [modelOpen, setModelOpen] = useState(false);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
@@ -35,6 +37,9 @@ const Departmental_Goals_List = () => {
             .catch((e) => {
                 console.log(e);
             });
+    }, [refresh, parentState]);
+    useEffect(() => {
+        setparentState(parentState + 1);
     }, [refresh]);
     useEffect(() => {
         setPage(1);
@@ -47,11 +52,49 @@ const Departmental_Goals_List = () => {
     }, [page, pageSize, goalData]);
 
     const columns = [
+        {
+            accessor: 'goal_text',
+            title: 'Goal Text',
+            render: (row: DepartmentGoalType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col gap-2">
+                        <div>{row.goal_text}</div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-gray-600 text-[12px]">Target: {Number(row.target).toFixed(0)}</span>
+                            <span className="text-gray-600 ">|</span>
+                            <span className="text-gray-600 text-[12px]">Weight: {row.weight}</span>
+                        </div>
+                    </div>
+                );
+            },
+        },
         { accessor: 'department', title: 'Department', render: (row: DepartmentGoalType) => <span>{row.department?.name} </span> },
-        { accessor: 'goal_text', title: 'Goal Text' },
-        { accessor: 'target', title: 'Target' },
-        { accessor: 'weight', title: 'Weight' },
-        // { accessor: 'Achieved', title: 'Achieved' } will decide what to do with this,
+        {
+            accessor: 'progress',
+            title: 'Performance',
+            render: (row: DepartmentGoalType) => {
+                return (
+                    <div key={`prog-${row.id}`} className="flex flex-col ">
+                        <span className="text-sm">{row.performance} %</span>
+                        <Progress value={row.performance} size="sm" animate striped radius="sm" />
+                    </div>
+                );
+            },
+        },
+        {
+            accessor: 'sg_counts',
+            title: 'Sessional',
+            style: { padding: '0px', width: '1%' },
+            render: (row: DepartmentGoalType) => {
+                return (
+                    <div key={`kpis-${row.id}`} className="flex items-center">
+                        <div className="text-[10px] bg-[#ECEEF2] px-4  rounded-xl">
+                            {row.sg_counts} {row?.sg_counts! <= 1 ? 'SG' : 'SGs'}
+                        </div>
+                    </div>
+                );
+            },
+        },
     ];
 
     const adjustedColumns = [
