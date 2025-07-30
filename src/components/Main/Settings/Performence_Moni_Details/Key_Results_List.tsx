@@ -82,8 +82,12 @@ const Key_Results_List = ({ parentState, setparentState }: ChildParent) => {
             render: (row: KeyResultType) => {
                 return (
                     <div key={`prog-${row.id}`} className="flex flex-col ">
-                        <span className="text-sm">{row.performance} %</span>
-                        <Progress value={row.performance} size="sm" animate striped radius="sm" />
+                        <span className="text-sm">{Number(row.performance) < 100 ? row.performance : Number(row.performance).toFixed(0)} %</span>
+                        {Number(row.performance) < 100 ? (
+                            <Progress value={row.performance} color="teal" size="md" animate striped radius="sm" />
+                        ) : (
+                            <Progress value={row.performance} color="teal" size="sm" radius="sm" />
+                        )}
                     </div>
                 );
             },
@@ -129,7 +133,6 @@ const Key_Results_List = ({ parentState, setparentState }: ChildParent) => {
     ];
 
     const handleSubmit = (data: any) => {
-        console.log('got Edited Data', data);
         if (isEditing) {
             if (!selectedId) {
                 toast.error('No Id selected to update');
@@ -157,7 +160,6 @@ const Key_Results_List = ({ parentState, setparentState }: ChildParent) => {
     };
 
     const handleEditClick = (item: KeyResultType) => {
-        console.log('Edit clicked for:', item);
         setInitialData(item);
         setSelectedId(item.id);
         setIsEditing(true);

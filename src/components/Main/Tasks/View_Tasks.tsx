@@ -72,18 +72,19 @@ const View_Tasks: React.FC = () => {
             accessor: 'Actions',
             title: 'Actions',
             render: (task) => (
-                <div key={`Action-${task.id}`} className="sticky right-0">
-                    <div className="flex flex-col items-start gap-2">
-                        <button onClick={() => handleEdit(task)} className="flex items-center gap-2 btn btn-sm btn-outline-primary min-w-20">
+                <div key={`Action-${task.id}`} className="sticky left-0">
+                    <div className="flex items-start gap-2 ">
+                        <button onClick={() => handleEdit(task)} className="flex items-center gap-2 btn btn-sm btn-outline-primary min-w-5">
                             <i className="bi bi-pencil-square"></i>
-                            Edit
                         </button>
-                        <button onClick={() => handleOpenStauspopup(task)} className="flex items-center gap-2 btn btn-sm btn-outline-primary min-w-20">
-                            Update Status
+                        <button onClick={() => handleOpenStauspopup(task)} className="flex items-center gap-2 btn btn-sm btn-outline-primary min-w-5">
+                            {/* <i className="bi bi-activity"></i>
+                            <i className="bi bi-speedometer"></i> */}
+                            <i className="bi bi-bar-chart"></i>
+                            {/* <i className="bi bi-diagram-3"></i> */}
                         </button>
-                        <button onClick={() => handleDeleteTask(task.id)} className="flex items-center gap-2 btn btn-sm btn-outline-danger min-w-20">
+                        <button onClick={() => handleDeleteTask(task.id)} className="flex items-center gap-2 btn btn-sm btn-outline-danger min-w-5">
                             <i className="bi bi-trash"></i>
-                            Delete
                         </button>
                     </div>
                 </div>
@@ -98,7 +99,7 @@ const View_Tasks: React.FC = () => {
                 return (
                     <div key={`name-${task.id}`}>
                         <div className="mb-1 font-bold text-blue-900">{task.task_name}</div>
-                        <div className="flex items-center gap-3 font-semibold text-[14px] text-gray-600 ">
+                        <div className="flex items-center gap-3 font-semibold text-[10px] text-gray-600 ">
                             <span>
                                 <span>Weight: </span>
                                 {task.weight}
@@ -108,7 +109,7 @@ const View_Tasks: React.FC = () => {
                                 <span className={`bg-${color}-500 px-2 rounded-xl text-black`}>{task.priority}</span>
                             </span>
                         </div>
-                        <h2 className="mt-1 flex gap-3">
+                        <h2 className="mt-1 flex gap-3 text-[12px]">
                             <span className="text-black font-semibold">Assigned To: </span>
                             {task.assigned_to ? formatName(task.assigned_to) : 'Unassigned'}
                         </h2>
@@ -121,13 +122,13 @@ const View_Tasks: React.FC = () => {
             title: 'Dates',
             render: (task) => (
                 <div key={`date-${task.id}`}>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-[10px]">
                         <span className="text-black font-semibold">Start Date</span>
-                        <span className="text-gray-800 text-[12px]">{task.start_date?.split('T')[0]}</span>
+                        <span className="text-gray-800 text-[10px]">{task.start_date?.split('T')[0]}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-[10px]">
                         <span className="text-black font-semibold">Due Date</span>
-                        <span className="text-gray-800 text-[12px]">{task.start_date?.split('T')[0]}</span>
+                        <span className="text-gray-800 text-[10px]">{task.start_date?.split('T')[0]}</span>
                     </div>
                 </div>
             ),
@@ -137,8 +138,10 @@ const View_Tasks: React.FC = () => {
             title: 'KPI',
             render: (task) => (
                 <div key={`kpi-${task.id}`}>
-                    <div className="mb-1 font-bold text-gray-900">{task.department_kpi.kpi_text}</div>
-                    <div className="flex items-center gap-3 text-[12px] text-gray-600 ">
+                    <div className="mb-1 text-[12px] font-bold text-gray-900">
+                        {task.department_kpi.kpi_text.length > 25 ? task.department_kpi.kpi_text.slice(0, 25) + '...' : task.department_kpi.kpi_text}
+                    </div>
+                    <div className="flex items-center gap-3 text-[10px] text-gray-600 ">
                         <span>
                             <span>Target: </span>
                             <span>{task.department_kpi.target}</span>
@@ -151,42 +154,7 @@ const View_Tasks: React.FC = () => {
                 </div>
             ),
         },
-        {
-            accessor: 'key_result',
-            title: 'Key Result',
-            render: (task) => (
-                <div key={`key_result-${task.id}`}>
-                    <div className="mb-1 font-bold text-gray-900">{task.key_result.key_result_text}</div>
-                    <div className="text-[12px] text-gray-600">
-                        target: {task.key_result.target} weight: {task.key_result.weight}
-                    </div>
-                </div>
-            ),
-        },
-        {
-            accessor: 'departmental_session_goal',
-            title: 'Session Goal',
-            render: (task) => (
-                <div key={`SG-${task.id}`}>
-                    <div className="mb-1 font-bold text-gray-900">{task.departmental_session_goal.goal_text}</div>
-                    <div className="text-[12px] text-gray-600">
-                        target: {task.departmental_session_goal.target} weight: {task.departmental_session_goal.weight}
-                    </div>
-                </div>
-            ),
-        },
-        {
-            accessor: 'department_goal',
-            title: 'Department Goal',
-            render: (task) => (
-                <div key={`DG-${task.id}`}>
-                    <div className="mb-1 font-bold text-gray-900">{task.department_goal.goal_text}</div>
-                    <div className="text-[12px] text-gray-600">
-                        target: {task.department_goal.target} weight: {task.department_goal.weight}
-                    </div>
-                </div>
-            ),
-        },
+
         // {
         //     accessor: 'company_goal',
         //     title: 'Company Goal',

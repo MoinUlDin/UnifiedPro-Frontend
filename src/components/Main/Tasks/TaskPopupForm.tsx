@@ -30,7 +30,7 @@ const TaskPopupForm = ({ initialData = null, isEditing = false, onSubmit, closeM
         defaultValues: {
             priority: 'medium',
             frequency: 'at_once',
-            start_date: new Date().toISOString().split('T')[0],
+            start_date: new Date().toISOString().slice(0, 16),
             task_file: null,
             ...initialData,
         },
@@ -167,8 +167,8 @@ const TaskPopupForm = ({ initialData = null, isEditing = false, onSubmit, closeM
         setValue('frequency', initialData.frequency);
         setValue('frequency', initialData.frequency);
 
-        setValue('start_date', initialData.start_date?.split('T')[0]);
-        setValue('due_date', initialData.due_date?.split('T')[0]);
+        setValue('start_date', initialData.start_date);
+        setValue('due_date', initialData.due_date);
 
         setValue('task_file', null);
         setLoadingInitail(false);
@@ -277,12 +277,12 @@ const TaskPopupForm = ({ initialData = null, isEditing = false, onSubmit, closeM
 
                     <div>
                         <label>Start Date</label>
-                        <input type="date" {...register('start_date')} className="form-input" />
+                        <input type="datetime-local" {...register('start_date')} className="form-input" />
                     </div>
 
                     <div>
                         <label>Due Date</label>
-                        <input type="date" {...register('due_date', { required: true })} className="form-input" />
+                        <input type="datetime-local" {...register('due_date', { required: true })} className="form-input" />
                         {errors.due_date && <p className="text-red-500 text-sm">Due Date is required</p>}
                     </div>
 

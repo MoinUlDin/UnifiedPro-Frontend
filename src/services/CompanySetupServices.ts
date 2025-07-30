@@ -19,9 +19,9 @@ export default class CompanySetupServices {
             throw e;
         }
     }
-    static async FetchPermissionList() {
+    static async FetchCorePermissions() {
         try {
-            const response = await api.get(`/company-Setup/get-permissions-list/`);
+            const response = await api.get(`/company-Setup/permissions/`);
             return response.data;
         } catch (e: any) {
             console.log('Add Gaol error: ', e);
@@ -29,9 +29,9 @@ export default class CompanySetupServices {
             throw new Error(msg);
         }
     }
-    static async GetUserPermissionGroup() {
+    static async FetchUserPermissionGroupList() {
         try {
-            const response = await api.get(`/company-Setup/user-permission-groups/`);
+            const response = await api.get(`/company-Setup/groups/`);
             return response.data;
         } catch (e: any) {
             console.log(e);
@@ -39,9 +39,20 @@ export default class CompanySetupServices {
             throw new Error(msg);
         }
     }
-    static async AddUserPermissionGroup(payload: any) {
+    static async FetchPermissionsInGroup(id: number) {
         try {
-            const response = await api.post(`/company-Setup/user-permission-groups/`, payload);
+            const response = await api.get(`/company-Setup/groups/${id}/permissions/`);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.weight || 'Error Updating Goal';
+            throw new Error(msg);
+        }
+    }
+    static async BulkUpdatePermissions({ groupId, permissions }: { groupId: number; permissions: any }) {
+        try {
+            console.log('sending data: ', permissions);
+            const response = await api.put(`/company-Setup/groups/${groupId}/permissions/`, permissions);
             return response.data;
         } catch (e: any) {
             console.log(e);
