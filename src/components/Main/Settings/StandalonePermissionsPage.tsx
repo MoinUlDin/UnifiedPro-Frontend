@@ -38,6 +38,8 @@ import { BsMegaphone } from 'react-icons/bs';
 import { FiActivity, FiEye } from 'react-icons/fi';
 import { FaFileAlt } from 'react-icons/fa';
 import CompanySetupServices from '../../../services/CompanySetupServices';
+import AddEditPermissionGroup from './AddEditPermissionGroup';
+import toast from 'react-hot-toast';
 
 interface CorePermissionType {
     code: string;
@@ -106,7 +108,9 @@ export default function StandalonePermissionsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [showBulkActions, setShowBulkActions] = useState(false);
-
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [openPermissionGroupPopup, setOpenPermissionGroupPopup] = useState<boolean>(false);
+    const [initialData, setInitialData] = useState<any>();
     // 1) on mount: load all groups + all core perms
     useEffect(() => {
         CompanySetupServices.FetchUserPermissionGroupList()
@@ -181,6 +185,27 @@ export default function StandalonePermissionsPage() {
         return { total, granted, fullAccess, readOnly, coverage };
     }, [corePermissions, groupPermissions]);
 
+    const handleClosePopup = () => {
+        setOpenPermissionGroupPopup(false);
+    };
+    const handleOpenForNew = () => {
+        setInitialData(null);
+        setOpenPermissionGroupPopup(true);
+    };
+
+    const handleDelete = () => {
+        if (!selectedGroup) return;
+        const id = Number(selectedGroup);
+        window.confirm(`are you sure you want to delete Group # ${id}`);
+        CompanySetupServices.DeleteGroupPermission(id)
+            .then(() => {
+                console.log('we are good to go');
+                toast.success(`Group with ID: ${id} Deleted`, { duration: 4000 });
+            })
+            .catch((e) => {
+                toast.error(`Error Deleting Group with ID: ${id}`, { duration: 4000 });
+            });
+    };
     return (
         <Container size="xl" className="py-6">
             <Stack spacing="xl">
@@ -194,7 +219,9 @@ export default function StandalonePermissionsPage() {
                         <Button variant="light" leftIcon={<BiFilter />} onClick={() => setShowBulkActions((v) => !v)}>
                             Bulk Actions
                         </Button>
-                        <button className="btn btn-sm btn-primary">Add Group</button>
+                        <button onClick={handleOpenForNew} className="btn btn-sm btn-primary">
+                            Add Group
+                        </button>
 
                         {selectedGroup && (
                             <button onClick={handleSave} className="btn btn-sm btn-success">
@@ -307,7 +334,7 @@ export default function StandalonePermissionsPage() {
                                 </Card>
                             </Grid.Col>
 
-                            {/* Main: permission toggles */}
+                            {/* Main: permission Info  */}
                             <Grid.Col span={12} md={9} xs={12} sm={12}>
                                 <Stack spacing="lg">
                                     {selectedGroup && (
@@ -336,7 +363,7 @@ export default function StandalonePermissionsPage() {
                                                         <ActionIcon>
                                                             <BiEdit />
                                                         </ActionIcon>
-                                                        <ActionIcon color="red">
+                                                        <ActionIcon onClick={handleDelete} color="red">
                                                             <BiTrash />
                                                         </ActionIcon>
                                                     </Group>
@@ -461,6 +488,7 @@ export default function StandalonePermissionsPage() {
                     </Tabs.Panel>
                 </Tabs>
             </Stack>
+            {openPermissionGroupPopup && <AddEditPermissionGroup isEditing={isEditing} initialData={initialData} onClose={handleClosePopup} />}
         </Container>
     );
 }

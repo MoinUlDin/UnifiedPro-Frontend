@@ -93,7 +93,7 @@ const Company_Info = () => {
 
     const initialFormFields: Policy = {
         id: 0,
-        name: 'Moin',
+        name: 'My Company',
         email: '',
         website: 'None',
         phone_number: '',
@@ -201,10 +201,15 @@ const Company_Info = () => {
             },
 
             onSubmit: async (data) => {
-                await SettingServices.updateCompanyInfo(info.id!, data);
-                toast.success('Company Info updated');
-                const updated = await SettingServices.fetchCompanyInfo();
-                setPolicies(updated);
+                await SettingServices.updateCompanyInfo(info.id!, data)
+                    .then(() => {
+                        toast.success('Company Info updated');
+                        SettingServices.fetchCompanyInfo().then(setPolicies);
+                        closeModal();
+                    })
+                    .catch((e) => {
+                        toast.error(e.message || 'error', { duration: 4000 });
+                    });
             },
         });
     };

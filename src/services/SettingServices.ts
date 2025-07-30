@@ -51,9 +51,10 @@ export default class SettingServices {
         try {
             const response = await api.patch(`/company-Setup/company-info/${id}/`, payload);
             return response.data;
-        } catch (e) {
+        } catch (e: any) {
             console.log(e);
-            throw e;
+            const msg = e?.response?.data?.website?.[0] || e.response.data?.email?.[0] || 'Error Updating Info';
+            throw new Error(msg);
         }
     }
     static async fetchDepartments(dispatch: any) {

@@ -12,7 +12,16 @@ export default class CompanySetupServices {
     }
     static async AddGroupPermission(payload: any) {
         try {
-            const response = await api.post(`/company-Setup/group-permissions/`, payload);
+            const response = await api.post(`/company-Setup/groups/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async DeleteGroupPermission(id: number) {
+        try {
+            const response = await api.delete(`/company-Setup/groups/${id}/`);
             return response.data;
         } catch (e) {
             console.log(e);

@@ -26,6 +26,7 @@ const CompanyInfoPopup = ({ isOpen, initialData, onClose, onSubmit }: Props) => 
 
     useEffect(() => {
         setFormData(initialData); // Update if props change
+        console.log('got it right bro');
     }, [initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,7 +37,6 @@ const CompanyInfoPopup = ({ isOpen, initialData, onClose, onSubmit }: Props) => 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(formData);
-        onClose();
     };
 
     return (
