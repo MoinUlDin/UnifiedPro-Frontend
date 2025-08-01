@@ -6,9 +6,10 @@ interface PropsType {
     isEditing: boolean;
     initialData: any;
     onClose: () => void;
+    onSuccess: (updater: (prev: number) => number) => void;
 }
 import toast, { Toaster } from 'react-hot-toast';
-function AddEditPermissionGroup({ isEditing, initialData, onClose }: PropsType) {
+function AddEditPermissionGroup({ isEditing, initialData, onClose, onSuccess }: PropsType) {
     const [groupName, setGroupName] = useState<string>('');
     const [color, setColor] = useState<string>('blue');
     const [isSystem, setIsSystem] = useState<boolean>(false);
@@ -47,7 +48,8 @@ function AddEditPermissionGroup({ isEditing, initialData, onClose }: PropsType) 
         CompanySetupServices.AddGroupPermission(payload)
             .then(() => {
                 toast.success('Group Added Successfully', { duration: 4000 });
-                onClose;
+                onSuccess((p: number) => p + 1);
+                onClose();
             })
             .catch((e) => {
                 toast.error(e.message || 'error Adding group');

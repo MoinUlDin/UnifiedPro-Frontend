@@ -39,7 +39,8 @@ import { FiActivity, FiEye } from 'react-icons/fi';
 import { FaFileAlt } from 'react-icons/fa';
 import CompanySetupServices from '../../../services/CompanySetupServices';
 import AddEditPermissionGroup from './AddEditPermissionGroup';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
+import ManageGroupMembersModal from './ManageGroupMembersModal';
 
 interface CorePermissionType {
     code: string;
@@ -103,7 +104,7 @@ const iconMap = {
 export default function StandalonePermissionsPage() {
     const [groups, setGroups] = useState<UserGroup[]>([]);
     const [corePermissions, setCorePermissions] = useState<CorePermissionType[]>([]);
-    const [groupPermissions, setGroupPermissions] = useState<GroupPermission[]>([]);
+    const [detailedList, setDetailedList] = useState<{ group_id: string; group_name: string; permissions: GroupPermission[] }[]>([]);
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -111,50 +112,69 @@ export default function StandalonePermissionsPage() {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [openPermissionGroupPopup, setOpenPermissionGroupPopup] = useState<boolean>(false);
     const [initialData, setInitialData] = useState<any>();
-    // 1) on mount: load all groups + all core perms
+    const [copyFromGroup, setCopyFromGroup] = useState<string | null>(null);
+    const [membersModalOpen, setMembersModalOpen] = useState(false);
+    const [fetchAgain, setFechAgain] = useState<number>(1);
+
     useEffect(() => {
+        console.log('fetching for number: ', fetchAgain);
         CompanySetupServices.FetchUserPermissionGroupList()
             .then((r) => {
                 setGroups(r);
-                if (r.length > 0) {
-                    setSelectedGroup(r[0].id); // ← select first group by default
-                }
+                if (r.length && !selectedGroup) setSelectedGroup(r[0].id);
             })
             .catch(console.error);
 
-        CompanySetupServices.FetchCorePermissions()
-            .then((r) => setCorePermissions(r))
-            .catch(console.error);
-    }, []);
+        CompanySetupServices.FetchCorePermissions().then(setCorePermissions).catch(console.error);
 
-    // 2) when selectedGroup changes, load that group’s flags
-    useEffect(() => {
-        if (!selectedGroup) return;
-        CompanySetupServices.FetchPermissionsInGroup(Number(selectedGroup))
-            .then((r) => setGroupPermissions(r))
+        CompanySetupServices.FetchDetailedGroupList()
+            .then((r) => {
+                setDetailedList(r);
+                if (r.length && !selectedGroup) setSelectedGroup(r[0].group_id);
+            })
             .catch(console.error);
-    }, [selectedGroup]);
+    }, [fetchAgain]);
 
-    // helpers
+    const groupPermissions = useMemo(() => {
+        if (!selectedGroup) return [];
+        const g = detailedList.find((x) => x.group_id === selectedGroup);
+        return g ? g.permissions : [];
+    }, [detailedList, selectedGroup]);
+
     const getGroupPermission = (code: string) => groupPermissions.find((p) => p.permissionName === code);
 
-    const categories = Array.from(new Set(corePermissions.map((p) => p.category)));
+    const categories = useMemo(() => Array.from(new Set(corePermissions.map((p) => p.category))), [corePermissions]);
 
-    const filteredCore = corePermissions.filter((p) => {
-        const text = (p.name + p.description).toLowerCase();
-        return text.includes(searchTerm.toLowerCase()) && (selectedCategory === 'all' || p.category === selectedCategory);
-    });
+    const filteredCore = useMemo(
+        () =>
+            corePermissions.filter((p) => {
+                const text = (p.name + p.description).toLowerCase();
+                return text.includes(searchTerm.toLowerCase()) && (selectedCategory === 'all' || p.category === selectedCategory);
+            }),
+        [corePermissions, searchTerm, selectedCategory]
+    );
 
-    const grouped = categories.reduce((acc, cat) => {
-        acc[cat] = filteredCore.filter((p) => p.category === cat);
-        return acc;
-    }, {} as Record<string, CorePermissionType[]>);
+    const grouped = useMemo(() => {
+        const obj: Record<string, CorePermissionType[]> = {};
+        categories.forEach((cat) => {
+            obj[cat] = filteredCore.filter((p) => p.category === cat);
+        });
+        return obj;
+    }, [categories, filteredCore]);
 
     const toggleFlag = (code: string, field: keyof GroupPermission, value: boolean) => {
-        setGroupPermissions((all) => all.map((gp) => (gp.permissionName === code ? { ...gp, [field]: value } : gp)));
+        setDetailedList((all) =>
+            all.map((g) =>
+                g.group_id !== selectedGroup
+                    ? g
+                    : {
+                          ...g,
+                          permissions: g.permissions.map((gp) => (gp.permissionName === code ? { ...gp, [field]: value } : gp)),
+                      }
+            )
+        );
     };
 
-    // one‐shot save of all flags
     const handleSave = () => {
         if (!selectedGroup) return;
         CompanySetupServices.BulkUpdatePermissions({
@@ -167,27 +187,35 @@ export default function StandalonePermissionsPage() {
                 canDelete: gp.canDelete,
             })),
         })
-            .then((r) => {
-                return r;
+            .then((updated) => {
+                setDetailedList((all) => all.map((g) => (g.group_id === selectedGroup ? { ...g, permissions: updated } : g)));
+                toast.success('Permissions updated Successfully', { duration: 4000 });
             })
-            .then(setGroupPermissions)
-            .catch(console.error);
+            .catch((e) => {
+                toast.error(e.message || 'error Updating permissions');
+            });
+    };
+    // Copy permissions handler:
+    const handleCopyPermissions = () => {
+        if (!selectedGroup || !copyFromGroup) return;
+        // find source perms
+        const src = detailedList.find((g) => g.group_id === copyFromGroup);
+        if (!src) return;
+        setDetailedList((all) => all.map((g) => (g.group_id === selectedGroup ? { ...g, permissions: src.permissions.map((p) => ({ ...p })) } : g)));
+        // reset choice
+        setCopyFromGroup(null);
     };
 
     const stats = useMemo(() => {
         const total = corePermissions.length;
-        const grantedPermissions = groupPermissions.filter((gp) => gp.canCreate || gp.canRead || gp.canUpdate || gp.canDelete);
-
-        const granted = grantedPermissions.length;
+        const granted = groupPermissions.filter((gp) => gp.canCreate || gp.canRead || gp.canUpdate || gp.canDelete).length;
         const fullAccess = groupPermissions.filter((gp) => gp.canCreate && gp.canRead && gp.canUpdate && gp.canDelete).length;
         const readOnly = groupPermissions.filter((gp) => !gp.canCreate && gp.canRead && !gp.canUpdate && !gp.canDelete).length;
-        const coverage = total > 0 ? Math.round((granted / total) * 100) : 0;
+        const coverage = total ? Math.round((granted / total) * 100) : 0;
         return { total, granted, fullAccess, readOnly, coverage };
     }, [corePermissions, groupPermissions]);
 
-    const handleClosePopup = () => {
-        setOpenPermissionGroupPopup(false);
-    };
+    const handleClosePopup = () => setOpenPermissionGroupPopup(false);
     const handleOpenForNew = () => {
         setInitialData(null);
         setOpenPermissionGroupPopup(true);
@@ -196,16 +224,18 @@ export default function StandalonePermissionsPage() {
     const handleDelete = () => {
         if (!selectedGroup) return;
         const id = Number(selectedGroup);
-        window.confirm(`are you sure you want to delete Group # ${id}`);
+        if (!window.confirm(`Are you sure you want to delete Group #${id}?`)) return;
         CompanySetupServices.DeleteGroupPermission(id)
-            .then(() => {
-                console.log('we are good to go');
-                toast.success(`Group with ID: ${id} Deleted`, { duration: 4000 });
-            })
-            .catch((e) => {
-                toast.error(`Error Deleting Group with ID: ${id}`, { duration: 4000 });
-            });
+            .then(() => toast.success(`Group ${id} deleted`))
+            .catch(() => toast.error(`Error deleting group ${id}`));
     };
+    const detailedMap = useMemo(() => {
+        const m: Record<string, GroupPermission[]> = {};
+        detailedList.forEach((g) => {
+            m[g.group_id] = g.permissions;
+        });
+        return m;
+    }, [detailedList]);
     return (
         <Container size="xl" className="py-6">
             <Stack spacing="xl">
@@ -222,6 +252,9 @@ export default function StandalonePermissionsPage() {
                         <button onClick={handleOpenForNew} className="btn btn-sm btn-primary">
                             Add Group
                         </button>
+                        <Button variant="outline" color="blue" onClick={() => setMembersModalOpen(true)} leftIcon={<BiGroup />}>
+                            Manage Members
+                        </Button>
 
                         {selectedGroup && (
                             <button onClick={handleSave} className="btn btn-sm btn-success">
@@ -243,7 +276,6 @@ export default function StandalonePermissionsPage() {
                     />
                 </Group>
 
-                {/* Bulk Actions Panel */}
                 {showBulkActions && (
                     <Paper p="md" withBorder style={{ borderStyle: 'dashed' }}>
                         <Title order={4} mb="md">
@@ -253,11 +285,38 @@ export default function StandalonePermissionsPage() {
                             </Group>
                         </Title>
                         <Group>
-                            <Select placeholder="Copy from group" data={groups.map((g) => ({ value: g.id, label: g.name }))} style={{ minWidth: 200 }} />
-                            <Button variant="light" leftIcon={<BiCopy />}>
+                            <Select
+                                placeholder="Copy from group"
+                                value={copyFromGroup}
+                                onChange={(v) => setCopyFromGroup(v)}
+                                data={groups.map((g) => ({ value: g.id, label: g.name }))}
+                                style={{ minWidth: 200 }}
+                            />
+                            <Button
+                                variant="light"
+                                leftIcon={<BiCopy />}
+                                onClick={() => {
+                                    if (!copyFromGroup || !selectedGroup) return;
+                                    // find the source group's permissions
+                                    const src = detailedList.find((g) => g.group_id === copyFromGroup);
+                                    if (!src) return;
+                                    // overwrite the target group's permissions in-memory
+                                    setDetailedList((all) => all.map((g) => (g.group_id !== selectedGroup ? g : { ...g, permissions: src.permissions.map((p) => ({ ...p })) })));
+                                    setShowBulkActions((p) => !p);
+                                }}
+                            >
                                 Copy Permissions
                             </Button>
-                            <Button variant="light" leftIcon={<BiRefresh />}>
+                            <Button
+                                variant="light"
+                                leftIcon={<BiRefresh />}
+                                onClick={() => {
+                                    // reset the selected group's permissions back to whatever was fetched originally
+                                    const original = detailedList.find((g) => g.group_id === selectedGroup);
+                                    if (!original) return;
+                                    setDetailedList((all) => all.map((g) => (g.group_id !== selectedGroup ? g : { ...g, permissions: original.permissions.map((p) => ({ ...p })) })));
+                                }}
+                            >
                                 Reset All
                             </Button>
                         </Group>
@@ -391,54 +450,57 @@ export default function StandalonePermissionsPage() {
                                         </Card>
                                     )}
                                     {/* permission Grid with */}
-                                    {Object.entries(grouped).map(([category, perms]) => (
-                                        <Card key={category} withBorder>
-                                            <Card.Section p="md" withBorder>
-                                                <Text weight={500} size="lg">
-                                                    {category}
-                                                </Text>
-                                            </Card.Section>
-                                            <Card.Section p="md">
-                                                <Stack spacing="sm">
-                                                    {perms.map((perm) => {
-                                                        const gp = getGroupPermission(perm.code);
-                                                        const Icon = iconMap[perm.icon as keyof typeof iconMap];
-                                                        return (
-                                                            <Paper key={perm.code} p="md" withBorder>
-                                                                <Group position="apart">
-                                                                    <Group spacing="sm">
-                                                                        {Icon && <Icon size={20} />}
-                                                                        <div>
-                                                                            <Group spacing="xs" mb={4}>
-                                                                                {/* {perm.name} */}
-                                                                                <span className="font-semibold">{perm.name}</span>
+                                    {Object.entries(grouped).map(([category, perms]) => {
+                                        if (perms.length === 0) return null;
+                                        return (
+                                            <Card key={category} withBorder>
+                                                <Card.Section p="md" withBorder>
+                                                    <Text weight={500} size="lg">
+                                                        {category}
+                                                    </Text>
+                                                </Card.Section>
+                                                <Card.Section p="md">
+                                                    <Stack spacing="sm">
+                                                        {perms.map((perm) => {
+                                                            const gp = getGroupPermission(perm.code);
+                                                            const Icon = iconMap[perm.icon as keyof typeof iconMap];
+                                                            return (
+                                                                <Paper key={perm.code} p="md" withBorder>
+                                                                    <Group position="apart">
+                                                                        <Group spacing="sm">
+                                                                            {Icon && <Icon size={20} />}
+                                                                            <div>
+                                                                                <Group spacing="xs" mb={4}>
+                                                                                    {/* {perm.name} */}
+                                                                                    <span className="font-semibold">{perm.name}</span>
 
-                                                                                <Badge size="xs" variant="light">
-                                                                                    {perm.riskLevel}
-                                                                                </Badge>
-                                                                            </Group>
-                                                                            <Text size="sm" color="dimmed">
-                                                                                {perm.description}
-                                                                            </Text>
-                                                                        </div>
-                                                                    </Group>
+                                                                                    <Badge size="xs" variant="light">
+                                                                                        {perm.riskLevel}
+                                                                                    </Badge>
+                                                                                </Group>
+                                                                                <Text size="sm" color="dimmed">
+                                                                                    {perm.description}
+                                                                                </Text>
+                                                                            </div>
+                                                                        </Group>
 
-                                                                    <Group spacing="lg">
-                                                                        {(['canCreate', 'canRead', 'canUpdate', 'canDelete'] as const).map((f) => (
-                                                                            <Group className="flex flex-col gap-1 items-center" spacing="xs" key={f}>
-                                                                                <span className="text-[10px] sm:text-[12px]">{f.replace('can', '')}</span>
-                                                                                <Switch checked={Boolean(gp?.[f])} onChange={(e) => toggleFlag(perm.code, f, e.currentTarget.checked)} />
-                                                                            </Group>
-                                                                        ))}
+                                                                        <Group spacing="lg">
+                                                                            {(['canCreate', 'canRead', 'canUpdate', 'canDelete'] as const).map((f) => (
+                                                                                <Group className="flex flex-col gap-1 items-center" spacing="xs" key={f}>
+                                                                                    <span className="text-[10px] sm:text-[12px]">{f.replace('can', '')}</span>
+                                                                                    <Switch checked={Boolean(gp?.[f])} onChange={(e) => toggleFlag(perm.code, f, e.currentTarget.checked)} />
+                                                                                </Group>
+                                                                            ))}
+                                                                        </Group>
                                                                     </Group>
-                                                                </Group>
-                                                            </Paper>
-                                                        );
-                                                    })}
-                                                </Stack>
-                                            </Card.Section>
-                                        </Card>
-                                    ))}
+                                                                </Paper>
+                                                            );
+                                                        })}
+                                                    </Stack>
+                                                </Card.Section>
+                                            </Card>
+                                        );
+                                    })}
                                 </Stack>
                             </Grid.Col>
                         </Grid>
@@ -456,30 +518,46 @@ export default function StandalonePermissionsPage() {
                                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                         <thead>
                                             <tr>
-                                                <th>Permission</th>
-                                                <th>Category</th>
-                                                <th>Risk</th>
+                                                <th style={{ padding: 12, textAlign: 'left' }}>Permission</th>
+                                                <th style={{ padding: 12, textAlign: 'left' }}>Category</th>
+                                                <th style={{ padding: 12, textAlign: 'left' }}>Risk</th>
                                                 {groups.map((g) => (
-                                                    <th key={g.id}>{g.name}</th>
+                                                    <th key={g.id} style={{ padding: 12, textAlign: 'center' }}>
+                                                        {g.name}
+                                                    </th>
                                                 ))}
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {filteredCore.map((perm) => {
-                                                const gp = getGroupPermission(perm.code);
-                                                const any = gp?.canCreate || gp?.canRead || gp?.canUpdate || gp?.canDelete;
-                                                const full = gp?.canCreate && gp?.canRead && gp?.canUpdate && gp?.canDelete;
-                                                return (
-                                                    <tr key={perm.code}>
-                                                        <td>{perm.name}</td>
-                                                        <td>{perm.category}</td>
-                                                        <td>{perm.riskLevel}</td>
-                                                        {groups.map((g) => (
-                                                            <td key={g.id}>{full ? <BiCheck /> : any ? <Badge>Partial</Badge> : <BiX />}</td>
-                                                        ))}
-                                                    </tr>
-                                                );
-                                            })}
+                                            {filteredCore.map((perm) => (
+                                                <tr key={perm.code} style={{ borderBottom: '1px solid #dee2e6' }}>
+                                                    <td style={{ padding: 12 }}>{perm.name}</td>
+                                                    <td style={{ padding: 12 }}>{perm.category}</td>
+                                                    <td style={{ padding: 12 }}>{perm.riskLevel}</td>
+
+                                                    {groups.map((g) => {
+                                                        const gpList = detailedMap[g.id] || [];
+                                                        const gp = gpList.find((x) => x.permissionName === perm.code);
+                                                        const any = !!gp && (gp.canCreate || gp.canRead || gp.canUpdate || gp.canDelete);
+                                                        const full = !!gp && gp.canCreate && gp.canRead && gp.canUpdate && gp.canDelete;
+                                                        return (
+                                                            <td key={g.id} className="" style={{ padding: 12, textAlign: 'center' }}>
+                                                                <span className="flex items-center justify-center">
+                                                                    {full ? (
+                                                                        <BiCheck className="text-green-700 font-extrabold text-xl" />
+                                                                    ) : any ? (
+                                                                        <Badge size="xs" variant="light">
+                                                                            Partial
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <BiX className="text-red-600 font-extrabold text-xl" />
+                                                                    )}
+                                                                </span>
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </table>
                                 </div>
@@ -488,7 +566,10 @@ export default function StandalonePermissionsPage() {
                     </Tabs.Panel>
                 </Tabs>
             </Stack>
-            {openPermissionGroupPopup && <AddEditPermissionGroup isEditing={isEditing} initialData={initialData} onClose={handleClosePopup} />}
+
+            <Toaster position="top-right" reverseOrder={false} />
+            {membersModalOpen && <ManageGroupMembersModal onSuccess={setFechAgain} opened={membersModalOpen} onClose={() => setMembersModalOpen(false)} initialGroupId={selectedGroup} />}
+            {openPermissionGroupPopup && <AddEditPermissionGroup onSuccess={setFechAgain} isEditing={isEditing} initialData={initialData} onClose={handleClosePopup} />}
         </Container>
     );
 }

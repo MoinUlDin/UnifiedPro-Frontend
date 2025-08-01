@@ -38,6 +38,16 @@ export default class CompanySetupServices {
             throw new Error(msg);
         }
     }
+    static async FetchMemberListInGroup(id: number) {
+        try {
+            const response = await api.get(`/company-Setup/groups/${id}/members/`);
+            return response.data;
+        } catch (e: any) {
+            console.log('Error Fetching member List: ', e);
+            const msg = e.response.data.weight || 'Error Fetching member List';
+            throw new Error(msg);
+        }
+    }
     static async FetchUserPermissionGroupList() {
         try {
             const response = await api.get(`/company-Setup/groups/`);
@@ -54,7 +64,17 @@ export default class CompanySetupServices {
             return response.data;
         } catch (e: any) {
             console.log(e);
-            const msg = e.response.data.weight || 'Error Updating Goal';
+            const msg = e.response.data.weight || 'Error Fetching Permissions in a group';
+            throw new Error(msg);
+        }
+    }
+    static async FetchDetailedGroupList() {
+        try {
+            const response = await api.get(`/company-Setup/groups/detailed-group-list/`);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.weight || 'Error Getting Detailed Group List';
             throw new Error(msg);
         }
     }
@@ -68,5 +88,19 @@ export default class CompanySetupServices {
             const msg = e.response.data.weight || 'Error Updating Goal';
             throw new Error(msg);
         }
+    }
+
+    static async FetchMemeberForPermisssion() {
+        try {
+            const res = await api.get(`/company-Setup/employees_for_permisions`);
+            return res.data;
+        } catch (e: any) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async UpdateGroupMembers(groupId: number, payload: { userIds: number[] }) {
+        const res = await api.patch(`/company-Setup/groups/${groupId}/members/`, payload);
+        return res.data;
     }
 }
