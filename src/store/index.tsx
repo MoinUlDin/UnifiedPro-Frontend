@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import themeConfigReducer from './themeConfigSlice'; // Adjust this path as needed
 import settingsReducer from './slices/settingSlice';
 import employeeReducer from './slices/employeeSlice';
+import companyReducer from './slices/companySlice';
 
 const store = configureStore({
     reducer: {
         themeConfig: themeConfigReducer,
         settings: settingsReducer,
         employee: employeeReducer,
+        company: companyReducer,
     },
 });
 

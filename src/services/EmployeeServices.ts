@@ -35,7 +35,10 @@ export default class EmployeeServices {
     }
     static async UpdateEmployee(id: number, payload: any) {
         try {
-            const response = await api.patch(`/auth/employees/${id}/`, payload);
+            console.log('sending payload: ', payload);
+            const response = await api.patch(`/auth/employees/${id}/`, payload, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             return response.data;
         } catch (e) {
             console.log(e);

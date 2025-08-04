@@ -32,6 +32,15 @@ const StatsGrid: React.FC<StatsGridProps> = ({ metrics, period }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatsCard
+                label="Total"
+                count={showMe?.total || 0}
+                total={showMe?.total}
+                icon={<IconCalendar className="w-6 h-6 text-blue-600 dark:text-blue-500" />}
+                bgColor="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg"
+                textColor="text-blue-600 dark:text-blue-500"
+                barColor="bg-blue-500"
+            />
+            <StatsCard
                 label="Pending"
                 count={showMe?.status_counts?.Pending || 0}
                 total={showMe?.total}
@@ -57,15 +66,6 @@ const StatsGrid: React.FC<StatsGridProps> = ({ metrics, period }) => {
                 bgColor="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg"
                 textColor="text-red-600 dark:text-red-500"
                 barColor="bg-red-500"
-            />
-            <StatsCard
-                label="Up Comping"
-                count={showMe?.status_counts?.Upcoming || 0}
-                total={showMe?.total}
-                icon={<IconCalendar className="w-6 h-6 text-blue-600 dark:text-blue-500" />}
-                bgColor="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg"
-                textColor="text-blue-600 dark:text-blue-500"
-                barColor="bg-blue-500"
             />
         </div>
     );

@@ -1,4 +1,5 @@
 import api from '../utils/api';
+import { setAnnouncements } from '../store/slices/companySlice';
 
 export default class CompanySetupServices {
     static async FetchGroupPermissions() {
@@ -100,7 +101,39 @@ export default class CompanySetupServices {
         }
     }
     static async UpdateGroupMembers(groupId: number, payload: { userIds: number[] }) {
-        const res = await api.patch(`/company-Setup/groups/${groupId}/members/`, payload);
-        return res.data;
+        try {
+            const res = await api.patch(`/company-Setup/groups/${groupId}/members/`, payload);
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Updating Group Member', e);
+        }
+    }
+    // Annoncements
+    static async FetchAnnouncements(dispatch: any) {
+        try {
+            const res = await api.get(`/company-Setup/announcement/`);
+            dispatch(setAnnouncements(res.data));
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Fetching Annoncements', e);
+        }
+    }
+    static async AddAnnouncements(payload: any) {
+        try {
+            const res = await api.post(`/company-Setup/announcement/`, payload, {
+                headers: { 'Content-Type': 'multipart/formdata' },
+            });
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Fetching Annoncements', e);
+        }
+    }
+    static async DeleteAnnouncements(id: number) {
+        try {
+            const res = await api.delete(`/company-Setup/announcement/${id}/`);
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Deleting Annoncements', e);
+        }
     }
 }

@@ -7,6 +7,7 @@ import Edit_Employee_Popup from './Edit_Employee_Popup';
 import EmployeeServices from '../../../services/EmployeeServices';
 import toast, { Toaster } from 'react-hot-toast';
 import { EmployeeType } from '../../../constantTypes/Types';
+import IconUser from '../../Icon/IconUser';
 import Swal from 'sweetalert2';
 
 const Edit_Employee = () => {
@@ -41,8 +42,17 @@ const Edit_Employee = () => {
             accessor: 'first_name',
             title: 'Name',
             render: (row: any) => (
-                <div>
-                    {row.first_name} {row.last_name}
+                <div className="flex items-cente gap-2">
+                    {row.profile_image ? (
+                        <img className="h-8 w-8 bg-cover rounded-full" src={row.profile_image} alt="" />
+                    ) : (
+                        <div className="border border-gray-300 dark:border-gray-800 rounded-full p-2 ltr:mr-2 rtl:ml-2">
+                            <IconUser className="w-4.5 h-4.5" />
+                        </div>
+                    )}
+                    <span>
+                        {row.first_name} {row.last_name}
+                    </span>
                 </div>
             ),
         },

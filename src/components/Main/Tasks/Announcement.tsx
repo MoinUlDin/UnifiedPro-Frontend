@@ -1,387 +1,180 @@
-import React, { useState } from 'react';
-import Swal from 'sweetalert2';
+// AnnouncementsPage.tsx
+import React, { useState, useEffect, useMemo } from 'react';
+import AnnouncementCard from './AnnouncementCard';
+import { FaBullhorn, FaCheck, FaCheckCircle, FaClock, FaExclamation, FaInfo, FaPlus, FaSearch } from 'react-icons/fa';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import CompanySetupServices from '../../../services/CompanySetupServices';
+import { useDispatch } from 'react-redux';
+import { announcementType } from '../../../constantTypes/CompanySetupTypes';
+import { useSelector } from 'react-redux';
 import Announcement_Popup from './Announcement_Popup';
-import axios from 'axios';
-type Customer = {
-    
-    id: number;
-    department: string;
-    title: string;
-    description: string;
-    priority: string;
-    date:string;
-};
+import toast, { Toaster } from 'react-hot-toast';
 
-const initialCustomers: Customer[] = [
-    
-    {
-        id: 3, department: 'Software', title: 'Creative', description: 'Married', priority: 'None',
-        date: ''
-    },
-    {
-        id: 4, department: 'Sales Marketing', title: 'Creative', description: 'Single', priority: 'None',
-        date: ''
-    },
-   
-];
+export default function AnnouncementsPage() {
+    const announcementsList: announcementType[] = useSelector((s: any) => s.company.announcements);
+    const [search, setSearch] = useState('');
+    const [deptFilter, setDeptFilter] = useState('All Departments');
+    const [prioFilter, setPrioFilter] = useState('All Priorities');
+    const [activeOnly, setActiveOnly] = useState(false);
+    const [openAnnouncementPopup, setOpenAnnouncementPopup] = useState<boolean>(false);
+    const [refresh, setRefresh] = useState<boolean>(false);
 
-const Announcement: React.FC = () => {
-    const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-    const [search, setSearch] = useState<string>('');
-    const [showPopup, setShowPopup] = useState<boolean>(false);
-    const [editing, setEditing] = useState<boolean>(false);
-    const [editIndex, setEditIndex] = useState<number | null>(null);
-    const [actionMenuIndex, setActionMenuIndex] = useState<number | null>(null);
-    const [annoucementModel, setAnnoucementModel] = useState(false);
-
-    const announcementPopup = () => {
-    
-        setShowPopup(true); 
-    };
-    const closePopup = () => {
-        setShowPopup(false); // Close the popup
-    };
-    const initialCustomer = {
-        id: customers.length + 1,
-        department: '',
-        title: '',
-        description: '',
-        priority: '',
-        date:'',
-        is_active: true,
-        files: [
-            {
-                id: 0,  // Assuming this will be set by the backend
-                files: null  // Should be a valid file path or URL
-            }
-        ],
-        uploaded_files: [""] // This should contain actual file paths or URLs
-    
-    };
-
-    const [newCustomer, setNewCustomer] = useState<Customer>(initialCustomer);
-
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value);
-    };
-
-    const handleAddCustomer = () => {
-        setNewCustomer(initialCustomer);
-        setShowPopup(true);
-        setEditing(false);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            if (editing && editIndex !== null) {
-               ;
-                const updatedCustomers = [...customers];
-                updatedCustomers[editIndex] = newCustomer;
-                setCustomers(updatedCustomers);
-                
-            } else {
-                console.log("📡 Sending request...", newCustomer);
-
-                const response = await axios.post(
-                    'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/announcement/', 
-                    {
-                        "id": 0,
-                        "title": "string",
-                        "department": 0,
-                        "priority": "High",
-                        "description": "string",
-                        "date": "2025-03-25T05:58:16.109Z",
-                        "is_active": true,
-                        "files": [
-                          {
-                            "id": 0,
-                            "files": "https://example.com/path-to-file.pdf"
-                          }
-                        ],
-                        "uploaded_files": [
-                          "https://example.com/path-to-file.pdf"
-                        ]
-                      },
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${localStorage.getItem('token')}`,
-                        },
-                    }
-                );
-    
-                console.log("✅ Response received:", response.data)
-                setCustomers([...customers, { ...newCustomer, id: customers.length + 1 }]);
-            }
-            setShowPopup(false);
-
-            // SweetAlert2 Success Message
-            await Swal.fire({
-                title: 'Success!',
-                text: editing ? 'Announcement updated successfully!' : 'New announcement added successfully!',
-                icon: 'success',
-                confirmButtonText: 'Ok',
+    const dispatch = useDispatch();
+    // simulate fetch
+    useEffect(() => {
+        CompanySetupServices.FetchAnnouncements(dispatch)
+            .then((r) => {})
+            .catch((e) => {
+                console.log(e);
             });
-        } catch (error) {
-            // SweetAlert2 Error Message
-            await Swal.fire({
-                title: 'Error!',
-                text: 'Something went wrong. Please try again.',
-                icon: 'error',
-                confirmButtonText: 'Try Again',
-            });
-        }
-    };
+    }, [refresh]);
+    useEffect(() => {
+        if (!announcementsList) return;
+        console.log('announcements List: ', announcementsList);
+    }, [announcementsList]);
 
-    const handleActionMenu = (index: number) => {
-        setActionMenuIndex(actionMenuIndex === index ? null : index);
-    };
+    const departments = useMemo(() => Array.from(new Set(announcementsList?.map((a) => a.department))), [announcementsList]);
+    const priorities = useMemo(() => Array.from(new Set(announcementsList?.map((a) => a.priority))), [announcementsList]);
 
-    const handleEdit = (index: number) => {
-        setNewCustomer(customers[index]);
-        setEditIndex(index);
-        setEditing(true);
-        setShowPopup(true);
-        setActionMenuIndex(null);
-    };
-
-    const handleDelete = (index: number) => {
-        // SweetAlert2 confirmation before delete
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'Do you really want to delete this announcement?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'No, cancel!',
-            reverseButtons: true,
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    // Delete the customer
-                    const updatedCustomers = customers.filter((_, i) => i !== index);
-                    setCustomers(updatedCustomers);
-
-                    // Success alert
-                    await Swal.fire({
-                        title: 'Deleted!',
-                        text: 'Announcement has been deleted.',
-                        icon: 'success',
-                        confirmButtonText: 'Ok',
-                    });
-                } catch (error) {
-                    // Error alert
-                    await Swal.fire({
-                        title: 'Error!',
-                        text: 'Could not delete the announcement. Please try again.',
-                        icon: 'error',
-                        confirmButtonText: 'Try Again',
-                    });
-                }
-            }
+    const filtered = useMemo(() => {
+        return announcementsList?.filter((a) => {
+            if (activeOnly && !a.is_active) return false;
+            if (deptFilter !== 'All Departments' && a.department !== deptFilter) return false;
+            if (prioFilter !== 'All Priorities' && a.priority !== prioFilter) return false;
+            if (search && !a.title.toLowerCase().includes(search.toLowerCase())) return false;
+            return true;
         });
+    }, [announcementsList, search, deptFilter, prioFilter, activeOnly]);
+
+    const stats = useMemo(() => {
+        if (!announcementsList) return;
+        const total = announcementsList?.length;
+        const active = announcementsList?.filter((a) => a.is_active).length;
+        const high = announcementsList.filter((a) => a.priority === 'High').length;
+        const week = announcementsList.filter((a) => {
+            const d = new Date(a.date);
+            const now = new Date();
+            return (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24) <= 7;
+        }).length;
+        return { total, active, high, week };
+    }, [announcementsList]);
+
+    const onSuccess = () => {
+        toast.success('Sucessfull');
+        setRefresh((p) => !p);
     };
-
-    const filteredCustomers = customers.filter((customer) => customer.department.toLowerCase().includes(search.toLowerCase()));
-
     return (
-        <div className="w-full bg-white p-4">
-            <h1 className="text-left my-4 text-xl font-semibold">Announcement List</h1>
-            <div className="flex justify-between items-center mb-3">
-                <input
-                    type="text"
-                    placeholder={`Deparment: ${filteredCustomers.length} records`}
-                    className="form-control w-1/4 p-2 border"
-                    value={search}
-                    onChange={handleSearch}
-                />
-                <button className="btn btn-primary" onClick={announcementPopup}>
-                    Create Announcement
+        <div className="max-w-6xl mx-auto py-8 px-4">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold">Company Announcements</h1>
+                    <p className="text-gray-600">Manage and view company-wide announcements and department updates</p>
+                </div>
+                <button className="flex items-center btn btn-primary px-3 btn-sm ">
+                    <span>+ New Announcement</span>
                 </button>
             </div>
 
-            <div className="overflow-auto">
-                <table className="table-auto border-collapse w-full text-center">
-                    <thead>
-                        <tr>
-                            <th className="">Department</th>
-                            <th>Title </th>
-                            <th>description</th>
-                            <th>Priority</th>
-                            <th>Action</th>
-                             
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredCustomers.map((customer, index) => (
-                            <tr key={customer.id}>
-                                <td>{customer.department}</td>
-                                <td>{customer.title}</td>
-                                <td>{customer.description}</td>
-                                <td>{customer.priority}</td>
-                                
-                                <td className="text-center">
-                                    <button
-                                        onClick={() => handleActionMenu(index)}
-                                        className="btn btn-outline-secondary"
-                                    >
-                                        <i className="bi bi-three-dots-vertical" />
-                                    </button>
-                                    {actionMenuIndex === index && (
-                                        <div className="absolute bg-white border shadow z-10">
-                                            <ul className="list-group">
-                                                <li
-                                                    className="list-group-item cursor-pointer"
-                                                    onClick={() => handleEdit(index)}
-                                                >
-                                                    Edit
-                                                </li>
-                                                <li
-                                                    className="list-group-item cursor-pointer"
-                                                    onClick={() => handleDelete(index)}
-                                                >
-                                                    Delete
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {/* Toolbar */}
+            <div className="flex  items-center gap-4 mb-6">
+                <div className="relative flex-grow min-w-[50%]">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <input
+                        type="text"
+                        className="w-full pl-10 py-2 pr-3 border rounded flex-grow focus:outline-blue-500"
+                        placeholder="Search announcements..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+
+                <select className="form-select" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
+                    <option>All Departments</option>
+                    {departments.map((d) => (
+                        <option key={d}>{d}</option>
+                    ))}
+                </select>
+
+                <select className="form-select" value={prioFilter} onChange={(e) => setPrioFilter(e.target.value)}>
+                    <option>All Priorities</option>
+                    {priorities.map((p) => (
+                        <option key={p}>{p}</option>
+                    ))}
+                </select>
+
+                <div className="form-check form-switch ml-auto">
+                    <input className="form-check-input" type="checkbox" id="activeOnly" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
+                    <label className="form-check-label whitespace-nowrap" htmlFor="activeOnly">
+                        Active only
+                    </label>
+                </div>
             </div>
 
-            {showPopup && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white rounded-lg w-full max-w-4xl">
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <h5 className="text-lg font-semibold">{editing ? 'Edit Announcement' : 'Add New Announcement'}</h5>
-                            <button
-                                type="button"
-                                className="btn-close"
-                                onClick={() => setShowPopup(false)}
-                            ></button>
-                        </div>
-                        <form onSubmit={handleSubmit}>
-                            <div className="p-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="form-group">
-                                        <label htmlFor="department" className="form-label">
-                                            Department
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="department"
-                                            value={newCustomer.department}
-                                            onChange={(e) =>
-                                                setNewCustomer({
-                                                    ...newCustomer,
-                                                    department: e.target.value,
-                                                })
-                                            }
-                                            className="form-control"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="title" className="form-label">
-                                            Title
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="title"
-                                            value={newCustomer.title}
-                                            onChange={(e) =>
-                                                setNewCustomer({
-                                                    ...newCustomer,
-                                                    title: e.target.value,
-                                                })
-                                            }
-                                            className="form-control"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="description" className="form-label">
-                                            description
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="description"
-                                            value={newCustomer.description}
-                                            onChange={(e) =>
-                                                setNewCustomer({
-                                                    ...newCustomer,
-                                                    description: e.target.value,
-                                                })
-                                            }
-                                            className="form-control"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="priority" className="form-label">
-                                            Priority
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="priority"
-                                            value={newCustomer.priority}
-                                            onChange={(e) =>
-                                                setNewCustomer({
-                                                    ...newCustomer,
-                                                    priority: e.target.value,
-                                                })
-                                            }
-                                            className="form-control"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="date" className="form-label">
-                                            Date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            id="date"
-                                            value={newCustomer.date}
-                                            onChange={(e) =>
-                                                setNewCustomer({
-                                                    ...newCustomer,
-                                                   date: e.target.value,
-                                                })
-                                            }
-                                            className="form-control"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-end space-x-4 mt-4">
-                                    <button
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        onClick={() => setShowPopup(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn btn-primary">
-                                        {editing ? 'Update' : 'Add'}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white p-4 rounded-lg shadow flex items-center">
+                    <div className="text-blue-500 text-2xl mr-4">
+                        <FaBullhorn />
+                    </div>
+                    <div>
+                        <div className="text-xl font-semibold">{stats?.total}</div>
+                        <div className="text-gray-500">Total Announcements</div>
                     </div>
                 </div>
-            )}
-           
+                <div className="bg-white p-4 rounded-lg shadow flex items-center">
+                    <div className="text-green-500 text-2xl mr-4">
+                        <FaCheckCircle />
+                    </div>
+                    <div>
+                        <div className="text-xl font-semibold">{stats?.active}</div>
+                        <div className="text-gray-500">Active</div>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow flex items-center">
+                    <div className="text-red-500 text-2xl mr-4">
+                        <FaExclamation />
+                    </div>
+                    <div>
+                        <div className="text-xl font-semibold">{stats?.high}</div>
+                        <div className="text-gray-500">High Priority</div>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow flex items-center">
+                    <div className="text-yellow-500 text-2xl mr-4">
+                        <FaClock />
+                    </div>
+                    <div>
+                        <div className="text-xl font-semibold">{stats?.week}</div>
+                        <div className="text-gray-500">This Week</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* List */}
+            <div className="space-y-6">
+                {filtered?.map((a) => (
+                    <AnnouncementCard
+                        key={a.id}
+                        id={a.id}
+                        company={a.company}
+                        is_active={a.is_active}
+                        title={a.title}
+                        priority={a.priority}
+                        date={a.date}
+                        department={a.department}
+                        total_reads={a.total_reads}
+                        total_targets={a.total_targets}
+                        target_info={a.target_info}
+                        description={a.description}
+                        progress={a.progress}
+                        attachments={a.attachments}
+                        created_by={a.created_by}
+                    />
+                ))}
+            </div>
+            <Toaster position="top-right" reverseOrder={false} />
+            <Announcement_Popup onSuccess={onSuccess} />
         </div>
     );
-};
-
-export default Announcement;
+}

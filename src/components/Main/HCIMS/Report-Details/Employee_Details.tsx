@@ -15,10 +15,12 @@ import IconTwitter from '../../../Icon/IconTwitter';
 import IconX from '../../../Icon/IconX';
 import EmployeeServices from '../../../../services/EmployeeServices';
 import { useSelector } from 'react-redux';
+import toast, { Toaster } from 'react-hot-toast';
 
 const Employee_Details = () => {
     const EmployeesList = useSelector((s: any) => s.employee.employeesList);
     const dispatch = useDispatch();
+    const [refresh, setRefresh] = useState<boolean>(false);
 
     useEffect(() => {
         dispatch(setPageTitle('Contacts'));
@@ -29,7 +31,8 @@ const Employee_Details = () => {
                 console.log('Employees: ', r);
             })
             .catch(console.error);
-    }, []);
+    }, [refresh]);
+
     const [addContactModal, setAddContactModal] = useState<any>(false);
 
     const [value, setValue] = useState<any>('list');
@@ -98,6 +101,9 @@ const Employee_Details = () => {
             EmployeeServices.UpdateEmployee(params.id, payload)
                 .then((r) => {
                     console.log('Updated ', r);
+                    showMessage('User has been saved successfully.');
+                    setAddContactModal(false);
+                    setRefresh((p) => !p);
                 })
                 .catch((e) => {
                     console.log(e);
@@ -107,14 +113,14 @@ const Employee_Details = () => {
             EmployeeServices.AddEmployee(payload)
                 .then((r) => {
                     console.log('added ', r);
+                    showMessage('User has been saved successfully.');
+                    setAddContactModal(false);
+                    setRefresh((p) => !p);
                 })
                 .catch((e) => {
                     console.log(e);
                 });
         }
-
-        showMessage('User has been saved successfully.');
-        setAddContactModal(false);
     };
 
     const editUser = (user: any = null) => {
@@ -203,15 +209,15 @@ const Employee_Details = () => {
                                             <tr key={contact.id}>
                                                 <td>
                                                     <div className="flex items-center w-max">
-                                                        {contact.path && (
+                                                        {contact.profile_image && (
                                                             <div className="w-max">
                                                                 <img src={`${contact.profile_image}`} className="h-8 w-8 rounded-full object-cover ltr:mr-2 rtl:ml-2" alt="avatar" />
                                                             </div>
                                                         )}
-                                                        {!contact.path && contact.name && (
+                                                        {!contact.profile_image && contact.name && (
                                                             <div className="grid place-content-center h-8 w-8 ltr:mr-2 rtl:ml-2 rounded-full bg-primary text-white text-sm font-semibold"></div>
                                                         )}
-                                                        {!contact.path && !contact.name && (
+                                                        {!contact.profile_image && !contact.name && (
                                                             <div className="border border-gray-300 dark:border-gray-800 rounded-full p-2 ltr:mr-2 rtl:ml-2">
                                                                 <IconUser className="w-4.5 h-4.5" />
                                                             </div>
@@ -257,7 +263,7 @@ const Employee_Details = () => {
                                                 height: '100%',
                                             }}
                                         >
-                                            <img className="object-contain w-4/5 max-h-40 mx-auto" src={`/assets/images/${contact.path}`} alt="contact_image" />
+                                            <img className="object-contain w-4/5 max-h-40 mx-auto" src={contact.profile_image} alt="contact_image" />
                                         </div>
                                         <div className="px-6 pb-24 -mt-10 relative">
                                             <div className="shadow-md bg-white dark:bg-gray-900 rounded-md px-2 py-4">

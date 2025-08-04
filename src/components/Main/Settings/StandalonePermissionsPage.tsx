@@ -115,6 +115,7 @@ export default function StandalonePermissionsPage() {
     const [copyFromGroup, setCopyFromGroup] = useState<string | null>(null);
     const [membersModalOpen, setMembersModalOpen] = useState(false);
     const [fetchAgain, setFechAgain] = useState<number>(1);
+    const [showTick, setShowTick] = useState<boolean>(false);
 
     useEffect(() => {
         console.log('fetching for number: ', fetchAgain);
@@ -190,6 +191,10 @@ export default function StandalonePermissionsPage() {
             .then((updated) => {
                 setDetailedList((all) => all.map((g) => (g.group_id === selectedGroup ? { ...g, permissions: updated } : g)));
                 toast.success('Permissions updated Successfully', { duration: 4000 });
+                setShowTick(true);
+                setTimeout(() => {
+                    setShowTick(false);
+                }, 4000);
             })
             .catch((e) => {
                 toast.error(e.message || 'error Updating permissions');
@@ -204,6 +209,7 @@ export default function StandalonePermissionsPage() {
         setDetailedList((all) => all.map((g) => (g.group_id === selectedGroup ? { ...g, permissions: src.permissions.map((p) => ({ ...p })) } : g)));
         // reset choice
         setCopyFromGroup(null);
+        setShowBulkActions((p) => !p);
     };
 
     const stats = useMemo(() => {
@@ -246,7 +252,7 @@ export default function StandalonePermissionsPage() {
                         <Text color="dimmed">Manage user group permissions and access control across the system</Text>
                     </div>
                     <Group>
-                        <Button variant="light" leftIcon={<BiFilter />} onClick={() => setShowBulkActions((v) => !v)}>
+                        <Button variant="outline" leftIcon={<BiFilter />} onClick={() => setShowBulkActions((v) => !v)}>
                             Bulk Actions
                         </Button>
                         <button onClick={handleOpenForNew} className="btn btn-sm btn-primary">
@@ -257,25 +263,15 @@ export default function StandalonePermissionsPage() {
                         </Button>
 
                         {selectedGroup && (
-                            <button onClick={handleSave} className="btn btn-sm btn-success">
-                                Save Permissions
+                            <button onClick={handleSave} className="relative btn btn-sm btn-success">
+                                <span>Save Permissions</span>
+                                {showTick && <i className="animate-bounce bi bi-check absolute -top-5 -right-2 font-bold text-3xl text-black" />}
                             </button>
                         )}
                     </Group>
                 </Group>
 
                 {/* Search + Filter */}
-                <Group>
-                    <TextInput placeholder="Search permissions..." value={searchTerm} onChange={(e) => setSearchTerm(e.currentTarget.value)} icon={<BiSearch />} style={{ flex: 1 }} />
-                    <Select
-                        placeholder="Filter by category"
-                        value={selectedCategory}
-                        onChange={(v) => setSelectedCategory(v || 'all')}
-                        data={[{ value: 'all', label: 'All Categories' }, ...categories.map((c) => ({ value: c, label: c }))]}
-                        style={{ minWidth: 200 }}
-                    />
-                </Group>
-
                 {showBulkActions && (
                     <Paper p="md" withBorder style={{ borderStyle: 'dashed' }}>
                         <Title order={4} mb="md">
@@ -292,19 +288,7 @@ export default function StandalonePermissionsPage() {
                                 data={groups.map((g) => ({ value: g.id, label: g.name }))}
                                 style={{ minWidth: 200 }}
                             />
-                            <Button
-                                variant="light"
-                                leftIcon={<BiCopy />}
-                                onClick={() => {
-                                    if (!copyFromGroup || !selectedGroup) return;
-                                    // find the source group's permissions
-                                    const src = detailedList.find((g) => g.group_id === copyFromGroup);
-                                    if (!src) return;
-                                    // overwrite the target group's permissions in-memory
-                                    setDetailedList((all) => all.map((g) => (g.group_id !== selectedGroup ? g : { ...g, permissions: src.permissions.map((p) => ({ ...p })) })));
-                                    setShowBulkActions((p) => !p);
-                                }}
-                            >
+                            <Button variant="light" leftIcon={<BiCopy />} onClick={handleCopyPermissions}>
                                 Copy Permissions
                             </Button>
                             <Button
@@ -322,6 +306,16 @@ export default function StandalonePermissionsPage() {
                         </Group>
                     </Paper>
                 )}
+                <Group>
+                    <TextInput placeholder="Search permissions..." value={searchTerm} onChange={(e) => setSearchTerm(e.currentTarget.value)} icon={<BiSearch />} style={{ flex: 1 }} />
+                    <Select
+                        placeholder="Filter by category"
+                        value={selectedCategory}
+                        onChange={(v) => setSelectedCategory(v || 'all')}
+                        data={[{ value: 'all', label: 'All Categories' }, ...categories.map((c) => ({ value: c, label: c }))]}
+                        style={{ minWidth: 200 }}
+                    />
+                </Group>
 
                 <Tabs defaultValue="groups">
                     <Tabs.List>

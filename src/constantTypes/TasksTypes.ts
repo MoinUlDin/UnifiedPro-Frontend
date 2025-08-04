@@ -47,6 +47,7 @@ export interface TaskType {
     assigned_to: string;
     frequency: TaskFrequencyType;
     instructions: string;
+    profile?: string;
     start_date: string | null; // ISO datetime or null
     due_date: string | null; // ISO datetime or null
     task_file: string | null; // URL or null

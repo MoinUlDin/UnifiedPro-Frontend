@@ -5,6 +5,7 @@ import EmployeeServices from '../../../services/EmployeeServices';
 import TaskServices from '../../../services/TaskServices';
 import { EmployeeType } from '../../../constantTypes/Types';
 import { TaskType } from '../../../constantTypes/TasksTypes';
+import { MultiSelect } from '@mantine/core';
 import toast from 'react-hot-toast';
 
 interface AssignFormProps {
@@ -32,7 +33,7 @@ const AssignTasksPopup: React.FC<AssignFormProps> = ({ initialData = { employee:
     const [employees, setEmployees] = useState<EmployeeType[]>([]);
     const [allTasks, setAllTasks] = useState<TaskType[]>([]);
     const [deptCoWorkers, setDeptCoWorkers] = useState<EmployeeType[]>([]);
-    const [deptTasks, setDeptTasks] = useState<{ id: number; task_name: string }[]>([]);
+    const [deptTasks, setDeptTasks] = useState<{ id: number; task_name: string; assigned_to: string }[]>([]);
 
     const selectedEmployee = watch('employee');
     const dispatch = useDispatch();
@@ -140,38 +141,46 @@ const AssignTasksPopup: React.FC<AssignFormProps> = ({ initialData = { employee:
                     <div>
                         <label className="block text-sm font-medium">Tasks to Assign</label>
                         <Controller
-                            control={control}
                             name="tasks"
+                            control={control}
                             rules={{ required: true }}
                             render={({ field }) => {
-                                const { value, onChange, onBlur, name, ref } = field;
+                                // field.value is number[]; map to string[] for Mantine
+                                const valueStrings = (field.value || []).map(String);
+
                                 return (
-                                    <select
-                                        name={name}
-                                        multiple
-                                        ref={ref as any}
-                                        value={(value as number[]).map((v) => String(v))} // number[] → string[]
-                                        onBlur={onBlur}
-                                        onChange={(e) => {
-                                            // string[] → number[]
-                                            const selectedNumbers = Array.from(e.target.selectedOptions).map((opt) => Number(opt.value));
-                                            onChange(selectedNumbers);
+                                    <MultiSelect
+                                        data={deptTasks.map((t) => ({
+                                            value: String(t.id),
+                                            label: t.task_name,
+                                            // pass assignedTo along so we can render it in itemComponent
+                                            assignedTo: t.assigned_to,
+                                        }))}
+                                        value={valueStrings}
+                                        onChange={(vals) => {
+                                            // Mantine gives you string[], turn into number[] and call RHF
+                                            field.onChange(vals.map(Number));
                                         }}
-                                        className="mt-1 block w-full form-multiselect h-32"
-                                    >
-                                        {deptTasks.map((t) => (
-                                            <option key={t.id} value={t.id}>
-                                                {t.task_name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        placeholder="Select tasks..."
+                                        nothingFound="No tasks found"
+                                        error={!!errors.tasks}
+                                        itemComponent={({ value, label, assignedTo, ...others }) => (
+                                            <div {...others} className="flex items-center gap-2 px-2 py-1 hover:cursor-pointer">
+                                                <span>{label}</span>
+                                                {assignedTo && <span className="bg-blue-400 text-white px-2 py-0.5 rounded text-xs">{assignedTo}</span>}
+                                                {!assignedTo && <span className="bg-gray-600 text-white px-2 py-0.5 rounded text-xs">UnAssigned</span>}
+                                            </div>
+                                        )}
+                                        // optional styling
+                                        styles={{
+                                            dropdown: { maxHeight: 300, overflowY: 'auto' },
+                                            item: { whiteSpace: 'nowrap' },
+                                        }}
+                                    />
                                 );
                             }}
                         />
-                        <div className={`flex items-center ${errors.tasks ? 'justify-between' : 'justify-end'}`}>
-                            {errors.tasks && <p className="text-red-500 text-sm">Please select at least one task</p>}
-                            {selectedEmployee && <h4 className="text-[12px] self-end text-end text-gray-800">Ctrl + Click to select multiple</h4>}
-                        </div>
+                        {errors.tasks && <p className="text-red-500 text-sm">Please select at least one task</p>}
                     </div>
 
                     {/* Actions */}

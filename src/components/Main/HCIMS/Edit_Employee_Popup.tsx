@@ -22,6 +22,7 @@ interface Department {
 }
 interface InitialDatatype {
     id: number;
+    email?: string;
     first_name: string;
     last_name: string;
     department: { id: number; name: string };
@@ -81,9 +82,10 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
             console.log('initial data:', initailData);
             const desigObj = allDesignations.find((d) => d.id === Number(initailData.designation));
             const desigId = desigObj ? String(desigObj.id) : '';
+
             setParams({
-                email: '',
-                password: '', // blank out password on edit
+                email: initailData?.email!,
+                password: '',
                 password2: '',
                 first_name: initailData.first_name,
                 last_name: initailData.last_name,
@@ -213,14 +215,12 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
                                         {errors.last_name && <p className="text-red-600">{errors.last_name}</p>}
                                     </div>
 
-                                    {!isEditMode && (
-                                        <div>
-                                            {/* Email */}
-                                            <label htmlFor="email">Email</label>
-                                            <input id="email" type="email" placeholder="email@google.com" className="form-input w-full" value={params.email} onChange={handleChange} />
-                                            {errors.email && <p className="text-red-600">{errors.email}</p>}
-                                        </div>
-                                    )}
+                                    <div>
+                                        {/* Email */}
+                                        <label htmlFor="email">Email</label>
+                                        <input id="email" type="email" placeholder="email@google.com" className="form-input w-full" value={params.email} onChange={handleChange} />
+                                        {errors.email && <p className="text-red-600">{errors.email}</p>}
+                                    </div>
 
                                     {!isEditMode && (
                                         <div className="grid grid-cols-2 gap-4">
@@ -253,12 +253,11 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
                                     </div>
 
                                     {/* Profile Image */}
-                                    {!isEditMode && (
-                                        <div>
-                                            <label htmlFor="profile_image">Photo</label>
-                                            <input id="profile_image" type="file" className="form-input w-full" onChange={handleImageUpload} />
-                                        </div>
-                                    )}
+
+                                    <div>
+                                        <label htmlFor="profile_image">Photo</label>
+                                        <input id="profile_image" type="file" className="form-input w-full" onChange={handleImageUpload} />
+                                    </div>
 
                                     {/* Department & Designation */}
                                     <div className="grid grid-cols-2 gap-4">

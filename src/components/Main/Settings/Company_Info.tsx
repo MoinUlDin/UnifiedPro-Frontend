@@ -13,6 +13,7 @@ import SettingServices from '../../../services/SettingServices';
 import { render } from '@fullcalendar/core/preact';
 import CompanyInfoPopup from './CompanyInfoPopup';
 import toast, { Toaster } from 'react-hot-toast';
+import { FaCalendar, FaCalendarAlt, FaCog, FaFileInvoice, FaMoneyBill } from 'react-icons/fa';
 
 // Define the policy type to match the shape of policy objects
 
@@ -73,8 +74,10 @@ const Company_Info = () => {
     const [policies, setPolicies] = useState<Policy[]>([]);
     const [currentEditId, setCurrentEditId] = useState<number | null>(null);
     const pagedData = policies.slice((page - 1) * recordsPerPage, page * recordsPerPage);
+    const [activeTabe, setActiveTab] = useState<number>(1);
 
     const [modalConfig, setModalConfig] = useState<ModalConfig | null>(null);
+    const activeCSS = 'bg-white py-1';
 
     useEffect(() => {
         dispatch(setPageTitle('Company Policies'));
@@ -310,6 +313,21 @@ const Company_Info = () => {
 
     return (
         <div>
+            <div className="mb-4 px-1 flex items-center justify-between w-full bg-gray-200 rounded-full py-1">
+                <div onClick={() => setActiveTab(1)} className={`hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 1 && activeCSS}`}>
+                    <FaFileInvoice />
+                    <span>Company Info</span>
+                </div>
+                <div onClick={() => setActiveTab(2)} className={`hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 2 && activeCSS}`}>
+                    <FaCog />
+                    <span>Company Standard</span>
+                </div>
+                <div onClick={() => setActiveTab(3)} className={`hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 3 && activeCSS}`}>
+                    <FaCalendarAlt className="" />
+                    <span>Working Days</span>
+                </div>
+            </div>
+            <section className=""></section>
             {/* Company Info */}
             <div className="panel">
                 <div className="flex justify-between items-center mb-5">

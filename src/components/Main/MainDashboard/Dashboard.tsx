@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ReactApexChart from 'react-apexcharts';
 import CountUp from 'react-countup';
@@ -11,8 +11,9 @@ import IconCircleCheck from '../../../components/Icon/IconCircleCheck';
 import IconInfoTriangle from '../../../components/Icon/IconInfoTriangle';
 import Edit_Employee_Popup from '../HCIMS/Edit_Employee_Popup';
 import axios from 'axios';
+
 const MainDashboard = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const isDark = document.documentElement.classList.contains('dark');
 
     // Animation variants for staggered animations
@@ -21,12 +22,10 @@ const MainDashboard = () => {
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1
-            }
-        }
+                staggerChildren: 0.1,
+            },
+        },
     };
-
-    
 
     const chartVariants = {
         hidden: { opacity: 0, scale: 0.8 },
@@ -34,11 +33,11 @@ const MainDashboard = () => {
             opacity: 1,
             scale: 1,
             transition: {
-                type: "spring",
+                type: 'spring',
                 stiffness: 100,
-                damping: 15
-            }
-        }
+                damping: 15,
+            },
+        },
     };
 
     const slideVariants = {
@@ -47,10 +46,10 @@ const MainDashboard = () => {
             opacity: 1,
             x: 0,
             transition: {
-                type: "spring",
-                stiffness: 100
-            }
-        }
+                type: 'spring',
+                stiffness: 100,
+            },
+        },
     };
 
     // Mock data
@@ -128,76 +127,61 @@ const MainDashboard = () => {
             mandatoryTrainingCompletion: 94,
             incidentReports: 2,
             policyAcknowledgments: 98,
-        }
+        },
     };
     useEffect(() => {
-        axios.post(
-          "https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/late-arrival/",
-          {
-            department: 0,
-            allowed_late_minutes: 2147483647,
-            late_arrival_penalty: 599
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem('token')}` // Add your token if needed
-            }
-          }
-        )
-        .then(res => console.log("Response:", res.data))
-        .catch(err => console.error("Error:", err));
-      }, []);
+        axios
+            .post(
+                'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/late-arrival/',
+                {
+                    department: 0,
+                    allowed_late_minutes: 2147483647,
+                    late_arrival_penalty: 599,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Add your token if needed
+                    },
+                }
+            )
+            .then((res) => console.log('Response:', res.data))
+            .catch((err) => console.error('Error:', err));
+    }, []);
     useEffect(() => {
-      
-    axios.get('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/late-arrival/'
-    , {
-        headers: {
-          
-          "Authorization": `Bearer ${localStorage.getItem('token')}` // Add your token if needed
-        }
-      })
-     .then(res => {
-        console.log("Response:", res.data)
-      }
-    ) 
-      
-      
-    }, [])
-    
+        axios
+            .get('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/late-arrival/', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`, // Add your token if needed
+                },
+            })
+            .then((res) => {
+                console.log('Response:', res.data);
+            });
+    }, []);
+
     return (
-        <motion.div 
-            className="dashboard-container p-6 max-w-[1920px] mx-auto"
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
-        >
+        <motion.div className="dashboard-container p-6 max-w-[1920px] mx-auto" initial="hidden" animate="visible" variants={containerVariants}>
             {/* Header with Quick Actions */}
-            <motion.div 
-                className="flex flex-col md:flex-row justify-between items-center mb-8"
-                variants={slideVariants}
-            >
+            <motion.div className="flex flex-col md:flex-row justify-between items-center mb-8" variants={slideVariants}>
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        HR Dashboard
-                    </h1>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">HR Dashboard</h1>
                     <p className="text-gray-500 mt-1">Real-time overview of your organization</p>
                 </div>
                 <div className="flex gap-4">
-                    <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }} 
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => setIsModalOpen(true)}
-                       
                         className="btn-primary px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                         <IconPlus className="w-4 h-4 inline-block mr-2" />
                         New Employee
                     </motion.button>
-                  {isModalOpen && <Edit_Employee_Popup closeModal={() => setIsModalOpen(false)} />}
-                    <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                    {isModalOpen && <Edit_Employee_Popup closeModal={() => setIsModalOpen(false)} />}
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         className="btn-secondary px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg"
                     >
                         <IconCalendar className="w-4 h-4 inline-block mr-2" />
@@ -206,163 +190,156 @@ const MainDashboard = () => {
                 </div>
             </motion.div>
             <div className="grid grid-cols-12 gap-6 mb-6">
-    {/* Key Metrics - Full Width */}
-    <motion.div 
-        className="col-span-12" // Ensure it spans the full width
-        variants={containerVariants}
-    >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6"> {/* Adjusted grid for 4 equal columns */}
-            {/* Attendance Cards with hover effects */}
-            <motion.div
-                variants={chartVariants}
-                whileHover={{ 
-                    scale: 1.02,
-                    transition: { type: "spring", stiffness: 400 }
-                }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 pl-2 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300"
-            >
-                <div className="flex justify-between gap-1 items-start">
-                    <div>
-                        <p className="text-sm text-gray-500">Total Employees</p>
-                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                            <CountUp end={attendanceData.totalEmployees} duration={2} />
-                        </h3>
+                {/* Key Metrics - Full Width */}
+                <motion.div
+                    className="col-span-12" // Ensure it spans the full width
+                    variants={containerVariants}
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        {' '}
+                        {/* Adjusted grid for 4 equal columns */}
+                        {/* Attendance Cards with hover effects */}
+                        <motion.div
+                            variants={chartVariants}
+                            whileHover={{
+                                scale: 1.02,
+                                transition: { type: 'spring', stiffness: 400 },
+                            }}
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 pl-2 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300"
+                        >
+                            <div className="flex justify-between gap-1 items-start">
+                                <div>
+                                    <p className="text-sm text-gray-500">Total Employees</p>
+                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                                        <CountUp end={attendanceData.totalEmployees} duration={2} />
+                                    </h3>
+                                </div>
+                                <div className="p-3 bg-blue-100 rounded-lg">
+                                    <IconUsers className="w-5 h-6 text-blue-600" />
+                                </div>
+                            </div>
+                        </motion.div>
+                        <motion.div
+                            variants={chartVariants}
+                            whileHover={{
+                                scale: 1.02,
+                                transition: { type: 'spring', stiffness: 400 },
+                            }}
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300"
+                        >
+                            <div className="flex justify-between gap-2 items-start">
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Present Today</p>
+                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                                        <CountUp end={attendanceData.presentEmployees} duration={2} />
+                                    </h3>
+                                </div>
+                                <div className="p-3 bg-green-100 rounded-lg">
+                                    <IconCircleCheck className="w-6 h-6 text-green-600" />
+                                </div>
+                            </div>
+                        </motion.div>
+                        <motion.div
+                            variants={chartVariants}
+                            whileHover={{
+                                scale: 1.02,
+                                transition: { type: 'spring', stiffness: 400 },
+                            }}
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-all duration-300"
+                        >
+                            <div className="flex justify-between gap-1 items-start">
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Absent Today</p>
+                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                                        <CountUp end={attendanceData.absentEmployees} duration={2} />
+                                    </h3>
+                                </div>
+                                <div className="p-3 bg-red-100 rounded-lg">
+                                    <IconInfoTriangle className="w-6 h-6 text-red-600" />
+                                </div>
+                            </div>
+                        </motion.div>
+                        <motion.div
+                            variants={chartVariants}
+                            whileHover={{
+                                scale: 1.02,
+                                transition: { type: 'spring', stiffness: 400 },
+                            }}
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300"
+                        >
+                            <div className="flex justify-between gap-1 items-start">
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">On Leave</p>
+                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                                        <CountUp end={attendanceData.onLeave} duration={2} />
+                                    </h3>
+                                </div>
+                                <div className="p-3 bg-yellow-100 rounded-lg">
+                                    <IconCalendar className="w-6 h-6 text-yellow-600" />
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
-                    <div className="p-3 bg-blue-100 rounded-lg">
-                        <IconUsers className="w-5 h-6 text-blue-600" />
-                    </div>
-                </div>
-            </motion.div>
-
-            <motion.div
-                variants={chartVariants}
-                whileHover={{ 
-                    scale: 1.02,
-                    transition: { type: "spring", stiffness: 400 }
-                }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300"
-            >
-                <div className="flex justify-between gap-2 items-start">
-                    <div>
-                        <p className="text-sm text-gray-500 mb-1">Present Today</p>
-                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                            <CountUp end={attendanceData.presentEmployees} duration={2} />
-                        </h3>
-                    </div>
-                    <div className="p-3 bg-green-100 rounded-lg">
-                        <IconCircleCheck className="w-6 h-6 text-green-600" />
-                    </div>
-                </div>
-            </motion.div>
-
-            <motion.div
-                variants={chartVariants}
-                whileHover={{ 
-                    scale: 1.02,
-                    transition: { type: "spring", stiffness: 400 }
-                }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-all duration-300"
-            >
-                <div className="flex justify-between gap-1 items-start">
-                    <div>
-                        <p className="text-sm text-gray-500 mb-1">Absent Today</p>
-                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                            <CountUp end={attendanceData.absentEmployees} duration={2} />
-                        </h3>
-                    </div>
-                    <div className="p-3 bg-red-100 rounded-lg">
-                        <IconInfoTriangle className="w-6 h-6 text-red-600" />
-                    </div>
-                </div>
-            </motion.div>
-
-            <motion.div
-                variants={chartVariants}
-                whileHover={{ 
-                    scale: 1.02,
-                    transition: { type: "spring", stiffness: 400 }
-                }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300"
-            >
-                <div className="flex justify-between gap-1 items-start">
-                    <div>
-                        <p className="text-sm text-gray-500 mb-1">On Leave</p>
-                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                            <CountUp end={attendanceData.onLeave} duration={2} />
-                        </h3>
-                    </div>
-                    <div className="p-3 bg-yellow-100 rounded-lg">
-                        <IconCalendar className="w-6 h-6 text-yellow-600" />
-                    </div>
-                </div>
-            </motion.div>
-        </div>
-    </motion.div>
-</div>
+                </motion.div>
+            </div>
             {/* Main Stats Grid - 70% width */}
             <div className="grid grid-cols-12 gap-6 mb-6">
                 {/* Key Metrics - 70% width */}
-                <motion.div 
-                    className="col-span-12 lg:col-span-8"
-                    variants={containerVariants}
-                > 
+                <motion.div className="col-span-12 lg:col-span-8" variants={containerVariants}>
                     {/* Performance Charts with animations */}
-                    <motion.div
-                        variants={chartVariants}
-                        className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300"
-                    >
+                    <motion.div variants={chartVariants} className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300">
                         <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center">
                             <IconTrendingUp className="w-6 h-6 mr-2 text-blue-600" />
-                            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Performance Overview
-                            </span>
+                            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Performance Overview</span>
                         </h2>
                         <ReactApexChart
                             options={{
                                 chart: {
                                     type: 'bar',
                                     toolbar: {
-                                        show: false
+                                        show: false,
                                     },
-                                    background: 'transparent'
+                                    background: 'transparent',
                                 },
                                 plotOptions: {
                                     bar: {
                                         horizontal: false,
                                         columnWidth: '55%',
-                                        borderRadius: 8
+                                        borderRadius: 8,
                                     },
                                 },
                                 dataLabels: {
-                                    enabled: false
+                                    enabled: false,
                                 },
                                 grid: {
                                     borderColor: isDark ? '#374151' : '#E5E7EB',
-                                    strokeDashArray: 4
+                                    strokeDashArray: 4,
                                 },
                                 xaxis: {
                                     categories: Object.keys(kpiData.departmentalPerformance),
                                     labels: {
                                         style: {
-                                            colors: isDark ? '#9CA3AF' : '#6B7280'
-                                        }
-                                    }
+                                            colors: isDark ? '#9CA3AF' : '#6B7280',
+                                        },
+                                    },
                                 },
                                 yaxis: {
                                     labels: {
                                         style: {
-                                            colors: isDark ? '#9CA3AF' : '#6B7280'
-                                        }
-                                    }
+                                            colors: isDark ? '#9CA3AF' : '#6B7280',
+                                        },
+                                    },
                                 },
                                 theme: {
-                                    mode: isDark ? 'dark' : 'light'
-                                }
+                                    mode: isDark ? 'dark' : 'light',
+                                },
                             }}
-                            series={[{
-                                name: 'Performance',
-                                data: Object.values(kpiData.departmentalPerformance)
-                            }]}
+                            series={[
+                                {
+                                    name: 'Performance',
+                                    data: Object.values(kpiData.departmentalPerformance),
+                                },
+                            ]}
                             type="bar"
                             height={350}
                         />
@@ -370,16 +347,13 @@ const MainDashboard = () => {
                 </motion.div>
 
                 {/* Side Stats - 30% width */}
-                <motion.div 
-                    className="col-span-12 lg:col-span-4 mt-6 space-y-1"
-                    variants={containerVariants}
-                >
+                <motion.div className="col-span-12 lg:col-span-4 mt-6 space-y-1" variants={containerVariants}>
                     {/* Recruitment Summary with hover effects */}
                     <motion.div
                         variants={chartVariants}
-                        whileHover={{ 
+                        whileHover={{
                             scale: 1.02,
-                            transition: { type: "spring", stiffness: 400 }
+                            transition: { type: 'spring', stiffness: 400 },
                         }}
                         className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 hover:shadow-xl transition-all duration-300"
                     >
@@ -391,25 +365,25 @@ const MainDashboard = () => {
                             options={{
                                 chart: {
                                     type: 'donut',
-                                    background: 'transparent'
+                                    background: 'transparent',
                                 },
                                 labels: ['Open', 'In Progress', 'Offered', 'Closed'],
                                 colors: ['#3B82F6', '#10B981', '#F59E0B', '#6366F1'],
                                 legend: {
                                     position: 'bottom',
                                     labels: {
-                                        colors: isDark ? '#9CA3AF' : '#6B7280'
-                                    }
+                                        colors: isDark ? '#9CA3AF' : '#6B7280',
+                                    },
                                 },
                                 theme: {
-                                    mode: isDark ? 'dark' : 'light'
-                                }
+                                    mode: isDark ? 'dark' : 'light',
+                                },
                             }}
                             series={[
                                 hrMetrics.recruitment.openPositions,
                                 hrMetrics.recruitment.activeApplications,
                                 hrMetrics.recruitment.offersPending,
-                                8 // closed positions
+                                8, // closed positions
                             ]}
                             type="donut"
                             height={300}
@@ -419,9 +393,9 @@ const MainDashboard = () => {
                     {/* Employee Engagement Metrics with animations */}
                     <motion.div
                         variants={chartVariants}
-                        whileHover={{ 
+                        whileHover={{
                             scale: 1.02,
-                            transition: { type: "spring", stiffness: 400 }
+                            transition: { type: 'spring', stiffness: 400 },
                         }}
                         transition={{ delay: 0.2 }}
                         className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 hover:shadow-xl transition-all duration-300"
@@ -438,10 +412,7 @@ const MainDashboard = () => {
                                     <span className="text-sm font-semibold">{hrMetrics.employeeEngagement.satisfactionScore}%</span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                        className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                                        style={{ width: `${hrMetrics.employeeEngagement.satisfactionScore}%` }}
-                                    ></div>
+                                    <div className="bg-green-500 h-2 rounded-full transition-all duration-500" style={{ width: `${hrMetrics.employeeEngagement.satisfactionScore}%` }}></div>
                                 </div>
                             </div>
                             {/* Survey Participation */}
@@ -451,10 +422,7 @@ const MainDashboard = () => {
                                     <span className="text-sm font-semibold">{hrMetrics.employeeEngagement.lastSurveyParticipation}%</span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                        className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                                        style={{ width: `${hrMetrics.employeeEngagement.lastSurveyParticipation}%` }}
-                                    ></div>
+                                    <div className="bg-blue-500 h-2 rounded-full transition-all duration-500" style={{ width: `${hrMetrics.employeeEngagement.lastSurveyParticipation}%` }}></div>
                                 </div>
                             </div>
                         </div>
@@ -463,16 +431,13 @@ const MainDashboard = () => {
             </div>
 
             {/* Bottom Section with staggered animations */}
-            <motion.div 
-                className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-                variants={containerVariants}
-            >
+            <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-6" variants={containerVariants}>
                 {/* Training Progress with hover effects */}
                 <motion.div
                     variants={chartVariants}
-                    whileHover={{ 
+                    whileHover={{
                         scale: 1.02,
-                        transition: { type: "spring", stiffness: 400 }
+                        transition: { type: 'spring', stiffness: 400 },
                     }}
                     className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
                 >
@@ -484,7 +449,7 @@ const MainDashboard = () => {
                         options={{
                             chart: {
                                 type: 'radialBar',
-                                background: 'transparent'
+                                background: 'transparent',
                             },
                             plotOptions: {
                                 radialBar: {
@@ -496,21 +461,21 @@ const MainDashboard = () => {
                                     },
                                     dataLabels: {
                                         name: {
-                                            color: isDark ? '#9CA3AF' : '#6B7280'
+                                            color: isDark ? '#9CA3AF' : '#6B7280',
                                         },
                                         value: {
                                             color: isDark ? '#FFFFFF' : '#111827',
                                             fontSize: '30px',
-                                            fontWeight: 600
-                                        }
-                                    }
-                                }
+                                            fontWeight: 600,
+                                        },
+                                    },
+                                },
                             },
                             labels: ['Completion'],
                             colors: ['#10B981'],
                             theme: {
-                                mode: isDark ? 'dark' : 'light'
-                            }
+                                mode: isDark ? 'dark' : 'light',
+                            },
                         }}
                         series={[hrMetrics.compliance.mandatoryTrainingCompletion]}
                         type="radialBar"
@@ -521,9 +486,9 @@ const MainDashboard = () => {
                 {/* Compliance Overview with animations */}
                 <motion.div
                     variants={chartVariants}
-                    whileHover={{ 
+                    whileHover={{
                         scale: 1.02,
-                        transition: { type: "spring", stiffness: 400 }
+                        transition: { type: 'spring', stiffness: 400 },
                     }}
                     transition={{ delay: 0.1 }}
                     className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
@@ -557,9 +522,9 @@ const MainDashboard = () => {
                 {/* Employee Development with animations */}
                 <motion.div
                     variants={chartVariants}
-                    whileHover={{ 
+                    whileHover={{
                         scale: 1.02,
-                        transition: { type: "spring", stiffness: 400 }
+                        transition: { type: 'spring', stiffness: 400 },
                     }}
                     transition={{ delay: 0.2 }}
                     className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"

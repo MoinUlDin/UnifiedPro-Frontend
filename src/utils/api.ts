@@ -43,7 +43,7 @@ api.interceptors.response.use(
     // Handle errors
     async (error: AxiosError) => {
         const originalRequest = error.config!;
-        if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry) {
             // mark this request so we don’t loop
             (originalRequest as any)._retry = true;
             if (!isRefreshing) {

@@ -5,6 +5,7 @@ import { TaskType } from '../../../constantTypes/TasksTypes';
 import toast, { Toaster } from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import IconUser from '../../Icon/IconUser';
 import TaskServices from '../../../services/TaskServices';
 import TaskPopupForm from './TaskPopupForm';
 import AssignTasksPopup from './AssignTasksPopup';
@@ -109,13 +110,21 @@ const View_Tasks: React.FC = () => {
                                 <span className={`bg-${color}-500 px-2 rounded-xl text-black`}>{task.priority}</span>
                             </span>
                         </div>
-                        <h2 className="mt-1 flex gap-3 text-[12px]">
-                            <span className="text-black font-semibold">Assigned To: </span>
-                            {task.assigned_to ? formatName(task.assigned_to) : 'Unassigned'}
-                        </h2>
                     </div>
                 );
             },
+        },
+        {
+            accessor: 'assignee',
+            title: 'Assignee',
+            render: (task) => (
+                <div key={`date-${task.id}`}>
+                    <div className="mt-1 flex gap-3 text-[12px]">
+                        {task.assigned_to && task.profile ? <img className="size-8 rounded-full bg-cover" src={task.profile} alt="" /> : <IconUser />}
+                        {task.assigned_to ? formatName(task.assigned_to) : 'Unassigned'}
+                    </div>
+                </div>
+            ),
         },
         {
             accessor: 'due_date',
