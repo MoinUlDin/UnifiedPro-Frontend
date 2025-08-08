@@ -107,7 +107,7 @@ export default class SettingServices {
         try {
             const response = await api.post(`/company-Setup/designations/`, payload);
             return response.data;
-        } catch (e) {
+        } catch (e: any) {
             console.log(e);
             throw e;
         }
@@ -115,6 +115,15 @@ export default class SettingServices {
     static async fetchDesignations() {
         try {
             const response = await api.get(`/company-Setup/designations/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async fetchDesignationsByDepartment(id: number) {
+        try {
+            const response = await api.get(`/company-Setup/designations/${id}/under_department/`);
             return response.data;
         } catch (e) {
             console.log(e);
@@ -134,9 +143,10 @@ export default class SettingServices {
         try {
             const response = await api.patch(`/company-Setup/designations/${id}/`, payload);
             return response.data;
-        } catch (e) {
+        } catch (e: any) {
             console.log(e);
-            throw e;
+            const msg = e.response?.data?.parent || 'error Updating Designation';
+            throw new Error(msg);
         }
     }
     static async AddWorkingDay(payload: any) {

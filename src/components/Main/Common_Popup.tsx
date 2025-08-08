@@ -17,9 +17,10 @@ interface FormComponentProps {
     onCancel: () => void;
     isLoading?: boolean;
     initialValues?: Record<string, any>;
+    onValueChange?: (fieldId: string, value: any) => void;
 }
 
-const Common_Popup = ({ fields, onSubmit, onCancel, initialValues = {}, isLoading = false }: FormComponentProps) => {
+const Common_Popup = ({ fields, onSubmit, onCancel, initialValues = {}, isLoading = false, onValueChange }: FormComponentProps) => {
     const [formData, setFormData] = useState<Record<string, string | number | File | null>>(() =>
         fields.reduce((acc, field) => {
             acc[field.id] = initialValues[field.id] ?? (field.type === 'file' ? null : '');
@@ -29,14 +30,18 @@ const Common_Popup = ({ fields, onSubmit, onCancel, initialValues = {}, isLoadin
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
+        const newVal = type === 'file' && e.target instanceof HTMLInputElement ? e.target.files?.[0] || null : value;
         setFormData((prev) => ({
             ...prev,
             [name]: type === 'file' && e.target instanceof HTMLInputElement ? e.target.files?.[0] || null : value,
         }));
+
+        if (onValueChange) onValueChange(name, newVal);
     };
 
     const handleQuillChange = (id: string, value: string) => {
         setFormData((prev) => ({ ...prev, [id]: value }));
+        if (onValueChange) onValueChange(id, value);
     };
 
     const handleSubmit = (e: React.FormEvent) => {

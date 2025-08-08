@@ -148,16 +148,16 @@ const View_Tasks: React.FC = () => {
             render: (task) => (
                 <div key={`kpi-${task.id}`}>
                     <div className="mb-1 text-[12px] font-bold text-gray-900">
-                        {task.department_kpi.kpi_text.length > 25 ? task.department_kpi.kpi_text.slice(0, 25) + '...' : task.department_kpi.kpi_text}
+                        {task.department_kpi?.kpi_text?.length > 25 ? task?.department_kpi?.kpi_text?.slice(0, 25) + '...' : task.department_kpi?.kpi_text}
                     </div>
                     <div className="flex items-center gap-3 text-[10px] text-gray-600 ">
                         <span>
                             <span>Target: </span>
-                            <span>{task.department_kpi.target}</span>
+                            <span>{task.department_kpi?.target}</span>
                         </span>
                         <span>
                             <span>Weight: </span>
-                            {task.department_kpi.weight}
+                            {task.department_kpi?.weight}
                         </span>
                     </div>
                 </div>

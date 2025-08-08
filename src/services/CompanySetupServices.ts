@@ -128,6 +128,16 @@ export default class CompanySetupServices {
             console.log('Error Fetching Annoncements', e);
         }
     }
+    static async UpdateAnnouncements(id: number, payload: any) {
+        try {
+            const res = await api.patch(`/company-Setup/announcement/${id}/`, payload, {
+                headers: { 'Content-Type': 'multipart/formdata' },
+            });
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Fetching Annoncements', e);
+        }
+    }
     static async DeleteAnnouncements(id: number) {
         try {
             const res = await api.delete(`/company-Setup/announcement/${id}/`);

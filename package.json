@@ -48,6 +48,7 @@
         "highlight.js": "^11.6.0",
         "jspdf": "^2.5.2",
         "lodash.isequal": "^4.5.0",
+        "lucide-react": "^0.536.0",
         "mantine-datatable": "^1.7.17",
         "nouislider-react": "^3.4.1",
         "react": "^18.2.0",

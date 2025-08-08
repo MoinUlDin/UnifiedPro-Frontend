@@ -1,8 +1,7 @@
 // AnnouncementsPage.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import AnnouncementCard from './AnnouncementCard';
-import { FaBullhorn, FaCheck, FaCheckCircle, FaClock, FaExclamation, FaInfo, FaPlus, FaSearch } from 'react-icons/fa';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { FaBullhorn, FaCheckCircle, FaClock, FaExclamation, FaSearch } from 'react-icons/fa';
 import CompanySetupServices from '../../../services/CompanySetupServices';
 import { useDispatch } from 'react-redux';
 import { announcementType } from '../../../constantTypes/CompanySetupTypes';
@@ -60,8 +59,10 @@ export default function AnnouncementsPage() {
     }, [announcementsList]);
 
     const onSuccess = () => {
-        toast.success('Sucessfull');
         setRefresh((p) => !p);
+    };
+    const handleNewCreation = () => {
+        setOpenAnnouncementPopup(true);
     };
     return (
         <div className="max-w-6xl mx-auto py-8 px-4">
@@ -71,41 +72,45 @@ export default function AnnouncementsPage() {
                     <h1 className="text-2xl font-bold">Company Announcements</h1>
                     <p className="text-gray-600">Manage and view company-wide announcements and department updates</p>
                 </div>
-                <button className="flex items-center btn btn-primary px-3 btn-sm ">
+                <button onClick={handleNewCreation} className="flex items-center bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded">
                     <span>+ New Announcement</span>
                 </button>
             </div>
 
             {/* Toolbar */}
-            <div className="flex  items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-6">
+                {/* Search */}
                 <div className="relative flex-grow min-w-[50%]">
-                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                     <input
                         type="text"
-                        className="w-full pl-10 py-2 pr-3 border rounded flex-grow focus:outline-blue-500"
+                        className="w-full pl-10 py-2 pr-3 border rounded focus:outline-blue-500"
                         placeholder="Search announcements..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
 
-                <select className="form-select" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
+                {/* Department filter */}
+                <select className="border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
                     <option>All Departments</option>
                     {departments.map((d) => (
                         <option key={d}>{d}</option>
                     ))}
                 </select>
 
-                <select className="form-select" value={prioFilter} onChange={(e) => setPrioFilter(e.target.value)}>
+                {/* Priority filter */}
+                <select className="border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" value={prioFilter} onChange={(e) => setPrioFilter(e.target.value)}>
                     <option>All Priorities</option>
                     {priorities.map((p) => (
                         <option key={p}>{p}</option>
                     ))}
                 </select>
 
-                <div className="form-check form-switch ml-auto">
-                    <input className="form-check-input" type="checkbox" id="activeOnly" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
-                    <label className="form-check-label whitespace-nowrap" htmlFor="activeOnly">
+                {/* Active only switch */}
+                <div className="flex items-center ml-auto">
+                    <input className="form-checkbox size-4 mb-2 text-blue-600" type="checkbox" id="activeOnly" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
+                    <label htmlFor="activeOnly" className="ml-1 whitespace-nowrap text-gray-600">
                         Active only
                     </label>
                 </div>
@@ -154,27 +159,11 @@ export default function AnnouncementsPage() {
             {/* List */}
             <div className="space-y-6">
                 {filtered?.map((a) => (
-                    <AnnouncementCard
-                        key={a.id}
-                        id={a.id}
-                        company={a.company}
-                        is_active={a.is_active}
-                        title={a.title}
-                        priority={a.priority}
-                        date={a.date}
-                        department={a.department}
-                        total_reads={a.total_reads}
-                        total_targets={a.total_targets}
-                        target_info={a.target_info}
-                        description={a.description}
-                        progress={a.progress}
-                        attachments={a.attachments}
-                        created_by={a.created_by}
-                    />
+                    <AnnouncementCard inputData={a} onSuccessOuter={onSuccess} />
                 ))}
             </div>
             <Toaster position="top-right" reverseOrder={false} />
-            <Announcement_Popup onSuccess={onSuccess} />
+            {openAnnouncementPopup && <Announcement_Popup onSuccess={onSuccess} onClose={() => setOpenAnnouncementPopup(false)} />}
         </div>
     );
 }

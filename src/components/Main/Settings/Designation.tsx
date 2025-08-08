@@ -7,12 +7,15 @@ import FormComponent, { FormField } from '../Common_Popup';
 import SettingServices from '../../../services/SettingServices';
 import toast, { Toaster } from 'react-hot-toast';
 import ConfirmActionModal from '../../ConfirmActionModel';
+import DesignationForm from './DesignationForm';
 
 interface Designation {
     id: number;
     name: string;
-    department: number; // FK
-    department_name: string; // label
+    department: number;
+    department_name: string;
+    parent: number | null;
+    parent_name?: string;
 }
 
 const Create_Design = () => {
@@ -21,130 +24,135 @@ const Create_Design = () => {
         dispatch(setPageTitle('Designations'));
     }, [dispatch]);
 
-    // state
     const [designations, setDesignations] = useState<Designation[]>([]);
     const [departments, setDepartments] = useState<{ value: number; label: string }[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [currentEditId, setCurrentEditId] = useState<number | null>(null);
-    const [openConfirmActionModel, setOpenConfirmActionModel] = useState<boolean>(false);
+    const [openConfirmActionModel, setOpenConfirmActionModel] = useState(false);
     const [selectedId, setSelectedId] = useState<number | null>(null);
-    // form state
-    const initialFormData = { name: '', department: '' };
-    const [formData, setFormData] = useState<Record<string, any>>(initialFormData);
+    const [parentOptions, setParentOptions] = useState<Designation[]>([]);
+    const [parentOpen, setParentOpen] = useState(false);
+    const [parentSearch, setParentSearch] = useState('');
 
-    // on mount, fetch both lists
+    // form
+    const initialFormData = { name: '', department: '', parent: null as number | null };
+    const [formData, setFormData] = useState<any>(initialFormData);
+
     useEffect(() => {
-        // departments for the dropdown
         SettingServices.fetchParentDepartments()
             .then((list) => {
-                // service returns response.data (an array of {id,name,...})
                 setDepartments(list.map((d: any) => ({ value: d.id, label: d.name })));
             })
             .catch(console.error);
 
-        // existing designations for the table
         SettingServices.fetchDesignations()
             .then((list) => {
-                // service returns response.data (array of Designation)
+                console.log('list: ', list);
                 setDesignations(list);
-                console.log('designation List: ', list);
             })
             .catch(console.error);
     }, []);
 
-    // table columns
     const columns = [
         { accessor: 'id', title: 'ID' },
         { accessor: 'name', title: 'Name' },
         { accessor: 'department_name', title: 'Department' },
+        { accessor: 'parent_name', title: 'Reports To' },
     ];
 
-    // fields for the form
     const formFields: FormField[] = [
-        { id: 'name', label: 'Designation Name', type: 'text', value: formData.name },
+        { id: 'name', label: 'Designation Name', type: 'text', value: formData?.name },
         {
             id: 'department',
             label: 'Department',
             type: 'select',
             options: departments,
+            value: formData.department,
         },
+        // Note: we won’t use a select field here for parent but our custom UI below
     ];
 
+    // filtered list
+    const filteredParents = parentOptions.filter((d) => d.name.toLowerCase().includes(parentSearch.toLowerCase()));
+
     const openModal = () => {
-        setFormData(initialFormData);
         setIsEditMode(false);
+        setCurrentEditId(null);
+        setFormData({
+            department: null,
+            name: null,
+            parent: null,
+        });
         setIsModalOpen(true);
     };
     const closeModal = () => {
         setIsModalOpen(false);
-        setFormData(initialFormData);
         setIsEditMode(false);
         setCurrentEditId(null);
     };
 
-    // create or update
     const handleAddOrEditDesignation = async (data: any) => {
-        try {
-            if (isEditMode && currentEditId) {
-                await SettingServices.updateDesignation(currentEditId, data).then(() => {
-                    toast.success('Designation Added Successfuly', { duration: 4000 });
+        if (isEditMode && currentEditId) {
+            await SettingServices.updateDesignation(currentEditId, data)
+                .then(() => {
+                    toast.success('Designation updated!');
+                    SettingServices.fetchDesignations().then((fresh) => {
+                        setDesignations(fresh);
+                        closeModal();
+                    });
+                })
+                .catch((e) => {
+                    toast.error(e.message);
                 });
-            } else {
-                await SettingServices.createDesignation(data);
-                toast.success('Designation Updated Successfuly', { duration: 4000 });
-            }
-            // re-fetch table data
-            const fresh = await SettingServices.fetchDesignations();
-            setDesignations(fresh);
-            closeModal();
-        } catch (err) {
-            console.error(err);
-            toast.error('Error Completing you action', { duration: 4000 });
+        } else {
+            await SettingServices.createDesignation(data)
+                .then(() => {
+                    toast.success('Designation created!');
+                    SettingServices.fetchDesignations().then((fresh) => {
+                        setDesignations(fresh);
+                        closeModal();
+                    });
+                })
+                .catch((e) => {
+                    toast.error('Error completing your action');
+                });
         }
     };
 
-    // start editing
-    const handleEdit = (initailValues: any) => {
-        console.log('Edit Called with Data:', initailValues);
-        setFormData({ name: initailValues.name, department: initailValues.department });
-        setCurrentEditId(initailValues.id);
+    const handleEdit = (row: Designation) => {
+        console.log('FormData: ', formData, 'row: ', row);
+        console.log('row: ', row);
+        setFormData({
+            department: row.department,
+            name: row.name,
+            parent: row.parent,
+        });
+        setCurrentEditId(row.id);
         setIsEditMode(true);
-        openModal();
+        setParentSearch('');
+        setIsModalOpen(true);
     };
 
-    // delete
     const handleConfirmDelete = () => {
-        if (!selectedId) {
-            toast.error('No Selected Id found, System Error');
-            return;
-        }
-        try {
-            SettingServices.deleteDesignation(selectedId);
-            toast.success('Designation Deleted Successfuly', { duration: 4000 });
-            setDesignations((prev) => prev.filter((d) => d.id !== selectedId));
-        } catch (err) {
-            console.error(err);
-        }
+        if (!selectedId) return toast.error('No designation selected!');
+        SettingServices.deleteDesignation(selectedId)
+            .then(() => {
+                setDesignations((ds) => ds.filter((d) => d.id !== selectedId));
+                toast.success('Deleted!');
+            })
+            .catch(console.error);
     };
-    const handleDelete = async (id: number) => {
+    const handleDelete = (id: number) => {
         setSelectedId(id);
         setOpenConfirmActionModel(true);
     };
 
     return (
         <div>
-            <CommonTable
-                heading="Designations"
-                buttonLabel="Add"
-                columns={columns}
-                formFields={formFields}
-                data={designations || []} // guard against undefined
-                onButtonClick={openModal}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-            />
+            <CommonTable heading="Designations" buttonLabel="Add" columns={columns} formFields={formFields} data={designations} onButtonClick={openModal} onEdit={handleEdit} onDelete={handleDelete} />
 
+            {/* Create edit Designation */}
             <Transition appear show={isModalOpen} as={Fragment}>
                 <Dialog as="div" className="relative z-50" onClose={closeModal}>
                     <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
@@ -152,7 +160,7 @@ const Create_Design = () => {
                     </Transition.Child>
 
                     <div className="fixed inset-0 overflow-y-auto">
-                        <div className="flex items-center justify-center min-h-full p-4 text-center">
+                        <div className="flex min-h-full items-center justify-center p-4 text-center">
                             <Transition.Child
                                 as={Fragment}
                                 enter="ease-out duration-300"
@@ -162,22 +170,29 @@ const Create_Design = () => {
                                 leaveFrom="opacity-100 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
-                                <Dialog.Panel className="w-full max-w-md p-6 bg-white rounded-xl shadow-xl">
-                                    <Dialog.Title className="text-lg font-medium mb-4">{isEditMode ? 'Edit' : 'Add'} Designation</Dialog.Title>
-                                    <FormComponent initialValues={formData} fields={formFields} onSubmit={handleAddOrEditDesignation} onCancel={closeModal} />
+                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                    <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                                        {isEditMode ? 'Edit' : 'Add'} Designation
+                                    </Dialog.Title>
+
+                                    <div className="mt-2">
+                                        <DesignationForm onSubmit={handleAddOrEditDesignation} onCancel={() => setIsModalOpen(false)} initialValues={formData} />
+                                    </div>
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>
                     </div>
                 </Dialog>
             </Transition>
+
             <Toaster position="top-right" reverseOrder={false} />
+
             <ConfirmActionModal
                 opened={openConfirmActionModel}
                 onClose={() => setOpenConfirmActionModel(false)}
                 onConfirm={handleConfirmDelete}
                 title="Confirm Deletion"
-                message="Are you sure you want to delete this Designation? <br/> This Action will not be reversable <br/>Continue?"
+                message="Are you sure you want to delete this designation? This cannot be undone."
                 btnText="Delete"
             />
         </div>

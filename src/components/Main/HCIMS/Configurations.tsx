@@ -1,5 +1,5 @@
 import Create_Depart from '../Settings/Create_Depart';
-import Create_Design from '../Settings/Create_Design';
+import Create_Design from '../Settings/Designation';
 import Edit_Employee from './Edit_Employee';
 
 const Configurations = () => {

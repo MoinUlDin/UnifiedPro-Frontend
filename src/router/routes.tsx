@@ -56,12 +56,13 @@ const SubmitSelfEval = lazy(() => import('../components/Main/Evaluation/Submit_S
 const CompanyInfo = lazy(() => import('../components/Main/Settings/Company_Info'));
 const GroupCompany = lazy(() => import('../components/Main/Settings/Group_Company'));
 const CreateDepartment = lazy(() => import('../components/Main/Settings/Create_Depart'));
-const CreateDesignation = lazy(() => import('../components/Main/Settings/Create_Design'));
+const CreateDesignation = lazy(() => import('../components/Main/Settings/Designation'));
 const CreateSalary = lazy(() => import('../components/Main/Settings/Create_Salary'));
 const PerformanceMoni = lazy(() => import('../components/Main/Settings/Performance_Moni'));
 const SettingsPermission = lazy(() => import('../components/Main/Settings/Permissions'));
 const StandalonePermissionsPage = lazy(() => import('../components/Main/Settings/StandalonePermissionsPage'));
 const Departments = lazy(() => import('../components/Main/Settings/Departments'));
+const SalaryPageNew = lazy(() => import('../components/Main/Settings/SalaryPageNew'));
 // Training Section
 const TrainingAssess = lazy(() => import('../components/Main/Training/Train_Assess'));
 const CreateTraining = lazy(() => import('../components/Main/Training/Create_Train'));
@@ -342,7 +343,7 @@ const routes: AppRoute[] = [
     },
     {
         path: '/create_salary_structure',
-        element: <CreateSalary />,
+        element: <SalaryPageNew />,
         layout: 'default',
     },
     {

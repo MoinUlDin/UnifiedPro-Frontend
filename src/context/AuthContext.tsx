@@ -30,11 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate('/auth/boxed-signin'); // Redirect to login page after logout
     };
 
-    return (
-        <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+    return <AuthContext.Provider value={{ isAuthenticated, login, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuthContext = () => {

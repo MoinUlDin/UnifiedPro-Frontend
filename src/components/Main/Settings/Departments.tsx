@@ -24,7 +24,8 @@ export default function DepartmentsTable() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
     const [departmentToDelete, setDepartmentToDelete] = useState<number | null>(null);
-    const [formData, setFormData] = useState({ id: 0, name: '', expected_arrival_time: '' });
+    const [formData, setFormData] = useState<Department>({ id: 0, name: '', expected_arrival_time: '', parent: null });
+    const [parentDepartment, setParentDepartments] = useState<Department[]>([]);
 
     const pagedData = departments.slice((page - 1) * recordsPerPage, page * recordsPerPage);
 
@@ -33,9 +34,23 @@ export default function DepartmentsTable() {
         SettingServices.fetchDepartments(dispatch)
             .then((res) => {
                 setDepartments(res);
+                console.log('depart: ', res);
             })
             .catch((err) => console.error(err));
     };
+    const fetchParentDepartments = () => {
+        SettingServices.fetchParentDepartments()
+            .then((pd) => {
+                console.log('PD: ', pd);
+                setParentDepartments(pd);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    };
+    useEffect(() => {
+        fetchParentDepartments();
+    }, []);
 
     useEffect(() => {
         fetchDepartments();
@@ -48,9 +63,10 @@ export default function DepartmentsTable() {
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const payload = {
+        const payload: any = {
             name: formData.name,
             expected_arrival_time: formData.expected_arrival_time || null,
+            parent: formData.parent || null, // <-- include this
         };
 
         try {
@@ -74,10 +90,11 @@ export default function DepartmentsTable() {
                 id: department.id,
                 name: department.name,
                 expected_arrival_time: department.expected_arrival_time ?? '',
+                parent: department.parent,
             });
             setIsEditMode(true);
         } else {
-            setFormData({ id: 0, name: '', expected_arrival_time: '' });
+            setFormData({ id: 0, name: '', expected_arrival_time: '', parent: null });
             setIsEditMode(false);
         }
         setIsModalOpen(true);
@@ -85,7 +102,7 @@ export default function DepartmentsTable() {
 
     const closeModal = () => {
         setIsModalOpen(false);
-        setFormData({ id: 0, name: '', expected_arrival_time: '' });
+        setFormData({ id: 0, name: '', expected_arrival_time: '', parent: null });
         setIsEditMode(false);
     };
     const handleConfirmDelete = async () => {
@@ -108,10 +125,11 @@ export default function DepartmentsTable() {
     const columns = [
         { accessor: 'id', title: 'ID', width: 80 },
         { accessor: 'name', title: 'Name' },
+        { accessor: 'parent_name', title: 'Parent' },
         {
             accessor: 'expected_arrival_time',
             title: 'Arrival Time',
-            render: ({ expected_arrival_time }: any) => (expected_arrival_time ? format(new Date(expected_arrival_time), 'yyyy-MM-dd') : '—'),
+            render: ({ expected_arrival_time }: Department) => expected_arrival_time || '—',
         },
         {
             accessor: 'actions',
@@ -180,14 +198,38 @@ export default function DepartmentsTable() {
                                         />
                                     </div>
 
+                                    {/* Arrival Time */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Expected Arrival Date</label>
+                                        <label className="block text-sm font-medium text-gray-700">Expected Arrival Time</label>
                                         <input
-                                            type="date"
-                                            value={formData.expected_arrival_time ?? ''}
+                                            type="time"
+                                            value={formData?.expected_arrival_time!}
                                             onChange={(e) => setFormData({ ...formData, expected_arrival_time: e.target.value })}
                                             className="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring focus:ring-blue-200"
                                         />
+                                    </div>
+
+                                    {/* Parent Department */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Parent Department</label>
+                                        <select
+                                            value={formData.parent !== null ? String(formData.parent) : ''}
+                                            onChange={(e) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    parent: e.target.value ? Number(e.target.value) : null,
+                                                })
+                                            }
+                                            className="mt-1 block w-full border-gray-500 px-3 py-1"
+                                        >
+                                            <option value="">— None —</option>
+                                            {parentDepartment.map((dep) => (
+                                                <option key={dep.id} value={dep.id}>
+                                                    {dep.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-500 mt-1">If this is a sub‐department, choose its parent here.</p>
                                     </div>
 
                                     <div className="flex justify-end gap-2 mt-6">

@@ -13,8 +13,8 @@ import SettingServices from '../../../services/SettingServices';
 import { render } from '@fullcalendar/core/preact';
 import CompanyInfoPopup from './CompanyInfoPopup';
 import toast, { Toaster } from 'react-hot-toast';
-import { FaCalendar, FaCalendarAlt, FaCog, FaFileInvoice, FaMoneyBill } from 'react-icons/fa';
-
+import { FaBuilding, FaCalendar, FaCalendarAlt, FaCog, FaFileInvoice, FaMoneyBill } from 'react-icons/fa';
+import { Building2, Mail, Globe, Phone, Clock, Coffee, CreditCard, Receipt, Percent, Calendar, Edit, Plus, Trash2, Save, X, CheckCircle, AlertCircle, Info, Settings } from 'lucide-react';
 // Define the policy type to match the shape of policy objects
 
 interface WorkingDay {
@@ -109,25 +109,6 @@ const Company_Info = () => {
 
     const [formData, setFormData] = useState<Policy>(initialFormFields);
 
-    const columns = [
-        { accessor: 'id', title: 'ID' },
-        { accessor: 'name', title: 'Name', width: 100 },
-        { accessor: 'email', title: 'Email' },
-        { accessor: 'website', title: 'Website', render: (row: any) => <div className="min-w-28">{row.website}</div> },
-        { accessor: 'phone_number', title: 'Phone Number' },
-        { accessor: 'working_time', title: 'Working Time' },
-        { accessor: 'office_open_time', title: 'Office Open Time', render: (row: any) => formatTimeToAMPM(row.office_open_time) },
-        { accessor: 'office_close_time', title: 'Office Close Time', render: (row: any) => formatTimeToAMPM(row.office_close_time) },
-        { accessor: 'break_start_time', title: 'Break Start Time', render: (row: any) => formatTimeToAMPM(row.break_start_time) },
-        { accessor: 'break_end_time', title: 'Break End Time', render: (row: any) => formatTimeToAMPM(row.break_end_time) },
-    ];
-
-    const Standard = [
-        { accessor: 'id', title: 'ID' },
-        { accessor: 'currency', title: 'Currency' },
-        { accessor: 'tax_id', title: 'Tax ID' },
-        { accessor: 'tax_percentage', title: 'Tax Percentage', render: (row: any) => `${row.tax_percentage}%` },
-    ];
     const WorkingDay = [
         { accessor: 'id', title: 'ID' },
         { accessor: 'day_name', title: 'Day Name' },
@@ -137,13 +118,9 @@ const Company_Info = () => {
             accessor: 'action',
             title: 'Action',
             render: (row: any) => (
-                <span className="flex items-center gap-3">
-                    <button onClick={() => openWorkingDayForm(row.id)} key={'edit'} className="btn btn-sm btn-outline-primary">
-                        Edit
-                    </button>
-                    <button key={'delete'} className="btn btn-sm btn-outline-danger">
-                        Delete
-                    </button>
+                <span className="flex items-center gap-4">
+                    <Edit className="hover:text-blue-500 hover:cursor-pointer" size={14} onClick={() => openWorkingDayForm(row.id)} />
+                    <Trash2 size={14} className="hover:text-red-500 hover:cursor-pointer" />
                 </span>
             ),
         },
@@ -311,98 +288,190 @@ const Company_Info = () => {
         });
     };
 
+    if (!policies[0]) {
+        return <div></div>;
+    }
+
     return (
         <div>
-            <div className="mb-4 px-1 flex items-center justify-between w-full bg-gray-200 rounded-full py-1">
-                <div onClick={() => setActiveTab(1)} className={`hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 1 && activeCSS}`}>
-                    <FaFileInvoice />
+            {/* Taps */}
+            <div className="mb-4 px-1 flex flex-col sm:flex-row items-center justify-between w-full rounded-lg bg-gray-200 sm:rounded-full py-1">
+                <div onClick={() => setActiveTab(1)} className={`px-8 hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 1 && activeCSS}`}>
+                    <Building2 size={14} />
                     <span>Company Info</span>
                 </div>
-                <div onClick={() => setActiveTab(2)} className={`hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 2 && activeCSS}`}>
-                    <FaCog />
+                <div onClick={() => setActiveTab(2)} className={`px-8 hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 2 && activeCSS}`}>
+                    <Settings size={14} />
                     <span>Company Standard</span>
                 </div>
-                <div onClick={() => setActiveTab(3)} className={`hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 3 && activeCSS}`}>
-                    <FaCalendarAlt className="" />
+                <div onClick={() => setActiveTab(3)} className={`px-8 hover:cursor-pointer flex flex-grow justify-center items-center gap-1 rounded-full ${activeTabe === 3 && activeCSS}`}>
+                    <Calendar size={14} />
                     <span>Working Days</span>
                 </div>
             </div>
-            <section className=""></section>
-            {/* Company Info */}
-            <div className="panel">
-                <div className="flex justify-between items-center mb-5">
-                    <h5 className="font-semibold text-lg dark:text-white-light">Company Info</h5>
-                    <button type="button" className="btn btn-primary" onClick={openInfoForm}>
-                        Update Info
-                    </button>
-                </div>
-                <div className="datatables">
-                    <DataTable
-                        records={policies}
-                        columns={columns}
-                        totalRecords={policies.length}
-                        page={page}
-                        recordsPerPage={recordsPerPage}
-                        onPageChange={setPage}
-                        onRecordsPerPageChange={setRecordsPerPage}
-                        recordsPerPageOptions={[5, 10, 20, 50]}
-                        minHeight={200}
-                        paginationText={({ from, to, totalRecords }) => `Showing ${from} to ${to} of ${totalRecords}`}
-                        striped
-                        highlightOnHover
-                    />
-                </div>
-            </div>
-            {/* Company Standard */}
-            <div className="panel">
-                <div className="flex justify-between items-center mb-5">
-                    <h5 className="font-semibold text-lg dark:text-white-light">Company Standard</h5>
-                    <button type="button" className="btn btn-primary" onClick={openStandardForm}>
-                        Update Standard
-                    </button>
-                </div>
-                <div className="datatables">
-                    <DataTable
-                        records={policies}
-                        columns={Standard}
-                        totalRecords={policies.length}
-                        page={page}
-                        recordsPerPage={recordsPerPage}
-                        onPageChange={setPage}
-                        onRecordsPerPageChange={setRecordsPerPage}
-                        recordsPerPageOptions={[5, 10, 20, 50]}
-                        minHeight={200}
-                        paginationText={({ from, to, totalRecords }) => `Showing ${from} to ${to} of ${totalRecords}`}
-                        striped
-                        highlightOnHover
-                    />
-                </div>
-            </div>
+
+            {/* Info Section */}
+            {activeTabe === 1 && (
+                <section className="border bg-white p-4 py-6 rounded-2xl mb-4">
+                    {/* Headings and Button*/}
+                    <div className="flex items-center justify-between px-4 mb-6">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <Building2 />
+                                <h1>Company Information</h1>
+                            </div>
+                            <p className="text-[10px] text-gray-500">Basic company details and contact information</p>
+                        </div>
+                        <button onClick={openInfoForm} className="text-sm flex items-center gap-2 bg-black text-white px-3 py-1 rounded hover:cursor-pointer">
+                            <Edit className="text-gray-300 size-4" />
+                            <span className="font-semibold">Update info</span>
+                        </button>
+                    </div>
+                    {/* cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="gap-4 bg-[#EFF6FF] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <Building2 size={28} color="blue" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Company Name</span>
+                                <span className="text-lg font-semibold">{policies[0].name}</span>
+                            </div>
+                        </div>
+                        <div className="gap-4 bg-[#FAF5FF] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <Globe size={28} className="text-[#9038b3]" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Website</span>
+                                <span className="text-lg font-semibold">{policies[0].website}</span>
+                            </div>
+                        </div>
+                        <div className="gap-4 bg-[#FEFCE8] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <Clock size={28} className="text-[#d8cd36]" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Working Hours</span>
+                                <span className="text-lg font-semibold">{policies[0].working_time} hours/day</span>
+                            </div>
+                        </div>
+                        <div className="gap-4 bg-[#F0FDF4] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <Mail size={28} className="text-[#24ad4d]" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Email</span>
+                                <span className="text-lg font-semibold">{policies[0].email}</span>
+                            </div>
+                        </div>
+                        <div className="gap-4 bg-[#FFF7ED] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <Phone size={28} className="text-[#ff6060]" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Phone</span>
+                                <span className="text-lg font-semibold">{policies[0].phone_number}</span>
+                            </div>
+                        </div>
+                        <div className="gap-4 bg-[#FEF2F2] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <Coffee size={28} className="text-[#541e69]" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Break Time</span>
+                                <span className="text-lg font-semibold">{`${formatTimeToAMPM(policies[0].break_start_time)} - ${formatTimeToAMPM(policies[0].break_end_time)}`}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 flex items-center justify-between bg-[#F5F5F7] py-4 px-5 rounded-lg">
+                        <div>
+                            <h4 className="tex-sm font-semibold">Office Hours</h4>
+                            <p className="text-[12px] text-gray-500">Daily operating schedule</p>
+                        </div>
+                        <div>
+                            <div className="tex-sm font-semibold">{`${formatTimeToAMPM(policies[0].break_start_time)} - ${formatTimeToAMPM(policies[0].break_end_time)}`}</div>
+                            <p className="text-[12px] text-gray-500">Monday to Saturday</p>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* Standard Section */}
+            {activeTabe === 2 && (
+                <section className="border bg-white p-4 py-6 rounded-2xl mb-4">
+                    {/* Headings and Button*/}
+                    <div className="flex items-center justify-between px-4  mb-6">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <Settings />
+                                <h1>Company Standards</h1>
+                            </div>
+                            <p className="text-[10px] text-gray-500">Financial and tax configuration settings</p>
+                        </div>
+                        <button onClick={openStandardForm} className="text-sm flex items-center gap-2 bg-black text-white px-3 py-[6px] rounded hover:cursor-pointer">
+                            <Edit className="text-gray-300 size-4" />
+                            <span className="font-semibold">Update Standard</span>
+                        </button>
+                    </div>
+                    {/* cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="gap-4 bg-[#EFF6FF] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <CreditCard size={28} color="blue" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Currency</span>
+                                <span className="text-lg font-semibold">{policies[0].currency}</span>
+                            </div>
+                        </div>
+                        <div className="gap-4 bg-[#FAF5FF] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <Receipt size={28} className="text-[#9038b3]" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Tax ID</span>
+                                <span className="text-lg font-semibold">{policies[0].tax_id}</span>
+                            </div>
+                        </div>
+                        <div className="gap-4 bg-[#FEFCE8] flex py-2 px-8 rounded-xl items-center justify-start">
+                            <Percent size={28} className="text-[#d8cd36]" />
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[12px]">Tax Rate</span>
+                                <span className="text-lg font-semibold">{policies[0].tax_percentage}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 flex gap-4 items-center border border-[#fad957] bg-[#FFFBEB] py-4 px-5 rounded-lg">
+                        <Info className="text-[#c7a82b]" />
+                        <div>
+                            <h4 className="text-[#ad8429] tex-sm font-semibold">Important Note</h4>
+                            <p className="text-[#ac7829] text-[12px]">Changes to tax configuration will affect all future financial calculations. Please ensure accuracy before updating.</p>
+                        </div>
+                    </div>
+                </section>
+            )}
+
             {/* Working Days */}
-            <div className="panel">
-                <div className="flex justify-between items-center mb-5">
-                    <h5 className="font-semibold text-lg dark:text-white-light">Working Day</h5>
-                    <button type="button" className="btn btn-primary" onClick={openWorkingDayFormNew}>
-                        Add Day
-                    </button>
+            {activeTabe === 3 && (
+                <div className="panel">
+                    <div className="flex justify-between items-center mb-5">
+                        <div className="">
+                            <div className="flex items-center gap-2">
+                                <Calendar />
+                                <h5 className="font-semibold text-lg dark:text-white-light">Working Days Management</h5>
+                            </div>
+                            <p className="text-[12px] text-gray-600">Configure working schedules for each day of the week</p>
+                        </div>
+
+                        <button type="button" className="btn btn-primary" onClick={openWorkingDayFormNew}>
+                            Add Day
+                        </button>
+                    </div>
+                    <div className="datatables">
+                        <DataTable
+                            records={policies[0]?.working_days_details}
+                            columns={WorkingDay}
+                            totalRecords={policies.length}
+                            page={page}
+                            recordsPerPage={recordsPerPage}
+                            onPageChange={setPage}
+                            onRecordsPerPageChange={setRecordsPerPage}
+                            recordsPerPageOptions={[5, 10, 20, 50]}
+                            minHeight={200}
+                            paginationText={({ from, to, totalRecords }) => `Showing ${from} to ${to} of ${totalRecords}`}
+                            striped
+                            highlightOnHover
+                        />
+                    </div>
                 </div>
-                <div className="datatables">
-                    <DataTable
-                        records={policies[0]?.working_days_details}
-                        columns={WorkingDay}
-                        totalRecords={policies.length}
-                        page={page}
-                        recordsPerPage={recordsPerPage}
-                        onPageChange={setPage}
-                        onRecordsPerPageChange={setRecordsPerPage}
-                        recordsPerPageOptions={[5, 10, 20, 50]}
-                        minHeight={200}
-                        paginationText={({ from, to, totalRecords }) => `Showing ${from} to ${to} of ${totalRecords}`}
-                        striped
-                        highlightOnHover
-                    />
-                </div>
-            </div>
+            )}
 
             <Transition appear show={!!modalConfig} as={Fragment}>
                 <Dialog as="div" className="relative z-50" onClose={closeModal}>
