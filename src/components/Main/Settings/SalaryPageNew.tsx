@@ -5,6 +5,13 @@ import JobPopup from './SalaryPageComponents/JobPopup';
 import JobDataTable from './SalaryPageComponents/JobDataTable';
 import PayGradeDataTable from './SalaryPageComponents/PayGradeDataTable';
 import PayGradePopup from './SalaryPageComponents/PayGradePopup';
+import SalaryComponentTable from './SalaryPageComponents/SalaryComponentTable';
+import ComponentPopup from './SalaryPageComponents/ComponentPopup';
+import PayFrequenciesTable from './SalaryPageComponents/PayFrequenciesTable';
+import DeductionTable from './SalaryPageComponents/DeductionTable';
+import DeductionPopup from './SalaryPageComponents/DeductionPopup';
+import BasicProfileTable from './SalaryPageComponents/BasicProfileTable';
+import BasicProfilePopup from './SalaryPageComponents/BasicProfilePopup';
 import toast, { Toaster } from 'react-hot-toast';
 
 const tabs = [
@@ -22,6 +29,8 @@ const tabs = [
 export default function SalaryPageNew() {
     const [openJob, setOpenjob] = useState<boolean>(false);
     const [openPayGrade, setOpenPayGrade] = useState<boolean>(false);
+    const [openComponent, setOpenComponent] = useState<boolean>(false);
+    const [openBasicProfile, setOpenBasicProfile] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<string>(tabs[0].key);
 
     useEffect(() => {
@@ -29,7 +38,7 @@ export default function SalaryPageNew() {
     }, [activeTab]);
 
     const hanldeResponse = (data: any) => {
-        toast.success(data, { duration: 4000 });
+        // toast.success(data, { duration: 4000 });
     };
     return (
         <div className="space-y-8 p-6 bg-gray-50 min-h-screen">
@@ -97,6 +106,10 @@ export default function SalaryPageNew() {
             {/* Salary Overview child */}
             {activeTab === 'jobTypes' && <JobDataTable />}
             {activeTab === 'payGrades' && <PayGradeDataTable />}
+            {activeTab === 'components' && <SalaryComponentTable />}
+            {activeTab === 'frequencies' && <PayFrequenciesTable />}
+            {activeTab === 'deductions' && <DeductionTable />}
+            {activeTab === 'profiles' && <BasicProfileTable />}
 
             {/* Quick Actions / Recent Activity / Distribution */}
             {activeTab === 'overView' && (
@@ -109,8 +122,11 @@ export default function SalaryPageNew() {
                         <button onClick={() => setOpenPayGrade(true)} className="w-full text-left px-3 py-2 border border-gray-300 rounded flex items-center gap-2 hover:bg-gray-50">
                             <Plus className="w-5 h-5" /> New Pay Grade
                         </button>
-                        <button className="w-full text-left px-3 py-2 border border-gray-300 rounded flex items-center gap-2 hover:bg-gray-50">
+                        <button onClick={() => setOpenComponent(true)} className="w-full text-left px-3 py-2 border border-gray-300 rounded flex items-center gap-2 hover:bg-gray-50">
                             <Plus className="w-5 h-5" /> New Component
+                        </button>
+                        <button onClick={() => setOpenBasicProfile(true)} className="w-full text-left px-3 py-2 border border-gray-300 rounded flex items-center gap-2 hover:bg-gray-50">
+                            <Plus className="w-5 h-5" /> New Basic Profile
                         </button>
                         <button className="w-full text-left px-3 py-2 border border-gray-300 rounded flex items-center gap-2 hover:bg-gray-50">
                             <Plus className="w-5 h-5" /> New Salary Structure
@@ -179,6 +195,8 @@ export default function SalaryPageNew() {
             {/* Popups */}
             {openJob && <JobPopup show={openJob} onClose={() => setOpenjob(false)} sendResponse={hanldeResponse} />}
             {openPayGrade && <PayGradePopup show={openPayGrade} onClose={() => setOpenPayGrade(false)} sendResponse={hanldeResponse} />}
+            {openComponent && <ComponentPopup show={openComponent} onClose={() => setOpenComponent(false)} sendResponse={hanldeResponse} />}
+            {openBasicProfile && <BasicProfilePopup show={openBasicProfile} onClose={() => setOpenBasicProfile(false)} sendResponse={hanldeResponse} />}
         </div>
     );
 }

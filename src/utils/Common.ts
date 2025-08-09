@@ -11,3 +11,22 @@ export function formatDate(input: string): string {
         hour12: true,
     });
 }
+export function capitalizeName(name: string): string {
+    if (!name) return '';
+
+    return name
+        .trim()
+        .split(/\s+/) // split on any whitespace, collapse extra spaces
+        .map((word) =>
+            // split around '-' and '\'' but keep the separators so we can rejoin them
+            word
+                .split(/([-'])/)
+                .map((part) =>
+                    /[-']/.test(part)
+                        ? part // keep separators as-is
+                        : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+                )
+                .join('')
+        )
+        .join(' ');
+}
