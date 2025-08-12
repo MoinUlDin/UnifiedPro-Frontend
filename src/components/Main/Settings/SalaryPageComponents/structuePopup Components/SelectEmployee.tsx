@@ -31,6 +31,9 @@ export default function SelectEmployee({ selectedEmployee, onSelect }: { selecte
 
     const filtered = employees.filter((e) => `${e.employee.name} ${e.department.name} ${e.job_type.name}`.toLowerCase().includes(query.toLowerCase()));
 
+    useEffect(() => {
+        console.log('selectedEmployee: ', selectedEmployee);
+    }, [selectedEmployee]);
     return (
         <div>
             <div className="flex items-center justify-center -mt-3">

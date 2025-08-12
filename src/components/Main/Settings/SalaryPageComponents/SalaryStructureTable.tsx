@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Percent } from 'lucide-react';
-import { SalaryStructureType } from '../../../../constantTypes/SalaryTypes';
+import { SalaryStructureType, OverviewType } from '../../../../constantTypes/SalaryTypes';
 import SalaryServices from '../../../../services/SalaryServices';
 import toast, { Toaster } from 'react-hot-toast';
 import DeductionPopup from './DeductionPopup';
@@ -12,36 +12,41 @@ function captureDate(data: string) {
 }
 
 export default function SalaryStructureTable() {
-    const [SalaryStructure, setSalaryStructure] = useState<SalaryStructureType[]>([]);
     const [openSalaryStructure, setOpenSalaryStructure] = useState<boolean>(false);
     const [initialData, setInitialData] = useState<any>(null);
+    const [overview, setOverview] = useState<OverviewType[]>([]);
 
-    const fetchSalaryStructure = () => {
-        SalaryServices.FetchSalaryStructure()
+    const fetchSalaryOverviews = () => {
+        SalaryServices.FetchSalaryOverviews()
             .then((r) => {
-                console.log('Salary Structure', r);
-                setSalaryStructure(r);
+                setOverview(r);
             })
             .catch((e) => {
-                toast.error(e.message);
+                console.log('error Overview: ', e);
             });
     };
+
     useEffect(() => {
-        fetchSalaryStructure();
+        fetchSalaryOverviews();
     }, []);
 
     const handleNew = () => {
         setInitialData(null);
         setOpenSalaryStructure(true);
     };
-    const handleEdit = (data: any) => {
-        console.log('data: ', data);
-        setInitialData(data);
+    const handleEdit = (data: OverviewType) => {
+        const payload = {
+            id: data.basic_profile_id,
+            employee: { name: data.employee_name },
+            department: { name: data.department },
+            job_type: { name: data.job_type },
+        };
+        setInitialData(payload);
         setOpenSalaryStructure(true);
     };
 
     const hanldeResponse = (r: any) => {
-        fetchSalaryStructure();
+        fetchSalaryOverviews();
     };
 
     const handleDelete = (id: number) => {
@@ -62,7 +67,7 @@ export default function SalaryStructureTable() {
                 SalaryServices.DeleteSalaryStructure(id)
                     .then(() => {
                         toast.success('Component Deleted Successfully', { duration: 4000 });
-                        fetchSalaryStructure();
+                        fetchSalaryOverviews();
                     })
                     .catch((e) => {
                         toast.error(e.message);
@@ -91,33 +96,41 @@ export default function SalaryStructureTable() {
                     <thead className="">
                         <tr className="border-b ">
                             <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Employee</th>
-                            <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Component</th>
+                            <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Job Type</th>
+                            <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Frequency</th>
                             <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Paygrade</th>
-                            <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Amount</th>
+                            <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Gross</th>
+                            <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Duductions</th>
+                            <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Net Salary</th>
                             <th className="py-3 px-4 text-sm font-semibold bg-white text-gray-800">Action</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
-                        {SalaryStructure.map((job) => (
-                            <tr key={job.id}>
-                                <td className="py-3 px-4">{job.basic_profile?.name ? job.basic_profile?.name : '--'}</td>
-                                <td className="py-3 px-4 flex items-center gap-1">{job.salary_component?.name}</td>
+                        {overview.map((job) => (
+                            <tr key={job.basic_profile_id}>
+                                <td className="py-3 px-4">{job.employee_name ?? '--'}</td>
+                                <td className="py-3 px-4 flex items-center gap-1">{job.job_type}</td>
                                 <td className="py-3 px-4">
-                                    <span className="px-2 py-1 text-gray-800 text-[12px] rounded-lg shadow">{job.pay_grade?.name}</span>
+                                    <span className="px-2 py-1 border border-amber-200 text-gray-800 text-[12px] rounded-lg shadow">{job.pay_frequency}</span>
                                 </td>
-                                <td className="py-3 px-4">{job.pay_amount}</td>
+                                <td className="py-3 px-4">
+                                    <span className="px-2 py-1 text-gray-800 text-[12px] rounded-lg shadow">{job.pay_grade}</span>
+                                </td>
+                                <td className="py-3 px-4">{Number(job.gross_salary).toLocaleString()}</td>
+                                <td className="py-3 px-4">{Number(job.total_deductions).toLocaleString()}</td>
+                                <td className="py-3 px-4">{Number(job.net_salary).toLocaleString()}</td>
 
                                 <td className="py-3 px-4 space-x-4">
                                     <button onClick={() => handleEdit(job)} className="text-gray-600 hover:text-indigo-600" aria-label="Edit">
                                         <Edit2 className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => handleDelete(job.id)} className="text-gray-600 hover:text-red-600" aria-label="Delete">
+                                    <button onClick={() => handleDelete(job.basic_profile_id)} className="text-gray-600 hover:text-red-600" aria-label="Delete">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </td>
                             </tr>
                         ))}
-                        {SalaryStructure.length === 0 && (
+                        {overview.length === 0 && (
                             <tr>
                                 <td colSpan={5} className="py-6 px-4 text-center text-gray-500">
                                     No job types found.

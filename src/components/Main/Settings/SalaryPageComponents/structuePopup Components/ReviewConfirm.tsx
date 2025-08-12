@@ -20,12 +20,17 @@ interface ConfigType {
 }
 
 interface Props {
-    onConfirm: (data: any) => void;
+    onFinalSubmit: () => void;
     selectedEmployee: any;
     config: ConfigType | null;
+    onDeductionsChange: (deductions: DeductionType[]) => void;
+    isEditing: boolean;
 }
 
-export default function ReviewConfirm({ onConfirm = () => {}, selectedEmployee = null, config = null }: Props) {
+export default function ReviewConfirm({ isEditing, onFinalSubmit = () => {}, selectedEmployee = null, config = null, onDeductionsChange = () => {} }: Props) {
+    // Use config directly from props
+    const { selectedComponents = [], payGrade = null, payFreq = null, deductions = [] } = config || {};
+
     const [deductionList, setDeductionList] = useState<DeductionType[]>([]);
     const [selectedDeductions, setSelectedDeductions] = useState<DeductionType[]>([]);
     const [loadingSubmit, setLoadingSubmit] = useState(false);
@@ -42,18 +47,14 @@ export default function ReviewConfirm({ onConfirm = () => {}, selectedEmployee =
         setSelectedDeductions(config.deductions ?? []);
     }, [config]);
 
-    if (!config) return <div className="p-6 text-center text-slate-500">No configuration found.</div>;
-
-    const { selectedComponents = [], payGrade = null, payFreq = null, baseSalary = 0 } = config;
-
-    // toggle deduction add/remove
+    // Handle deductions update
     const handleDeductionClick = (d: DeductionType) => {
-        setSelectedDeductions((prev) => {
-            const exists = prev.find((x) => x.id === d.id);
-            if (exists) return prev.filter((x) => x.id !== d.id);
-            return [...prev, d];
-        });
+        const newDeductions = deductions.find((x) => x.id === d.id) ? deductions.filter((x) => x.id !== d.id) : [...deductions, d];
+
+        onDeductionsChange(newDeductions);
     };
+
+    if (!config) return <div className="p-6 text-center text-slate-500">No configuration found.</div>;
 
     // totals (memoized)
     const gross = useMemo(() => selectedComponents.reduce((s, c) => s + (c.amount || 0), 0), [selectedComponents]);
@@ -63,20 +64,13 @@ export default function ReviewConfirm({ onConfirm = () => {}, selectedEmployee =
     const net = gross - deductionsTotal;
     const takeHomePct = gross ? Math.round((net / gross) * 100) : 0;
 
-    // submit handler: send final payload to parent
     const handleConfirm = async () => {
         setLoadingSubmit(true);
         try {
-            const payload = {
-                ...config,
-                deductions: selectedDeductions,
-                basicProfie: selectedEmployee,
-            };
-            // parent will handle actual API call — pass final payload
-            onConfirm(payload);
+            onFinalSubmit();
         } catch (e) {
             console.error(e);
-            alert('Failed to create salary structure.');
+            toast.error(`Failed to ${isEditing ? 'update' : 'create'} salary structure`);
         } finally {
             setLoadingSubmit(false);
         }
@@ -127,13 +121,6 @@ export default function ReviewConfirm({ onConfirm = () => {}, selectedEmployee =
                         <div>
                             <div className="text-xs text-slate-400">Pay Frequency</div>
                             <div className="font-medium mt-1">{payFreq ?? '-'}</div>
-                        </div>
-                    </div>
-
-                    <div className="mt-4">
-                        <div className="text-xs text-slate-400">Base Salary</div>
-                        <div className="text-2xl font-bold text-green-600 mt-1">
-                            {config.currency}-{baseSalary.toLocaleString()}
                         </div>
                     </div>
                 </div>
@@ -235,11 +222,9 @@ export default function ReviewConfirm({ onConfirm = () => {}, selectedEmployee =
                         </div>
 
                         <div className="mt-4 grid grid-cols-2 gap-3">
-                            <button onClick={() => window.history.back()} className="px-3 py-2 rounded border">
-                                Back
-                            </button>
                             <button onClick={handleConfirm} disabled={loadingSubmit} className="px-3 py-2 rounded bg-gradient-to-r from-indigo-600 to-pink-500 text-white font-semibold">
-                                {loadingSubmit ? 'Creating...' : 'Confirm & Create'}
+                                {loadingSubmit && (isEditing ? 'Updating...' : 'Creating...')}
+                                {!loadingSubmit && isEditing ? 'Confirm & Update' : 'Confirm & Create '}
                             </button>
                         </div>
                     </div>

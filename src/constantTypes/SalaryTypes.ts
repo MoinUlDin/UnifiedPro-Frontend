@@ -89,3 +89,15 @@ export interface AllComponents {
     deductions: DeductionType[];
     currency: string;
 }
+export interface OverviewType {
+    basic_profile_id: 1;
+    employee_name: 'Moin Ul Din';
+    department: string;
+    job_type: 'Salary Based';
+    pay_frequency: 'monthly';
+    pay_grade: 'PS-12';
+    gross_salary: '34000.00';
+    total_deductions: '1700.00';
+    net_salary: '32300.00';
+    pay_start_date: '2025-08-12';
+}

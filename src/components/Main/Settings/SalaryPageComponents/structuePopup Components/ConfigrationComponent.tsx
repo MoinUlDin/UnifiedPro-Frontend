@@ -9,50 +9,36 @@ import { useDispatch } from 'react-redux';
 interface Props {
     selectedEmployee: any;
     onUpdate: (data: any) => void;
+    isEditing: boolean;
+    initialData: any;
 }
 
-export default function ConfigrationComponent({ selectedEmployee = null, onUpdate = () => {} }: Props) {
+export default function ConfigrationComponent({ initialData = null, isEditing = false, selectedEmployee = null, onUpdate = () => {} }: Props) {
     const [allcompo, setAllComponents] = useState<AllComponents | null>(null);
     // use numbers for ids coming from API
-    const [selected, setSelected] = useState<number[]>([]);
-    const [amounts, setAmounts] = useState<Record<number, number>>({});
+    const [selected, setSelected] = useState<number[]>(initialData?.selectedComponents.map((c: any) => c.id) || []);
+    const [amounts, setAmounts] = useState<Record<number, number>>(initialData?.amounts || {});
+    const [payGradeSelected, setPayGradeSelected] = useState<any | null>(initialData?.payGrade || null);
+    const [payFreq, setPayFreq] = useState<string | null>(initialData?.payFreq || null);
     const [payGrades, setPayGrades] = useState<PayGradeType[]>([]);
     const [components, setComponents] = useState<SalaryComponentType[]>([]);
     const [payFreqs, setPayFreqs] = useState<PayFrequencyType[]>([]);
-    const [payGradeSelected, setPayGradeSelected] = useState<any | null>(null);
+
     const [currency, setCurrency] = useState<string>('USD');
-    const [payFreq, setPayFreq] = useState<string | null>(null);
+    const [loadingInitials, setLoadinginitails] = useState<boolean>(false);
 
     // find the 'basic' component for base salary calculation
-    const basicComponent = components.find((c) => (c.category && c.category.toLowerCase() === 'basic') || (c.name && c.name.toLowerCase().includes('basic')));
-    const baseSalary = basicComponent ? amounts[basicComponent.id] || 0 : 0;
+    const basicComponent = components.find((c) => (c.category || '').toLowerCase() === 'basic');
+
     const dispatch = useDispatch();
     useEffect(() => {
         SalaryServices.FetchAllStructures(dispatch)
             .then((r: AllComponents) => {
                 setAllComponents(r);
-                console.log('All Structures: ', r);
                 setComponents(r.components || []);
                 setPayGrades(r.paygrades || []);
                 setPayFreqs(r.pay_frequency || []);
                 setCurrency(r.currency);
-
-                // initialize amounts from `current` or `minimum_salary`
-                const initAmounts: Record<number, number> = {};
-                (r.components || []).forEach((c) => {
-                    initAmounts[c.id] = Number(c.current ?? c.minimum_salary ?? 0);
-                });
-                setAmounts(initAmounts);
-
-                // default selected: components that have `current` set OR fallback to basic if none
-                const withCurrent = (r.components || []).filter((c) => c.current != null).map((c) => c.id);
-
-                if (withCurrent.length > 0) {
-                    setSelected(withCurrent);
-                } else {
-                    const basic = (r.components || []).find((c) => (c.category && c.category.toLowerCase() === 'basic') || (c.name && c.name.toLowerCase().includes('basic')));
-                    setSelected(basic ? [basic.id] : []);
-                }
             })
             .catch((e) => {
                 console.error('FetchAllStructures error:', e);
@@ -71,42 +57,42 @@ export default function ConfigrationComponent({ selectedEmployee = null, onUpdat
     const estimatedTotal = selected.reduce((sum, id) => sum + (amounts[id] || 0), 0);
 
     // inside ConfigrationComponent (replace your placeholder useEffect)
+    // Update parent when changes occur
     useEffect(() => {
-        // build selectedComponents array with id, name, amount
         const selectedComponents = selected
             .map((id) => {
                 const comp = components.find((c) => c.id === id);
-                if (!comp) return null;
-                return {
-                    id: comp.id,
-                    name: comp.name,
-                    category: comp.category,
-                    amount: amounts[comp.id] ?? Number(comp.current ?? comp.minimum_salary ?? 0),
-                };
+                return comp
+                    ? {
+                          id: comp.id,
+                          name: comp.name,
+                          category: comp.category,
+                          amount: amounts[comp.id] || 0,
+                      }
+                    : null;
             })
             .filter(Boolean);
 
-        // baseSalary detection (if you want explicit base component)
-        const base = components.find((c) => (c.category || '').toLowerCase() === 'basic' || (c.name || '').toLowerCase().includes('basic'));
-        const baseSalary = base ? amounts[base.id] ?? Number(base.current ?? base.minimum_salary ?? 0) : 0;
-
         const payload = {
-            // arrays & maps that Review will expect
-            selectedComponents, // [{id, name, amount, category}, ...]
-            amounts, // { [componentId]: amount, ... }
-            payGrade: payGradeSelected ?? null, // the selected pay grade object (or null)
-            payFreq: payFreq ?? null, // selected pay frequency name/object
-            deductions: [], // you can wire actual deductions here if you expose them in the UI
-            effectiveDate: null, // wire from date input when you add it
-            baseSalary,
-            estimatedTotal: selectedComponents.reduce((s, c) => s + (c?.amount || 0), 0),
+            selectedComponents,
+            amounts,
+            payGrade: payGradeSelected,
+            payFreq,
+            estimatedTotal: selectedComponents.reduce((sum, c) => sum + (c?.amount || 0), 0),
             currency,
+            // Preserve existing deductions
+            deductions: initialData?.deductions || [],
         };
-        console.log('payload', payload);
-        // call parent's onUpdate so parent stores the latest config
-        onUpdate(payload);
-    }, [selected, amounts, payGradeSelected, payFreq, components /*, deductions, effectiveDate */]);
 
+        onUpdate(payload);
+    }, [selected, amounts, payGradeSelected, payFreq, components]);
+    // Setinitail Data or previous Data
+    useEffect(() => {
+        if (!initialData) return;
+        setLoadinginitails(true);
+
+        setLoadinginitails(false);
+    }, []);
     // guard while data loading
     if (!allcompo) {
         return <div className="p-6 text-center text-slate-500">Loading salary structures…</div>;
@@ -126,12 +112,12 @@ export default function ConfigrationComponent({ selectedEmployee = null, onUpdat
             {selectedEmployee && (
                 <div className="mt-4 col-span-3 rounded-lg border border-indigo-200 p-3 flex items-center gap-4">
                     <div className="w-10 h-10 rounded bg-gradient-to-br from-indigo-200  to-indigo-600 flex items-center justify-center font-semibold text-indigo-700">
-                        {getAbbrivation(selectedEmployee.employee.name)}
+                        {getAbbrivation(selectedEmployee.employee?.name)}
                     </div>
                     <div className="flex-1">
-                        <div className="font-semibold">{selectedEmployee.employee.name ?? 'Emp N/A'}</div>
+                        <div className="font-semibold">{selectedEmployee.employee?.name ?? 'Emp N/A'}</div>
                         <div className="text-sm text-slate-500">
-                            {selectedEmployee.department.name} • {selectedEmployee.job_type.name}
+                            {selectedEmployee.department?.name} • {selectedEmployee.job_type?.name}
                         </div>
                     </div>
                 </div>
@@ -172,7 +158,6 @@ export default function ConfigrationComponent({ selectedEmployee = null, onUpdat
                                                     <div className="text-xs text-slate-500">{c.category}</div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs px-2 py-1 rounded-full bg-slate-100">{c.category}</span>
                                                     <button onClick={() => toggle(c.id)} className="p-1 rounded-full border hover:bg-slate-50">
                                                         {isOn ? <MinusCircle size={16} /> : <PlusCircle size={16} />}
                                                     </button>
@@ -182,12 +167,12 @@ export default function ConfigrationComponent({ selectedEmployee = null, onUpdat
                                             {isOn && (
                                                 <div className="mt-3">
                                                     <label className="text-xs text-slate-500">Amount for this component</label>
-                                                    <div className="mt-2 flex items-center gap-2">
+                                                    <div className="mt-2 flex items-center gap-2 min-w-0">
                                                         <span className="px-2 py-2 rounded-l-md border border-r-0 bg-slate-50">{currency}</span>
                                                         <input
                                                             value={amounts[c.id] ?? ''}
                                                             onChange={(e) => setAmount(c.id, e.target.value)}
-                                                            className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none"
+                                                            className="w-full min-w-[68px] flex-grow-0 flex-shrink px-3 py-2 border rounded-r-md focus:outline-none"
                                                         />
                                                     </div>
                                                     <div className="text-xs text-slate-400 mt-1">

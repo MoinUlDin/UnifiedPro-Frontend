@@ -228,7 +228,17 @@ export default class SalaryServices {
             throw new Error(msg);
         }
     }
-
+    static async FetchDetailedBasicProfile(id: number) {
+        try {
+            if (!id) throw new Error('No ID Given');
+            const response = await api.get(`/routine-tasks/basic-profile/${id}`);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.user || 'error fetching Jobs Data';
+            throw new Error(msg);
+        }
+    }
     static async AddBasicProfile(payload: any) {
         try {
             const response = await api.post(`/routine-tasks/basic-profile/`, payload);
@@ -281,6 +291,16 @@ export default class SalaryServices {
             throw new Error(msg);
         }
     }
+    static async FetchSalaryOverviews() {
+        try {
+            const response = await api.get(`/routine-tasks/salary-structure/salary-overviews/`);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.user || 'error fetching Jobs Data';
+            throw new Error(msg);
+        }
+    }
     static async AddSalaryStructure(payload: any) {
         try {
             const response = await api.post(`/routine-tasks/salary-structure/`, payload);
@@ -291,9 +311,9 @@ export default class SalaryServices {
             throw new Error(msg);
         }
     }
-    static async UpdateSalaryStructure(id: number, payload: any) {
+    static async UpdateSalaryStructureBulk(payload: any) {
         try {
-            const response = await api.patch(`/routine-tasks/salary-structure/${id}/`, payload);
+            const response = await api.patch(`/routine-tasks/salary-structure/bulk_update/`, payload);
             return response.data;
         } catch (e: any) {
             console.log(e);

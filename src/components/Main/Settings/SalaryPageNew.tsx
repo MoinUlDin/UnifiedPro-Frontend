@@ -52,20 +52,10 @@ export default function SalaryPageNew() {
                     </div>
                     <DollarSign className="w-8 h-8 text-green-500" />
                 </div>
-
-                {/* Stats cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <StatCard icon={<Users className="w-6 h-6 text-blue-500" />} label="Total Employees" value="5" />
-                    <StatCard icon={<ClipboardList className="w-6 h-6 text-purple-500" />} label="Job Types" value="4" />
-                    <StatCard icon={<TrendingUp className="w-6 h-6 text-orange-500" />} label="Pay Grades" value="5" />
-                    <StatCard icon={<Calculator className="w-6 h-6 text-teal-500" />} label="Components" value="6" />
-                    <StatCard icon={<DollarSign className="w-6 h-6 text-green-500" />} label="Total Payroll" value="$228,625.00" />
-                    <StatCard icon={<Percent className="w-6 h-6 text-cyan-500" />} label="Avg Salary" value="$76,208.33" />
-                </div>
             </div>
 
             {/* Navigation Tabs */}
-            <nav className="bg-gray-100 rounded-lg shadow-sm">
+            <nav className="bg-ray-100 rounded-lg bg-gradient-to-br from-blue-400 to-green-800 p-3">
                 <ul className="grid grid-cols-3 gap-3">
                     {tabs.map(({ key, label, icon }) => {
                         const isActive = key === activeTab;
@@ -76,7 +66,7 @@ export default function SalaryPageNew() {
                                     className={`
                                     w-full flex items-center gap-2
                                     px-4 py-2
-                                    ${isActive ? 'bg-white text-gray-900 shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-700 hover:text-white'}
+                                    ${isActive ? 'bg-gradient-to-br from-orange-200 to bg-red-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-700 hover:text-white'}
                                     rounded
                                     `}
                                 >
