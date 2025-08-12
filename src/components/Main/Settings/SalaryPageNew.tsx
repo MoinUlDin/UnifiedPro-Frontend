@@ -12,6 +12,7 @@ import DeductionTable from './SalaryPageComponents/DeductionTable';
 import DeductionPopup from './SalaryPageComponents/DeductionPopup';
 import BasicProfileTable from './SalaryPageComponents/BasicProfileTable';
 import BasicProfilePopup from './SalaryPageComponents/BasicProfilePopup';
+import SalaryStructureTable from './SalaryPageComponents/SalaryStructureTable';
 import toast, { Toaster } from 'react-hot-toast';
 
 const tabs = [
@@ -110,6 +111,7 @@ export default function SalaryPageNew() {
             {activeTab === 'frequencies' && <PayFrequenciesTable />}
             {activeTab === 'deductions' && <DeductionTable />}
             {activeTab === 'profiles' && <BasicProfileTable />}
+            {activeTab === 'structures' && <SalaryStructureTable />}
 
             {/* Quick Actions / Recent Activity / Distribution */}
             {activeTab === 'overView' && (

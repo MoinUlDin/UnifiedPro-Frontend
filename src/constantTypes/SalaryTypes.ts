@@ -58,3 +58,34 @@ export interface BasicProfileType {
     };
     pay_start_date: string;
 }
+
+export interface SalaryStructureType {
+    id: number;
+    basic_profile: {
+        id: number;
+        name: string;
+    };
+    salary_component: {
+        id: number;
+        name: string;
+    };
+    pay_frequency: {
+        id: number;
+        name: string;
+    };
+    pay_grade: {
+        id: number;
+        name: string;
+        minimum_salary: number;
+        maximum_salary: number;
+    };
+    pay_amount: number;
+}
+
+export interface AllComponents {
+    paygrades: PayGradeType[];
+    components: SalaryComponentType[];
+    pay_frequency: PayFrequencyType[];
+    deductions: DeductionType[];
+    currency: string;
+}

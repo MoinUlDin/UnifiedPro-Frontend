@@ -1,5 +1,5 @@
 import api from '../utils/api';
-
+import { setAllStructures } from '../store/slices/companySlice';
 export default class SalaryServices {
     //  Job Calls
     static async FetchJobs() {
@@ -252,6 +252,58 @@ export default class SalaryServices {
     static async DeleteBasicProfile(id: number) {
         try {
             const response = await api.delete(`/routine-tasks/basic-profile/${id}/`);
+            return response.data;
+        } catch (e: any) {
+            console.log('Delete Job Error:', e);
+            const msg = 'Error Deleting Job';
+            throw new Error(msg);
+        }
+    }
+    // Salary Structure Calls
+    static async FetchAllStructures(dispatch: any) {
+        try {
+            const response = await api.get(`/routine-tasks/salary-structure/get_all_structure_components/`);
+            dispatch(setAllStructures(response.data));
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.user || 'error fetching Jobs Data';
+            throw new Error(msg);
+        }
+    }
+    static async FetchSalaryStructure() {
+        try {
+            const response = await api.get(`/routine-tasks/salary-structure/`);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.user || 'error fetching Jobs Data';
+            throw new Error(msg);
+        }
+    }
+    static async AddSalaryStructure(payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/salary-structure/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log('Add Job error: ', e);
+            const msg = e.response.data.weight || 'Error Creating Job';
+            throw new Error(msg);
+        }
+    }
+    static async UpdateSalaryStructure(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/routine-tasks/salary-structure/${id}/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.weight || 'Error Updating Job';
+            throw new Error(msg);
+        }
+    }
+    static async DeleteSalaryStructure(id: number) {
+        try {
+            const response = await api.delete(`/routine-tasks/salary-structure/${id}/`);
             return response.data;
         } catch (e: any) {
             console.log('Delete Job Error:', e);

@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     announcements: null,
+    allStructures: null,
 };
 
 const companySlice = createSlice({
@@ -11,9 +12,12 @@ const companySlice = createSlice({
         setAnnouncements(state, { payload }) {
             state.announcements = payload;
         },
+        setAllStructures(state, { payload }) {
+            state.allStructures = payload;
+        },
     },
 });
 
 export default companySlice.reducer;
 
-export const { setAnnouncements } = companySlice.actions;
+export const { setAnnouncements, setAllStructures } = companySlice.actions;

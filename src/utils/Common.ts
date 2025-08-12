@@ -30,3 +30,12 @@ export function capitalizeName(name: string): string {
         )
         .join(' ');
 }
+
+export function getAbbrivation(name: string) {
+    if (!name) return;
+    return name
+        .trim()
+        .split(' ')
+        .map((w) => w.charAt(0).toUpperCase())
+        .join('');
+}
