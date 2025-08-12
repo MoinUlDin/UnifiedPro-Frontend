@@ -71,7 +71,10 @@ const AssignTasksPopup: React.FC<AssignFormProps> = ({ initialData = { employee:
         setDeptCoWorkers(coworkers);
         setValue('co_workers', []);
 
-        const filteredTasks = allTasks.filter((t: TaskType) => t.department_id === emp.department.id);
+        const filteredTasks = allTasks.filter((t: TaskType) => {
+            if (!t.department_id) return true;
+            if (t.department_id === emp.department.id) return true;
+        });
         setDeptTasks(filteredTasks);
     }, [selectedEmployee, employees, setValue]);
 
