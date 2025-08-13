@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     employeesList: null,
+    terminatedList: null,
 };
 
 const employeeSlice = createSlice({
@@ -11,9 +12,12 @@ const employeeSlice = createSlice({
         setEmployees(state, { payload }) {
             state.employeesList = payload;
         },
+        setTerminateEmployees(state, { payload }) {
+            state.terminatedList = payload;
+        },
     },
 });
 
 export default employeeSlice.reducer;
 
-export const { setEmployees } = employeeSlice.actions;
+export const { setEmployees, setTerminateEmployees } = employeeSlice.actions;

@@ -8,7 +8,9 @@ import EmployeeServices from '../../../services/EmployeeServices';
 import toast, { Toaster } from 'react-hot-toast';
 import { EmployeeType } from '../../../constantTypes/Types';
 import IconUser from '../../Icon/IconUser';
+import TerminateEmployeeModal from '../Tasks/TerminateEmployeeModal';
 import Swal from 'sweetalert2';
+import { Edit, Edit2, Trash, Trash2, UserMinus, UserMinus2, UserRoundMinus, UserRoundX } from 'lucide-react';
 
 const Edit_Employee = () => {
     const dispatch = useDispatch();
@@ -20,6 +22,8 @@ const Edit_Employee = () => {
     const [page, setPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(10);
     const [refresh, setRefresh] = useState<boolean>(false);
+    const [terminateSelection, setTerminateSelection] = useState<any>();
+    const [openTerminate, setOpenTerminate] = useState<boolean>(false);
 
     useEffect(() => {
         dispatch(setPageTitle('Create Employee'));
@@ -64,18 +68,17 @@ const Edit_Employee = () => {
             accessor: 'actions',
             title: 'Actions',
             render: (row: any) => (
-                <div className="flex gap-2">
-                    <button
-                        className="btn btn-sm btn-outline-primary"
+                <div className="flex gap-3">
+                    <Edit
+                        className="hover:cursor-pointer hover:text-blue-600 "
                         onClick={() => {
                             handleEditClick(row);
                         }}
-                    >
-                        Edit
-                    </button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(row.id)}>
-                        Delete
-                    </button>
+                        size={16}
+                    />
+                    <UserRoundX onClick={() => handleTerminate(row)} className="hover:cursor-pointer hover:text-red-600 " size={16} />
+
+                    <Trash2 className="hover:cursor-pointer hover:text-red-600 " size={16} onClick={() => handleDelete(row.id)} />
                 </div>
             ),
         },
@@ -150,6 +153,18 @@ const Edit_Employee = () => {
         }
     };
 
+    const handleTerminate = (row: any) => {
+        console.log('row: ', row);
+        const user = {
+            id: row.id,
+            name: `${row.first_name} ${row.last_name}`,
+        };
+        setTerminateSelection(user);
+        setOpenTerminate(true);
+    };
+    const handleSuccess = () => {
+        setRefresh((p) => !p);
+    };
     return (
         <div>
             <div className="panel">
@@ -184,6 +199,7 @@ const Edit_Employee = () => {
                     <Edit_Employee_Popup response={handleResponse} initailData={initailData} closeModal={closeModal} isEditMode={isEditMode} />
                 </Dialog>
             </Transition>
+            <TerminateEmployeeModal open={openTerminate} onClose={() => setOpenTerminate(false)} user={terminateSelection} onSuccess={handleSuccess} />
             <Toaster position="top-right" reverseOrder={false} />
         </div>
     );

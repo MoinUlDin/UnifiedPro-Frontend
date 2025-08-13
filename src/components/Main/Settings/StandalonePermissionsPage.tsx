@@ -23,6 +23,7 @@ import {
     BiCalendar,
     BiTime,
     BiSun,
+    BiClipboard,
     BiError,
     BiDollar,
     BiReceipt,
@@ -99,6 +100,7 @@ const iconMap = {
     BiBook,
     BiHelpCircle,
     BiTrophy,
+    BiClipboard,
 };
 
 export default function StandalonePermissionsPage() {

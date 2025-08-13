@@ -10,6 +10,15 @@ export default class TaskServices {
             throw e;
         }
     }
+    static async fetchEmployeeTasks(id: number) {
+        try {
+            const response = await api.get(`/routine-tasks/task/${id}/assigned_to_employee/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async AddTask(payload: any) {
         try {
             const response = await api.post(`/routine-tasks/task/`, payload, {
@@ -28,7 +37,7 @@ export default class TaskServices {
             return response.data;
         } catch (e: any) {
             console.log('Add Gaol error: ', e);
-            const msg = e.response.data?.co_workers[0] || e.response.data?.tasks[0] || 'Error Assigning Task';
+            const msg = e.response.data?.co_workers?.[0] || e.response.data?.tasks?.[0] || 'Error Assigning Task';
             throw new Error(msg);
         }
     }

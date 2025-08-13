@@ -1,5 +1,5 @@
 import api from '../utils/api';
-import { setEmployees } from '../store/slices/employeeSlice';
+import { setEmployees, setTerminateEmployees } from '../store/slices/employeeSlice';
 
 export default class EmployeeServices {
     static async FetchEmployees(dispatch: any) {
@@ -48,6 +48,46 @@ export default class EmployeeServices {
     static async DeleteEmployee(id: number) {
         try {
             const response = await api.delete(`/auth/employees/${id}/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async FetchTerminatedEmployees(dispatch: any) {
+        try {
+            const response = await api.get(`/company-Setup/terminate-employee/`);
+            dispatch(setTerminateEmployees(response.data));
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+
+    static async TerminateEmployee(payload: any) {
+        try {
+            const response = await api.post(`/company-Setup/terminate-employee/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.email || e.response.data.profile_image || e.response.data.password[1] || 'Error Adding Employee. Please Try Strong Password';
+            throw new Error(msg);
+        }
+    }
+    static async UpdateTerminatedEmployee(id: number, payload: any) {
+        try {
+            console.log('sending payload: ', payload);
+            const response = await api.patch(`/company-Setup/terminate-employee/${id}/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async DeleteTerminatedEmployee(id: number) {
+        try {
+            const response = await api.delete(`/company-Setup/terminate-employee/${id}/`);
             return response.data;
         } catch (e) {
             console.log(e);

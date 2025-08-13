@@ -59,7 +59,15 @@ const LoginBoxed: React.FC = () => {
             password,
         };
         AuthServices.login(payload)
-            .then(() => {
+            .then((r) => {
+                const user = r.user;
+                const permissions = r.permissions;
+                localStorage.setItem('UserInfo', JSON.stringify(user));
+                localStorage.setItem('UserPerms', JSON.stringify(permissions));
+
+                // to read
+                // const user = JSON.parse(localStorage.getItem('UserInfo') || 'null');
+                // const permissions = JSON.parse(localStorage.getItem('UserPerms') || '[]');
                 navigate('/');
             })
             .catch((err) => {

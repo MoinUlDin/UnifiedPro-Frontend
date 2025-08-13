@@ -77,6 +77,8 @@ const MainDashboard = lazy(() => import('../components/Main/MainDashboard/Dashbo
 const TodoList = lazy(() => import('../pages/Apps/Todolist'));
 const Calendar = lazy(() => import('../pages/Apps/Calendar'));
 
+// Test pages
+const EmployeeTasksPage = lazy(() => import('../components/Main/Tasks/EmployeeTasksPage'));
 // Error
 const Error = lazy(() => import('../components/Error'));
 
@@ -88,6 +90,12 @@ type AppRoute = {
 };
 
 const routes: AppRoute[] = [
+    // // Testing
+    {
+        path: '/view_tasks/test-employee',
+        element: <EmployeeTasksPage />,
+        layout: 'default',
+    },
     // Auth Routes
     {
         path: '/auth/boxed-signin',
@@ -185,6 +193,7 @@ const routes: AppRoute[] = [
         element: <TasksDashboard />,
         layout: 'default',
     },
+
     {
         path: '/view_tasks',
         element: <ViewTasks />,

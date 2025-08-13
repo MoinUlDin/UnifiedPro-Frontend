@@ -1,7 +1,7 @@
 import { PropsWithChildren, Suspense, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import App from '../../App';
-import { IRootState } from '../../store';
+import { RootState } from '../../store';
 import { toggleSidebar } from '../../store/themeConfigSlice';
 import Footer from './Footer';
 import Header from './Header';
@@ -9,9 +9,10 @@ import Setting from './Setting';
 import Sidebar from './Sidebar';
 import Portals from '../../components/Portals';
 import VoiceNavigation from '../VoiceNavigation';
+import { Toaster } from 'react-hot-toast';
 
 const DefaultLayout = ({ children }: PropsWithChildren) => {
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+    const themeConfig = useSelector((state: RootState) => state.themeConfig);
     const dispatch = useDispatch();
 
     const [showLoader, setShowLoader] = useState(true);
@@ -102,6 +103,7 @@ const DefaultLayout = ({ children }: PropsWithChildren) => {
                     </div>
                 </div>
                 <VoiceNavigation />
+                <Toaster position="top-right" reverseOrder={false} />
             </div>
         </App>
     );

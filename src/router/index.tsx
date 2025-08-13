@@ -5,11 +5,7 @@ import { routes } from './routes';
 
 const finalRoutes = routes.map((route) => ({
     ...route,
-    element: route.layout === 'blank' ? (
-        <BlankLayout key={route.path}>{route.element}</BlankLayout>
-    ) : (
-        <DefaultLayout key={route.path}>{route.element}</DefaultLayout>
-    ),
+    element: route.layout === 'blank' ? <BlankLayout key={route.path}>{route.element}</BlankLayout> : <DefaultLayout key={route.path}>{route.element}</DefaultLayout>,
 }));
 
 const router = createBrowserRouter(finalRoutes);

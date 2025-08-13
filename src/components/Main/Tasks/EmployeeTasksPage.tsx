@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import TaskServices from '../../../services/TaskServices';
 import toast from 'react-hot-toast';
 import { CheckCircle, CloudDownload, Clock, Tag } from 'lucide-react';
 
@@ -29,20 +29,6 @@ import { CheckCircle, CloudDownload, Clock, Tag } from 'lucide-react';
  *  ...
  * ]
  */
-
-/* ---------- TaskService (simple wrapper) ---------- */
-const TaskService = {
-    async fetchEmployeeTasks() {
-        // adapt this URL to your real endpoint
-        const res = await axios.get('/api/employee/tasks/');
-        return res.data;
-    },
-    async updateTask(taskId: number, payload: any) {
-        // adapt to your actual backend update path
-        const res = await axios.patch(`/api/tasks/${taskId}/`, payload);
-        return res.data;
-    },
-};
 
 /* ---------- Utilities ---------- */
 function formatDate(dateStr?: string | null) {
@@ -82,14 +68,25 @@ function TaskCard({ task, onProgressChange, onMarkComplete }: { task: any; onPro
                     </div>
                     <div className="flex items-center justify-between mt-2 gap-3">
                         <div className="flex items-center gap-2">
-                            <select value={String(progress)} onChange={(e) => onProgressChange(task.id, Number(e.target.value))} className="text-sm form-select px-2 py-1 rounded bg-white border">
+                            <select
+                                className="text-sm form-select min-w-24 px-2 py-1 rounded bg-white border"
+                                value={String(progress)}
+                                onChange={(e) => onProgressChange(task.id, Number(e.target.value))}
+                            >
                                 <option value="0">0%</option>
+                                <option value="10">10%</option>
                                 <option value="25">25%</option>
+                                <option value="30">30%</option>
+                                <option value="40">40%</option>
                                 <option value="50">50%</option>
+                                <option value="60">60%</option>
+                                <option value="70">70%</option>
                                 <option value="75">75%</option>
+                                <option value="80">80%</option>
+                                <option value="90">90%</option>
                                 <option value="100">100%</option>
                             </select>
-                            <div className="text-xs text-slate-500">({progress}%)</div>
+                            {/* <div className="text-xs text-slate-500">({progress}%)</div> */}
                         </div>
 
                         <div className="text-sm text-slate-400">{task.weight ? `Weight: ${task.weight}%` : null}</div>
@@ -153,17 +150,19 @@ export default function EmployeeTasksPage() {
         load();
     }, []);
 
-    async function load() {
-        try {
-            setLoading(true);
-            const data = await TaskService.fetchEmployeeTasks();
-            setTasks(data);
-        } catch (err) {
-            console.error(err);
-            toast.error('Failed to load tasks');
-        } finally {
-            setLoading(false);
-        }
+    function load() {
+        setLoading(true);
+        TaskServices.fetchEmployeeTasks(3)
+            .then((r) => {
+                setTasks(r);
+            })
+            .catch((e) => {
+                console.error(e);
+                toast.error('Failed to load tasks');
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }
 
     const stats = useMemo(() => {
@@ -179,23 +178,24 @@ export default function EmployeeTasksPage() {
         // optimistic update
         const prev = tasks.slice();
         setTasks((t) => t.map((x) => (x.id === id ? { ...x, progress: newProgress, status: newProgress === 100 ? 'Completed' : x.status } : x)));
-        try {
-            const payload: any = { progress: newProgress };
-            if (newProgress === 100) payload.status = 'Completed';
-            await TaskService.updateTask(id, payload);
-            toast.success('Progress updated');
-        } catch (err) {
-            console.error(err);
-            setTasks(prev);
-            toast.error('Failed to update progress');
-        }
+
+        const payload: any = { progress: newProgress };
+        if (newProgress === 100) payload.status = 'Completed';
+        TaskServices.UpdateTaskProgress(id, payload)
+            .then(() => {
+                toast.success('Progress updated');
+            })
+            .catch((e) => {
+                setTasks(prev);
+                toast.error(e.message || 'Failed to update progress');
+            });
     }
 
     async function handleMarkComplete(id: number) {
         const prev = tasks.slice();
         setTasks((t) => t.map((x) => (x.id === id ? { ...x, progress: 100, status: 'Completed' } : x)));
         try {
-            await TaskService.updateTask(id, { progress: 100, status: 'Completed' });
+            // await TaskService.updateTask(id, { progress: 100, status: 'Completed' });
             toast.success('Task marked complete');
         } catch (err) {
             console.error(err);
@@ -249,7 +249,7 @@ export default function EmployeeTasksPage() {
                 </div>
 
                 {/* tasks grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {loading ? (
                         <div className="col-span-full text-center text-slate-500 py-10">Loading tasks...</div>
                     ) : filteredTasks.length === 0 ? (
