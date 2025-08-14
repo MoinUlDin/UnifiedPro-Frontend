@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
-import { Delete, Search } from 'lucide-react';
+import { Delete, Search, Trash2 } from 'lucide-react';
 import EmployeeServices from '../../../services/EmployeeServices';
 import { useDispatch } from 'react-redux';
+import toast from 'react-hot-toast';
 // SweetAlert instance with React content
 const MySwal = withReactContent(Swal);
 
@@ -39,14 +40,39 @@ const Terminate_Employee: React.FC = () => {
         setSearch(e.target.value);
     };
 
+    const hanldeUndoTermination = (id: number) => {
+        console.log('ID: ', id);
+        const payload = {
+            user_id: id,
+        };
+        MySwal.fire({
+            title: 'You are going to cancel Termination',
+            text: `Do you realy want to cancel termination for this employee#${id}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Cancel Termination',
+            cancelButtonText: 'No, Go-Back',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                EmployeeServices.UndoTermination(payload)
+                    .then(() => {
+                        toast.success('Employee termination successfully cancelled', { duration: 4000 });
+                        fetchTerminatedEmployees();
+                    })
+                    .catch((e) => {
+                        toast.error(e.message || 'Error canceling termination');
+                    });
+            }
+        });
+    };
     // andle delete action with SweetAlert2 confirmation
     const handleDelete = async (id: number) => {
         MySwal.fire({
             title: 'Are you sure?',
-            text: 'Do you want to Delete this employee Record?',
+            text: 'Do you want to Delete this employee Record? this action will be irreversable.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, terminate',
+            confirmButtonText: 'Yes, Delete',
             cancelButtonText: 'No, cancel',
         }).then(async (result) => {
             if (result.isConfirmed) {
@@ -90,8 +116,9 @@ const Terminate_Employee: React.FC = () => {
                                 <td>{employee.department}</td>
                                 <td>{employee.email}</td>
                                 <td>{employee.termination_date}</td>
-                                <td className="text-center">
-                                    <Delete />
+                                <td className="text-center flex items-center gap-2">
+                                    <Delete className="hover:text-red-500 hover:cursor-pointer" size={18} onClick={() => hanldeUndoTermination(employee.id)} />
+                                    <Trash2 size={18} />
                                 </td>
                             </tr>
                         ))}

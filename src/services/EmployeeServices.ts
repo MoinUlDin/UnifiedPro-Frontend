@@ -64,10 +64,19 @@ export default class EmployeeServices {
             throw e;
         }
     }
-
     static async TerminateEmployee(payload: any) {
         try {
             const response = await api.post(`/company-Setup/terminate-employee/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.email || e.response.data.profile_image || e.response.data.password[1] || 'Error Adding Employee. Please Try Strong Password';
+            throw new Error(msg);
+        }
+    }
+    static async UndoTermination(payload: any) {
+        try {
+            const response = await api.post(`/company-Setup/undo-termination/`, payload);
             return response.data;
         } catch (e: any) {
             console.log(e);

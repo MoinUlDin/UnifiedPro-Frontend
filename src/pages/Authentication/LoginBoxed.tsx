@@ -34,7 +34,6 @@ const LoginBoxed: React.FC = () => {
     const slideTexts = ['Revolutionize your HR experience', 'Empower your workforce', 'Innovate with AI-driven insights'];
 
     useEffect(() => {
-        console.log('we are in ');
         const interval = setInterval(() => {
             setActiveIndex((prev) => (prev + 1) % modernImages.length);
         }, 3000);

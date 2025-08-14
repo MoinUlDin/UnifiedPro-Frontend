@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
@@ -6,22 +6,9 @@ import IconSearch from '../../../components/Icon/IconSearch';
 import IconCalendar from '../../../components/Icon/IconCalendar';
 import IconUser from '../../../components/Icon/IconUser';
 import IconDownload from '../../../components/Icon/IconDownload';
-
-interface AttendanceRecord {
-    date: string;
-    status: 'present' | 'absent' | 'late' | 'leave';
-    checkIn?: string;
-    checkOut?: string;
-}
-
-interface Employee {
-    id: number;
-    name: string;
-    designation: string;
-    department: string;
-    avatar: string;
-    records: AttendanceRecord[];
-}
+import AttendenceServices from '../../../services/AttendenceServices';
+import { AttendenceOverviewType } from '../../../constantTypes/EmployeeRelated';
+import toast from 'react-hot-toast';
 
 const Attendance = () => {
     const [view, setView] = useState<'card' | 'list'>('list');
@@ -37,57 +24,21 @@ const Attendance = () => {
         searchTerm: '',
     });
 
-    const [attendance, setAttendance] = useState<Employee[]>([
-        {
-            id: 1,
-            name: 'Jeremy Hawkins',
-            designation: 'Senior Developer',
-            department: 'IT',
-            avatar: '/assets/images/user-profile.jpeg',
-            records: [
-                { date: '2024-01-15', status: 'present', checkIn: '09:00', checkOut: '17:00' },
-                { date: '2024-01-16', status: 'late', checkIn: '10:15', checkOut: '17:30' },
-                { date: '2024-01-17', status: 'present', checkIn: '08:45', checkOut: '17:00' },
-            ],
-        },
-        {
-            id: 2,
-            name: 'Lucy Hunter',
-            designation: 'UI Designer',
-            department: 'Design',
-            avatar: '/assets/images/user-profile.jpeg',
-            records: [
-                { date: '2024-01-15', status: 'present', checkIn: '08:45', checkOut: '17:15' },
-                { date: '2024-01-16', status: 'present', checkIn: '09:00', checkOut: '17:00' },
-                { date: '2024-01-17', status: 'leave', checkIn: undefined, checkOut: undefined },
-            ],
-        },
-    ]);
+    const [attendance, setAttendance] = useState<AttendenceOverviewType>();
 
+    useEffect(() => {
+        AttendenceServices.FetchAttendenceOverview()
+            .then((r) => {
+                setAttendance(r);
+                console.log('Overview Attendence: ', r);
+            })
+            .catch((e) => {
+                toast.error(e.message);
+            });
+    }, []);
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFilters({ ...filters, [name]: value });
-    };
-
-    const handleExport = () => {
-        try {
-            const headers = ['Date', 'Employee', 'Department', 'Status', 'Check In', 'Check Out'];
-            const csvData = [
-                headers.join(','),
-                ...attendance.flatMap((emp) => emp.records.map((record) => [record.date, emp.name, emp.department, record.status, record.checkIn || '', record.checkOut || ''].join(','))),
-            ].join('\n');
-
-            const blob = new Blob([csvData], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `attendance_report_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error('Export failed:', error);
-        }
     };
 
     const getStatusColor = (status: string) => {
@@ -103,24 +54,6 @@ const Attendance = () => {
             default:
                 return 'bg-gray-100 text-gray-500';
         }
-    };
-
-    const getAttendanceStats = () => {
-        let total = 0,
-            present = 0,
-            late = 0,
-            absent = 0;
-
-        attendance.forEach((emp) => {
-            emp.records.forEach((record) => {
-                total++;
-                if (record.status === 'present') present++;
-                if (record.status === 'late') late++;
-                if (record.status === 'absent') absent++;
-            });
-        });
-
-        return { total, present, late, absent };
     };
 
     return (
@@ -151,7 +84,7 @@ const Attendance = () => {
                         </button>
                     </div>
 
-                    <button onClick={handleExport} className="btn btn-primary gap-2">
+                    <button className="btn btn-primary gap-2">
                         <IconDownload className="w-5 h-5" />
                         Export
                     </button>
@@ -179,25 +112,20 @@ const Attendance = () => {
                         <option value="HR">HR</option>
                     </select>
 
-                    <DatePicker selected={filters.startDate} onChange={(date: Date) => setFilters({ ...filters, startDate: date })} className="form-input" placeholderText="Select date" />
+                    <DatePicker selected={filters.startDate} onChange={(date: any) => setFilters({ ...filters, startDate: date })} className="form-input" placeholderText="Select date" />
                 </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                    { label: 'Total', value: getAttendanceStats().total, color: 'text-primary' },
-                    { label: 'Present', value: getAttendanceStats().present, color: 'text-success' },
-                    { label: 'Late', value: getAttendanceStats().late, color: 'text-warning' },
-                    { label: 'Absent', value: getAttendanceStats().absent, color: 'text-danger' },
-                ].map((stat) => (
+            {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {attendance.map((stat) => (
                     <div key={stat.label} className="bg-white dark:bg-[#1c232f] rounded-lg shadow-sm p-4">
                         <div className="text-gray-500 mb-2">{stat.label}</div>
                         <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
                         <div className="text-gray-400 text-sm mt-1">{((stat.value / getAttendanceStats().total) * 100).toFixed(1)}%</div>
                     </div>
                 ))}
-            </div>
+            </div> */}
 
             {view === 'list' ? (
                 // List View
@@ -215,23 +143,27 @@ const Attendance = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {attendance.map((emp) => (
+                                {attendance?.attendance_rows.map((emp) => (
                                     <tr key={emp.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                <img src={emp.avatar} alt={emp.name} className="w-10 h-10 rounded-full object-cover" />
+                                                {/* <img src={emp.avatar} alt={emp.name} className="w-10 h-10 rounded-full object-cover" /> */}
                                                 <div>
-                                                    <div className="font-medium">{emp.name}</div>
-                                                    <div className="text-gray-500 text-sm">{emp.designation}</div>
+                                                    <div className="font-medium">{emp.employee.name}</div>
+                                                    <div className="text-gray-500 text-sm">{emp.employee.designation}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4">{emp.department}</td>
+                                        <td className="p-4">{emp.employee.department}</td>
                                         <td className="p-4">
-                                            {emp.records[0] && <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(emp.records[0].status)}`}>{emp.records[0].status}</span>}
+                                            {emp.is_present && (
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(emp.is_present ? 'present' : 'absent')}`}>
+                                                    {emp.is_present ? 'present' : 'absent'}
+                                                </span>
+                                            )}
                                         </td>
-                                        <td className="p-4 text-center">{emp.records[0]?.checkIn || '-'}</td>
-                                        <td className="p-4 text-center">{emp.records[0]?.checkOut || '-'}</td>
+                                        <td className="p-4 text-center">{emp.clock_in_time || '-'}</td>
+                                        <td className="p-4 text-center">{emp.clock_out_time || '-'}</td>
                                         <td className="p-4 text-center">
                                             <button className="text-primary hover:text-primary-dark">View Details</button>
                                         </td>
@@ -244,37 +176,37 @@ const Attendance = () => {
             ) : (
                 // Card View
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {attendance.map((emp) => (
+                    {attendance?.attendance_rows.map((emp) => (
                         <div key={emp.id} className="bg-white dark:bg-[#1c232f] rounded-lg shadow-sm p-4">
                             <div className="flex items-center gap-4 mb-4">
-                                <img src={emp.avatar} alt={emp.name} className="w-12 h-12 rounded-full object-cover" />
+                                {/* <img src={emp.avatar} alt={emp.name} className="w-12 h-12 rounded-full object-cover" /> */}
                                 <div>
-                                    <h3 className="font-medium">{emp.name}</h3>
-                                    <p className="text-gray-500 text-sm">{emp.designation}</p>
+                                    <h3 className="font-medium">{emp.employee.name}</h3>
+                                    <p className="text-gray-500 text-sm">{emp.employee.designation}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-3">
-                                {emp.records.map((record, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg border dark:border-gray-700">
-                                        <div>
-                                            <div className="text-sm text-gray-500">{record.date}</div>
-                                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${getStatusColor(record.status)}`}>{record.status}</span>
-                                        </div>
-                                        {record.checkIn && (
-                                            <div className="text-right">
-                                                <div className="text-xs text-gray-500">Check In</div>
-                                                <div className="font-medium">{record.checkIn}</div>
-                                            </div>
-                                        )}
-                                        {record.checkOut && (
-                                            <div className="text-right">
-                                                <div className="text-xs text-gray-500">Check Out</div>
-                                                <div className="font-medium">{record.checkOut}</div>
-                                            </div>
-                                        )}
+                                <div className="flex items-center justify-between p-2 rounded-lg border dark:border-gray-700">
+                                    <div>
+                                        <div className="text-sm text-gray-500">{emp.date}</div>
+                                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${getStatusColor(emp.is_present ? 'present' : 'absent')}`}>
+                                            {emp.is_present ? 'present' : 'absent'}
+                                        </span>
                                     </div>
-                                ))}
+                                    {emp.clock_in_time && (
+                                        <div className="text-right">
+                                            <div className="text-xs text-gray-500">Check In</div>
+                                            <div className="font-medium">{emp.clock_in_time}</div>
+                                        </div>
+                                    )}
+                                    {emp.clock_out_time && (
+                                        <div className="text-right">
+                                            <div className="text-xs text-gray-500">Check Out</div>
+                                            <div className="font-medium">{emp.clock_out_time}</div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}
