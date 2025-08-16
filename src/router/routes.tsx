@@ -77,16 +77,21 @@ const MainDashboard = lazy(() => import('../components/Main/MainDashboard/Dashbo
 const TodoList = lazy(() => import('../pages/Apps/Todolist'));
 const Calendar = lazy(() => import('../pages/Apps/Calendar'));
 
+const AccessDenied = lazy(() => import('../pages/Authentication/AccessDenied'));
 // Test pages
 const EmployeeTasksPage = lazy(() => import('../components/Main/Tasks/EmployeeTasksPage'));
 // Error
 const Error = lazy(() => import('../components/Error'));
 
-type AppRoute = {
+export type AppRoute = {
     path: string;
     element: ReactElement;
     layout: string;
     protected?: boolean;
+    permissions?: string[]; // Add permissions array
+    label?: string; // Add label for sidebar
+    icon?: string; // Optional icon
+    category?: string;
 };
 
 const routes: AppRoute[] = [
@@ -117,12 +122,17 @@ const routes: AppRoute[] = [
         path: '/',
         element: <MainDashboard />,
         layout: 'default',
+        protected: true,
+        permissions: ['p1.can_read'],
+        label: 'Dashboard',
+        category: 'HCIMS', // Add category
     },
     // Main Dashboard Route
     {
         path: '/dashboard',
         element: <MainDashboard />,
         layout: 'default',
+        category: 'HCIMS',
     },
     // Todo List Route
     {
@@ -146,26 +156,36 @@ const routes: AppRoute[] = [
         path: '/edit_employee',
         element: <EditEmployee />,
         layout: 'default',
+        category: 'HCIMS',
+        protected: true,
+        permissions: ['p9.can_read'],
     },
     {
         path: '/terminate_employee',
         element: <TerminateEmplyee />,
         layout: 'default',
+        label: 'Terminated Employee',
+        category: 'HCIMS',
+        protected: true,
+        permissions: ['p10.can_read'],
     },
     {
         path: '/whatsapp',
         element: <WhatsApp />,
         layout: 'default',
+        category: 'HCIMS',
     },
     {
         path: '/reports_pages',
         element: <HCIMSReports />,
         layout: 'default',
+        category: 'HCIMS',
     },
     {
         path: '/config_reports',
         element: <Configuration />,
         layout: 'default',
+        category: 'HCIMS',
     },
     {
         path: '/employee-details',
@@ -192,17 +212,27 @@ const routes: AppRoute[] = [
         path: '/company_tasks_dashboard',
         element: <TasksDashboard />,
         layout: 'default',
+        label: 'Dashboard',
+        category: 'Tasks',
+        protected: true,
+        permissions: ['p2.can_read', 'p2.can_create'],
     },
 
     {
         path: '/view_tasks',
         element: <ViewTasks />,
         layout: 'default',
+        label: 'Tasks',
+        category: 'Tasks',
+        protected: true,
+        permissions: ['p2.can_read'],
     },
     {
         path: '/create-announcement',
         element: <Annoucements />,
         layout: 'default',
+        label: 'Annoucements',
+        category: 'Tasks',
     },
     {
         path: '/PersonalTasks',
@@ -218,23 +248,31 @@ const routes: AppRoute[] = [
         path: '/tasks_reports',
         element: <TasksReports />,
         layout: 'default',
+        label: 'Report',
+        category: 'Tasks',
     },
     {
         path: '/SubordinateTaskReports',
         element: <SubordinateTaskReports />,
         layout: 'default',
+        label: 'Subordinate Report',
+        category: 'Tasks',
     },
 
     {
         path: '/tasks_form',
         element: <ViewTasksForm />,
         layout: 'default',
+        // label: 'Forms',
+        // category: 'Tasks',
     },
     // Routines Routes
     {
         path: '/routine_report_dashboard',
         element: <RoutineDashboard />,
         layout: 'default',
+        label: 'Dashbord',
+        category: 'Routines',
     },
     {
         path: '/mark_holidays',
@@ -251,22 +289,30 @@ const routes: AppRoute[] = [
         path: '/staff_attendence',
         element: <Attendance />,
         layout: 'default',
+        label: 'Attendence',
+        category: 'Routines',
     },
     {
         path: '/employee_leave_requests',
         element: <TimeReq />,
         layout: 'default',
+        label: 'Leave Request',
+        category: 'Routines',
     },
     {
         path: '/create_meeting',
         element: <CreateMins />,
         layout: 'default',
+        label: 'Creat Meeting',
+        category: 'Routines',
     },
 
     {
         path: '/owner_expense_claim_list',
         element: <ExpClaims />,
         layout: 'default',
+        label: 'Expense Claims',
+        category: 'Routines',
     },
     {
         path: '/create_expense_claim',
@@ -277,32 +323,44 @@ const routes: AppRoute[] = [
         path: '/routine_reports',
         element: <RoutinesReports />,
         layout: 'default',
+        label: 'Reports',
+        category: 'Routines',
     },
     {
         path: '/routine_whistle',
         element: <Whistle />,
         layout: 'default',
+        label: 'Whistle Blow',
+        category: 'Routines',
     },
     // Evaluation Routes
     {
         path: '/company_policies',
         element: <CompanyPolicies />,
         layout: 'default',
+        label: 'Evaluation',
+        category: 'Evaluation',
     },
     {
         path: '/create_contest',
         element: <Contest />,
         layout: 'default',
+        label: 'Contest',
+        category: 'Evaluation',
     },
     {
         path: '/performance_matric',
         element: <PerformanceMatric />,
         layout: 'default',
+        label: 'Performance Metrics',
+        category: 'Evaluation',
     },
     {
         path: '/step_evaluation',
         element: <SetupEval />,
         layout: 'default',
+        label: 'Setup Evaluation',
+        category: 'Evaluation',
     },
     {
         path: '/view_overall_all_forms',
@@ -334,6 +392,8 @@ const routes: AppRoute[] = [
         path: '/company_info',
         element: <CompanyInfo />,
         layout: 'default',
+        label: 'Company Info',
+        category: 'Settings',
     },
     {
         path: '/group_of_companies',
@@ -344,32 +404,44 @@ const routes: AppRoute[] = [
         path: '/departments',
         element: <Departments />,
         layout: 'default',
+        label: 'Departments',
+        category: 'Settings',
     },
     {
         path: '/add_designation',
         element: <CreateDesignation />,
         layout: 'default',
+        label: 'Designations',
+        category: 'Settings',
     },
     {
         path: '/create_salary_structure',
         element: <SalaryPageNew />,
         layout: 'default',
+        label: 'Salary Structures',
+        category: 'Settings',
     },
     {
         path: '/create_performance_monitoring',
         element: <PerformanceMoni />,
         layout: 'default',
+        label: 'Perfomance Monitoring',
+        category: 'Settings',
     },
     {
         path: '/permissions',
         element: <StandalonePermissionsPage />,
         layout: 'default',
+        label: 'Permissions',
+        category: 'Settings',
     },
     // Training Routes
     {
         path: '/training_assessment',
         element: <TrainingAssess />,
         layout: 'default',
+        permissions: ['p4.can_read'],
+        label: 'Permissions',
     },
     {
         path: '/create_training',
@@ -401,6 +473,11 @@ const routes: AppRoute[] = [
         element: <SubmitQuiz />,
         layout: 'default',
     },
+    {
+        path: '/access-denied',
+        element: <AccessDenied />,
+        layout: 'blank',
+    },
     // Error Route
     {
         path: '*',
@@ -413,7 +490,7 @@ const wrappedRoutes = routes.map((route: AppRoute) => {
     if (route.protected) {
         return {
             ...route,
-            element: <PrivateRoute>{route.element}</PrivateRoute>,
+            element: <PrivateRoute requiredPermissions={route.permissions}>{route.element}</PrivateRoute>,
         };
     }
     return route;

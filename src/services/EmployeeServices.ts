@@ -103,4 +103,36 @@ export default class EmployeeServices {
             throw e;
         }
     }
+    // leave requests
+    static async FetchLeaveRequests() {
+        try {
+            const response = await api.get(`/routine-tasks/leave-request/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async ApproveLeaveRequest(id: number, payload: any) {
+        try {
+            // need to fix the urls with correct one later
+            const response = await api.patch(`/routine-tasks/approve-leave/${id}/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data?.detail || e;
+            throw new Error(msg);
+        }
+    }
+    static async DeleteLeaveRequest(id: number) {
+        try {
+            // need to fix the urls with correct one later
+            const response = await api.delete(`/routine-tasks/leave-request/${id}/`);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data?.detail || e;
+            throw new Error(msg);
+        }
+    }
 }

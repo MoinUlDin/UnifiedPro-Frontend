@@ -1,3 +1,4 @@
+// types
 export interface AttendenceOverviewType {
     date: '2025-08-13';
     total_employees: 5;
@@ -47,4 +48,25 @@ export interface AttendenceOverviewType {
             is_holiday: false;
         }
     ];
+}
+
+export interface LeaveRequestOwnerType {
+    id: 1;
+    employee: {
+        id: 3;
+        name: 'Waqs Qadir';
+        department: 'IT';
+        designation: 'Frontend';
+        email: 'waqas@gmail.com';
+    };
+    leave_type: 1;
+    start_date: '2025-08-18';
+    profile_image: 'http://127.0.0.1:8000/media/profile_images/Untitled_1.png';
+    end_date: '2025-08-18';
+    is_approved: false;
+    rejected: false;
+    reason: null;
+    description: null;
+    duration: '0:00:14';
+    created_at: '2025-08-15T18:09:13.897455+05:00';
 }

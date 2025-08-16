@@ -40,8 +40,14 @@ import IconTrendingUp from '../Icon/IconTrendingUp';
 import IconSettings from '../Icon/IconSettings';
 import IconNotes from '../Icon/IconNotes';
 import IconServer from '../Icon/IconServer';
+import { AppRoute } from '../../router/routes'; // Import AppRoute type
+import AuthServices from '../../services/AuthServices';
 
-const Sidebar = () => {
+interface SidebarProps {
+    items: AppRoute[]; // Add items prop
+}
+
+const Sidebar = ({ items }: SidebarProps) => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
     const [errorSubMenu, setErrorSubMenu] = useState(false);
     const themeConfig = useSelector((state: RootState) => state.themeConfig);
@@ -55,6 +61,16 @@ const Sidebar = () => {
         });
     };
 
+    const FetchPermissions = () => {
+        console.log('fetching User Permissions');
+        AuthServices.FetchUsersPermissions().catch((e) => {});
+    };
+
+    useEffect(() => {
+        const userinfo = JSON.parse(localStorage.getItem('UserInfo') ?? '');
+        if (userinfo.is_owner) return;
+        FetchPermissions();
+    }, []);
     useEffect(() => {
         const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
         if (selector) {
@@ -79,6 +95,55 @@ const Sidebar = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location]);
 
+    // new code
+    const getMainCategories = () => {
+        const categories = new Set<string>();
+        items.forEach((item) => {
+            if (item.category) {
+                categories.add(item.category);
+            }
+        });
+        return Array.from(categories);
+    };
+
+    // Get sub-items for a category
+    const getSubItems = (category: string) => {
+        return items.filter(
+            (item) => item.category === category && item.layout === 'default' && item.path !== '/' // Exclude home route
+        );
+    };
+
+    // Check if a category has visible items
+    const hasVisibleItems = (category: string) => {
+        return getSubItems(category).length > 0;
+    };
+
+    // Get icon for a category
+    const getCategoryIcon = (category: string) => {
+        const icons: Record<string, JSX.Element> = {
+            HCIMS: <IconServer className="group-hover:!text-primary shrink-0" />,
+            Tasks: <IconListCheck className="group-hover:!text-primary shrink-0" />,
+            Routines: <IconUser className="group-hover:!text-primary shrink-0" />,
+            Evaluation: <IconTrendingUp className="group-hover:!text-primary shrink-0" />,
+            Settings: <IconSettings className="group-hover:!text-primary shrink-0" />,
+            Training: <IconNotes className="group-hover:!text-primary shrink-0" />,
+        };
+        return icons[category] || <IconMenuComponents className="group-hover:!text-primary shrink-0" />;
+    };
+
+    // Get translation key for a category
+    const getCategoryTranslationKey = (category: string) => {
+        const translations: Record<string, string> = {
+            HCIMS: 'HCIMS',
+            Tasks: 'Tasks',
+            Routines: 'Routines',
+            Evaluation: 'Evaluation',
+            Settings: 'Settings',
+            Training: 'Training Section',
+        };
+        return translations[category] || category;
+    };
+
     return (
         <div className={semidark ? 'dark' : ''}>
             <nav
@@ -101,7 +166,7 @@ const Sidebar = () => {
                     </div>
                     <PerfectScrollbar className="h-[calc(100vh-80px)] relative">
                         <ul className="relative font-semibold space-y-0.5 p-4 py-0">
-                            {/* Dashboard */}
+                            {/* Dashboard - Always visible */}
                             <li className="menu nav-item">
                                 <NavLink to="/" className="nav-link group">
                                     <div className="flex items-center">
@@ -110,236 +175,36 @@ const Sidebar = () => {
                                     </div>
                                 </NavLink>
                             </li>
-                            {/* HCIMS */}
-                            <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'hcims' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('hcims')}>
-                                    <div className="flex items-center">
-                                        <IconServer className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('HCIMS')}</span>
-                                    </div>
 
-                                    <div className={currentMenu !== 'hcims' ? 'rtl:rotate-90 -rotate-90' : ''}>
-                                        <IconCaretDown />
-                                    </div>
-                                </button>
+                            {/* Dynamic Categories */}
+                            {getMainCategories().map(
+                                (category) =>
+                                    hasVisibleItems(category) && (
+                                        <li className="menu nav-item" key={category}>
+                                            <button type="button" className={`${currentMenu === category ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu(category)}>
+                                                <div className="flex items-center">
+                                                    {getCategoryIcon(category)}
+                                                    <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t(getCategoryTranslationKey(category))}</span>
+                                                </div>
+                                                <div className={currentMenu !== category ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                                    <IconCaretDown />
+                                                </div>
+                                            </button>
 
-                                <AnimateHeight duration={300} height={currentMenu === 'hcims' ? 'auto' : 0}>
-                                    <ul className="sub-menu text-gray-500">
-                                        <li>
-                                            <NavLink to="/hcims">{t('Dashboard')}</NavLink>
+                                            <AnimateHeight duration={300} height={currentMenu === category ? 'auto' : 0}>
+                                                <ul className="sub-menu text-gray-500">
+                                                    {getSubItems(category).map((item) => (
+                                                        <li key={item.path}>
+                                                            <NavLink to={item.path}>{item.label ? t(item.label) : item.path.split('/').pop()}</NavLink>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </AnimateHeight>
                                         </li>
-                                        <li>
-                                            <NavLink to="/edit_employee">{t('Add/Edit Employee')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/terminate_employee">{t('Terminate Employee')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/whatsapp">{t('WhatsApp')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/reports_pages">{t('Reports')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/config_reports">{t('Configurations')}</NavLink>
-                                        </li>
-                                    </ul>
-                                </AnimateHeight>
-                            </li>
-                            {/* Tasks */}
-                            <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'tasks' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('tasks')}>
-                                    <div className="flex items-center">
-                                        <IconListCheck className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Tasks')}</span>
-                                    </div>
+                                    )
+                            )}
 
-                                    <div className={currentMenu !== 'tasks' ? 'rtl:rotate-90 -rotate-90' : ''}>
-                                        <IconCaretDown />
-                                    </div>
-                                </button>
-
-                                <AnimateHeight duration={300} height={currentMenu === 'tasks' ? 'auto' : 0}>
-                                    <ul className="sub-menu text-gray-500">
-                                        <li>
-                                            <NavLink to="/company_tasks_dashboard">{t('Dashboard')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/view_tasks">{t('Add/View Tasks')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create-announcement">{t('Announcement')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/tasks_reports">{t('Reports')}</NavLink>
-                                        </li>
-                                    </ul>
-                                </AnimateHeight>
-                            </li>
-                            {/* Routines */}
-                            <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'routines' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('routines')}>
-                                    <div className="flex items-center">
-                                        <IconUser className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Routines')}</span>
-                                    </div>
-
-                                    <div className={currentMenu !== 'routines' ? 'rtl:rotate-90 -rotate-90' : ''}>
-                                        <IconCaretDown />
-                                    </div>
-                                </button>
-
-                                <AnimateHeight duration={300} height={currentMenu === 'routines' ? 'auto' : 0}>
-                                    <ul className="sub-menu text-gray-500">
-                                        <li>
-                                            <NavLink to="/routine_report_dashboard">{t('Dashboard')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/staff_attendence">{t('Attendance')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/employee_leave_requests">{t('Time Off Requests')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create_meeting">{t('Create Minutes Of Meetings')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/owner_expense_claim_list">{t('Expense Claims')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create_expense_claim">{t('Create Expense Claim')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/routine_reports">{t('Reports')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/routine_whistle">{t('Whistle')}</NavLink>
-                                        </li>
-                                    </ul>
-                                </AnimateHeight>
-                            </li>
-                            {/* Evaluation */}
-                            <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'evaluation' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('evaluation')}>
-                                    <div className="flex items-center">
-                                        <IconTrendingUp className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Evaluation')}</span>
-                                    </div>
-
-                                    <div className={currentMenu !== 'evaluation' ? 'rtl:rotate-90 -rotate-90' : ''}>
-                                        <IconCaretDown />
-                                    </div>
-                                </button>
-
-                                <AnimateHeight duration={300} height={currentMenu === 'evaluation' ? 'auto' : 0}>
-                                    <ul className="sub-menu text-gray-500">
-                                        <li>
-                                            <NavLink to="/company_policies">{t('Company Policies')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create_contest">{t('Contest')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/performance_matric">{t('Performance Matric')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/step_evaluation">{t('Setup Evaluation')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/view_overall_all_forms">{t('Submit 360 Evaluation')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/view_manager_all_forms">{t('Submit Manager Evaluation')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/view_engagement_all_forms">{t('Submit Engagement Evaluation')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/view_satisfaction_all_forms">{t('Submit Satisfaction Evaluation')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/view_all_forms">{t('Submit Self Evaluation')}</NavLink>
-                                        </li>
-                                    </ul>
-                                </AnimateHeight>
-                            </li>
-                            {/* Settings */}
-                            <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'settings' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('settings')}>
-                                    <div className="flex items-center">
-                                        <IconSettings className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Settings')}</span>
-                                    </div>
-
-                                    <div className={currentMenu !== 'settings' ? 'rtl:rotate-90 -rotate-90' : ''}>
-                                        <IconCaretDown />
-                                    </div>
-                                </button>
-
-                                <AnimateHeight duration={300} height={currentMenu === 'settings' ? 'auto' : 0}>
-                                    <ul className="sub-menu text-gray-500">
-                                        <li>
-                                            <NavLink to="/company_info">{t('Company Information')}</NavLink>
-                                        </li>
-
-                                        <li>
-                                            <NavLink to="/departments">{t('Create Department')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/add_designation">{t('Create Designation')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create_salary_structure">{t('Create Salary Structure')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create_performance_monitoring">{t('Performance Monitoring')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/permissions">{t('Permissions')}</NavLink>
-                                        </li>
-                                    </ul>
-                                </AnimateHeight>
-                            </li>
-                            {/* Training Section */}
-                            <li className="menu nav-item">
-                                <button type="button" className={`${currentMenu === 'trainingSection' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('trainingSection')}>
-                                    <div className="flex items-center">
-                                        <IconNotes className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Training Section')}</span>
-                                    </div>
-
-                                    <div className={currentMenu !== 'trainingSection' ? 'rtl:rotate-90 -rotate-90' : ''}>
-                                        <IconCaretDown />
-                                    </div>
-                                </button>
-
-                                <AnimateHeight duration={300} height={currentMenu === 'trainingSection' ? 'auto' : 0}>
-                                    <ul className="sub-menu text-gray-500">
-                                        <li>
-                                            <NavLink to="/training_assessment">{t('Training Assessment')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create_training">{t('Create Training')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/assign_training">{t('Assign Training')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create-questions">{t('Create Questions')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/view_results">{t('View Results')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/create-quiz">{t('Create Quiz')}</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink to="/submit-quiz">{t('Submit Quiz')}</NavLink>
-                                        </li>
-                                    </ul>
-                                </AnimateHeight>
-                            </li>
-                            {/* Logout */}
+                            {/* Logout - Always visible */}
                             <li className="menu nav-item">
                                 <button type="button" className={`${currentMenu === 'logout' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('logout')}>
                                     <div className="flex items-center">

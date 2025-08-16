@@ -12,4 +12,18 @@ export default class AuthServices {
             throw e;
         }
     }
+    static async FetchUsersPermissions() {
+        try {
+            const response = await api.get('/auth/get-perms/');
+            const data = response.data;
+            if (data) {
+                localStorage.setItem('UserPerms', JSON.stringify(data));
+            }
+
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
 }

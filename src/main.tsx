@@ -1,6 +1,6 @@
 import './polyfills';
 import React, { Suspense } from 'react';
-import ReactDOM from 'react-dom/client'
+import ReactDOM from 'react-dom/client';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 // Perfect Scrollbar

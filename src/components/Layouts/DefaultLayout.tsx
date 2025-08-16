@@ -1,4 +1,4 @@
-import { PropsWithChildren, Suspense, useEffect, useState } from 'react';
+import { PropsWithChildren, Suspense, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import App from '../../App';
 import { RootState } from '../../store';
@@ -10,6 +10,8 @@ import Sidebar from './Sidebar';
 import Portals from '../../components/Portals';
 import VoiceNavigation from '../VoiceNavigation';
 import { Toaster } from 'react-hot-toast';
+import { hasPermission } from '../../utils/Permissions'; // Import permission utility
+import { routes } from '../../router/routes'; // Import routes
 
 const DefaultLayout = ({ children }: PropsWithChildren) => {
     const themeConfig = useSelector((state: RootState) => state.themeConfig);
@@ -46,7 +48,21 @@ const DefaultLayout = ({ children }: PropsWithChildren) => {
             window.removeEventListener('scroll', onScrollHandler);
         };
     }, []);
+    // Filter sidebar items based on permissions
+    const filteredSidebarItems = useMemo(() => {
+        return routes.filter((route) => {
+            // Only include default layout routes
+            if (route.layout !== 'default') return false;
 
+            // Public routes are always visible
+            if (!route.protected) return true;
+
+            // Protected routes require permission check
+            const flag = hasPermission(route.permissions);
+
+            return flag;
+        });
+    }, [routes]); // Add routes to dependencies
     return (
         <App>
             {/* BEGIN MAIN CONTAINER */}
@@ -82,7 +98,7 @@ const DefaultLayout = ({ children }: PropsWithChildren) => {
 
                 <div className={`${themeConfig.navbar} main-container text-black dark:text-white-dark min-h-screen`}>
                     {/* BEGIN SIDEBAR */}
-                    <Sidebar />
+                    <Sidebar items={filteredSidebarItems} />
                     {/* END SIDEBAR */}
 
                     <div className="main-content flex flex-col min-h-screen">
