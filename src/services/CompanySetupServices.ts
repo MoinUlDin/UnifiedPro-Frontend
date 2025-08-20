@@ -146,4 +146,37 @@ export default class CompanySetupServices {
             console.log('Error Deleting Annoncements', e);
         }
     }
+    // Whistle Blow
+    static async FetchWhistle() {
+        try {
+            const res = await api.get(`/company-Setup/whistle-blower/`);
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Fetching Annoncements', e);
+        }
+    }
+    static async AddWhistle(payload: any) {
+        try {
+            const res = await api.post(`/company-Setup/whistle-blower/`, payload);
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Fetching Annoncements', e);
+        }
+    }
+    static async UpdateWhistle(id: number, payload: any) {
+        try {
+            const res = await api.patch(`/company-Setup/whistle-blower/${id}/`, payload);
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Fetching Annoncements', e);
+        }
+    }
+    static async DeleteWhistle(id: number) {
+        try {
+            const res = await api.delete(`/company-Setup/whistle-blower/${id}/`);
+            return res.data;
+        } catch (e: any) {
+            console.log('Error Deleting Annoncements', e);
+        }
+    }
 }

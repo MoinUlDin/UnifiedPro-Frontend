@@ -101,3 +101,35 @@ export interface OverviewType {
     net_salary: '32300.00';
     pay_start_date: '2025-08-12';
 }
+
+export interface LeaveTypes {
+    id: 1;
+    department: {
+        id: 1;
+        name: 'IT';
+    };
+    name: 'Annual Leave';
+    annual_allowance: 14;
+    from_date: '2025-08-02';
+    to_date: '2025-08-30';
+}
+
+export interface ExpenseClaimListType {
+    id: 5;
+    claim_date: '2025-08-18T14:21:42.528444+05:00';
+    description: 'somthing nothing 22';
+    amount: 8000;
+    file: null;
+    is_approved: true;
+    rejected: false;
+    rejection_reason: null;
+    approval_reason: 'Nothing';
+    company: 1;
+    employee: {
+        id: 3;
+        name: 'Waqs Qadir';
+        designation: 'Frontend';
+    };
+    department: null;
+    designation: null;
+}

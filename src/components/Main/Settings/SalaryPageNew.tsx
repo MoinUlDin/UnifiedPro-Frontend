@@ -13,6 +13,8 @@ import DeductionPopup from './SalaryPageComponents/DeductionPopup';
 import BasicProfileTable from './SalaryPageComponents/BasicProfileTable';
 import BasicProfilePopup from './SalaryPageComponents/BasicProfilePopup';
 import SalaryStructureTable from './SalaryPageComponents/SalaryStructureTable';
+import LeaveInfoTable from './SalaryPageComponents/LeaveInfoTable';
+import SalaryStrucrePopup from './SalaryPageComponents/SalaryStrucrePopup';
 import toast, { Toaster } from 'react-hot-toast';
 
 const tabs = [
@@ -24,7 +26,7 @@ const tabs = [
     { key: 'deductions', label: 'Deductions', icon: <Percent className="w-5 h-5" /> },
     { key: 'profiles', label: 'Profiles', icon: <Users className="w-5 h-5" /> },
     { key: 'structures', label: 'Structures', icon: <Building2 className="w-5 h-5" /> },
-    { key: 'leaveInfo', label: 'Leave Info', icon: <Clock className="w-5 h-5" /> },
+    { key: 'leaveTypes', label: 'Leave Types', icon: <Clock className="w-5 h-5" /> },
 ];
 
 export default function SalaryPageNew() {
@@ -32,6 +34,7 @@ export default function SalaryPageNew() {
     const [openPayGrade, setOpenPayGrade] = useState<boolean>(false);
     const [openComponent, setOpenComponent] = useState<boolean>(false);
     const [openBasicProfile, setOpenBasicProfile] = useState<boolean>(false);
+    const [openSlarayStructurePopup, setOpenSlarayStructurePopup] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<string>(tabs[0].key);
 
     useEffect(() => {
@@ -102,6 +105,7 @@ export default function SalaryPageNew() {
             {activeTab === 'deductions' && <DeductionTable />}
             {activeTab === 'profiles' && <BasicProfileTable />}
             {activeTab === 'structures' && <SalaryStructureTable />}
+            {activeTab === 'leaveTypes' && <LeaveInfoTable />}
 
             {/* Quick Actions / Recent Activity / Distribution */}
             {activeTab === 'overView' && (
@@ -120,7 +124,7 @@ export default function SalaryPageNew() {
                         <button onClick={() => setOpenBasicProfile(true)} className="w-full text-left px-3 py-2 border border-gray-300 rounded flex items-center gap-2 hover:bg-gray-50">
                             <Plus className="w-5 h-5" /> New Basic Profile
                         </button>
-                        <button className="w-full text-left px-3 py-2 border border-gray-300 rounded flex items-center gap-2 hover:bg-gray-50">
+                        <button onClick={() => setOpenSlarayStructurePopup(true)} className="w-full text-left px-3 py-2 border border-gray-300 rounded flex items-center gap-2 hover:bg-gray-50">
                             <Plus className="w-5 h-5" /> New Salary Structure
                         </button>
                     </section>
@@ -183,12 +187,12 @@ export default function SalaryPageNew() {
                 </div>
             )}
 
-            <Toaster position="top-right" reverseOrder={false} />
             {/* Popups */}
             {openJob && <JobPopup show={openJob} onClose={() => setOpenjob(false)} sendResponse={hanldeResponse} />}
             {openPayGrade && <PayGradePopup show={openPayGrade} onClose={() => setOpenPayGrade(false)} sendResponse={hanldeResponse} />}
             {openComponent && <ComponentPopup show={openComponent} onClose={() => setOpenComponent(false)} sendResponse={hanldeResponse} />}
             {openBasicProfile && <BasicProfilePopup show={openBasicProfile} onClose={() => setOpenBasicProfile(false)} sendResponse={hanldeResponse} />}
+            {openSlarayStructurePopup && <SalaryStrucrePopup onClose={() => setOpenSlarayStructurePopup(false)} />}
         </div>
     );
 }

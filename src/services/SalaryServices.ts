@@ -331,4 +331,110 @@ export default class SalaryServices {
             throw new Error(msg);
         }
     }
+    // Leave Type Calls
+    static async FetchLeaveTypes() {
+        try {
+            const response = await api.get(`/routine-tasks/create_leave_type/`);
+            console.log('resposne: ', response);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.user || 'error fetching Jobs Data';
+            throw new Error(msg);
+        }
+    }
+
+    static async AddLeaveTypes(payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/create_leave_type/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log('Add Job error: ', e);
+            const msg = e.response.data.detail || 'Error Creating Leave Type';
+            throw new Error(msg);
+        }
+    }
+    static async UpdateLeaveTypes(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/routine-tasks/create_leave_type/${id}/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log('Add Job error: ', e);
+            const msg = e.response.data.detail || 'Error Updating Leave Type';
+            throw new Error(msg);
+        }
+    }
+    static async DeleteLeaveTypes(id: number) {
+        try {
+            const response = await api.delete(`/routine-tasks/create_leave_type/${id}/`);
+            return response.data;
+        } catch (e: any) {
+            console.log('Delete Job Error:', e);
+            const msg = e.response.data.detail || 'Error Deleting Leave Type';
+            throw new Error(msg);
+        }
+    }
+    // Leave Type Calls
+    static async FetchExpenseClaims() {
+        try {
+            const response = await api.get(`/routine-tasks/expense-claims/`);
+            console.log('resposne: ', response);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.user || 'error fetching Jobs Data';
+            throw new Error(msg);
+        }
+    }
+
+    static async AddExpenseClaim(payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/expense-claims/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log('Add Job error: ', e);
+            const msg = e.response.data.detail || 'Error Creating Leave Type';
+            throw new Error(msg);
+        }
+    }
+    static async UpdateExpenseClaim(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/routine-tasks/expense-claims/${id}/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log('Add Job error: ', e);
+            const msg = e.response.data.detail || 'Error Updating Leave Type';
+            throw new Error(msg);
+        }
+    }
+    static async DeleteExpenseClaim(id: number) {
+        try {
+            const response = await api.delete(`/routine-tasks/expense-claims/${id}/`);
+            return response.data;
+        } catch (e: any) {
+            console.log('Delete Job Error:', e);
+            const msg = e.response.data.detail || 'Error Deleting Leave Type';
+            throw new Error(msg);
+        }
+    }
+    static async ApproveExpenseClaim(id: number, payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/expense-claims/${id}/approve/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log('Delete Job Error:', e);
+            const msg = e.response.data.detail || 'Error Deleting Leave Type';
+            throw new Error(msg);
+        }
+    }
+    static async RejectExpenseClaim(id: number, payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/expense-claims/${id}/reject/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log('Delete Job Error:', e);
+            const msg = e.response.data.detail || 'Error Deleting Leave Type';
+            throw new Error(msg);
+        }
+    }
 }

@@ -122,8 +122,6 @@ const routes: AppRoute[] = [
         path: '/',
         element: <MainDashboard />,
         layout: 'default',
-        protected: true,
-        permissions: ['p1.can_read'],
         label: 'Dashboard',
         category: 'HCIMS', // Add category
     },
@@ -278,6 +276,8 @@ const routes: AppRoute[] = [
         path: '/mark_holidays',
         element: <MarkHoliday />,
         layout: 'default',
+        label: 'Mark Holiday',
+        category: 'Routines',
     },
     {
         path: '/view-marked-holidays',

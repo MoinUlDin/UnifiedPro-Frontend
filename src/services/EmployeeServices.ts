@@ -1,11 +1,21 @@
 import api from '../utils/api';
-import { setEmployees, setTerminateEmployees } from '../store/slices/employeeSlice';
+import { setEmployees, setTerminateEmployees, setEmployeeDashbord } from '../store/slices/employeeSlice';
 
 export default class EmployeeServices {
     static async FetchEmployees(dispatch: any) {
         try {
             const response = await api.get(`/auth/employees/`);
             dispatch(setEmployees(response.data));
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async FetchEmployeesDashboard(dispatch: any) {
+        try {
+            const response = await api.get(`/routine-tasks/employee-dashboard/`);
+            dispatch(setEmployeeDashbord(response.data));
             return response.data;
         } catch (e) {
             console.log(e);
@@ -133,6 +143,112 @@ export default class EmployeeServices {
             console.log(e);
             const msg = e.response.data?.detail || e;
             throw new Error(msg);
+        }
+    }
+
+    static async AddLeaveRequests(payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/leave-request/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async UpdateLeaveRequests(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/routine-tasks/leave-request/${id}/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async DeleteLeaveRequests(id: number) {
+        try {
+            const response = await api.patch(`/routine-tasks/leave-request/${id}/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    // Create Menutes of Meeting Calls
+    static async FetchMeetings() {
+        try {
+            const response = await api.get(`/routine-tasks/meetings/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async FetchMeetingDetails(id: number) {
+        try {
+            const response = await api.get(`/routine-tasks/meetings/${id}/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async CreateMeetings(payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/meetings/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async UpdateMeetings(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/routine-tasks/meetings/${id}/`, payload);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.detail || e;
+            throw new Error(msg);
+        }
+    }
+    static async DeleteMeetings(id: number) {
+        try {
+            const response = await api.delete(`/routine-tasks/meetings/${id}/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async ToggelActionItem(id: number) {
+        try {
+            const response = await api.post(`/routine-tasks/action-items/${id}/toggle/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+
+    // Clockin out calls
+    // Create Menutes of Meeting Calls
+    static async MarkClockIn() {
+        try {
+            const response = await api.post(`/routine-tasks/mark-clock-in/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async MarkClockOut() {
+        try {
+            const payload = { mark_clock_out: true };
+            const response = await api.post(`/routine-tasks/mark-clock-out/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
         }
     }
 }

@@ -7,10 +7,6 @@ import SalaryServices from '../../../../../services/SalaryServices';
 import { useSelector } from 'react-redux';
 import { BasicProfileType } from '../../../../../constantTypes/SalaryTypes';
 import { getAbbrivation } from '../../../../../utils/Common';
-export function getAbbr(f: string, s: string) {
-    if (!f || !s) return 'N/A';
-    return `${f.charAt(0).toUpperCase()}${s.charAt(0).toUpperCase()}`;
-}
 
 export default function SelectEmployee({ selectedEmployee, onSelect }: { selectedEmployee: any; onSelect: (data: any) => void }) {
     const allStructures = useSelector((s: any) => s.company.allStructures);

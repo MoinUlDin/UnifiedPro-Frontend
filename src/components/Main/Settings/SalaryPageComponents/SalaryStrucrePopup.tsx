@@ -220,21 +220,21 @@ export default function SalaryStrucrePopup({ onClose = () => {}, initialData = n
         }
     };
     return (
-        <div style={{ zIndex: '10000' }} className="fixed inset-0 z-50 flex items-center justify-center">
+        <div style={{ zIndex: '10000' }} className="fixed inset-0 flex items-center justify-center">
             {/* overlay */}
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative w-full max-w-5xl mx-4 h-[550px] overflow-y-scroll ">
+            <div className="relative w-full max-w-5xl mx-2 h-[550px] overflow-y-scroll ">
                 <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
                     {/* HEADER (persistent) */}
-                    <div className="px-6 pt-6 pb-4 border-b">
-                        <div className="flex items-start justify-between gap-4">
+                    <div className="px-6 pt-4 pb-4 border-b">
+                        <div className="flex items-start justify-between gap-2">
                             <div>
-                                <h3 className="flex items-center gap-3 text-xl font-semibold">
+                                <h3 className="flex items-center gap-1 text-xl font-semibold">
                                     <span className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white">$</span>
                                     {state.isEditing ? 'Update' : 'Create'} Salary Structure
                                 </h3>
-                                <p className="text-sm text-slate-500 mt-1">Design comprehensive compensation package</p>
+                                <p className="text-sm text-slate-500">Design comprehensive compensation package</p>
                             </div>
 
                             <button aria-label="Close" onClick={onClose} className="rounded-lg p-2 hover:bg-slate-100">

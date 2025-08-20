@@ -195,7 +195,7 @@ export default function EmployeeTasksPage() {
         const prev = tasks.slice();
         setTasks((t) => t.map((x) => (x.id === id ? { ...x, progress: 100, status: 'Completed' } : x)));
         try {
-            // await TaskService.updateTask(id, { progress: 100, status: 'Completed' });
+            TaskServices.UpdateTask(id, { progress: 100, status: 'Completed' });
             toast.success('Task marked complete');
         } catch (err) {
             console.error(err);

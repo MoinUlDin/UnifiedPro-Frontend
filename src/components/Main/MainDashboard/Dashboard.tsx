@@ -10,11 +10,31 @@ import IconPlus from '../../../components/Icon/IconPlus';
 import IconCircleCheck from '../../../components/Icon/IconCircleCheck';
 import IconInfoTriangle from '../../../components/Icon/IconInfoTriangle';
 import Edit_Employee_Popup from '../HCIMS/Edit_Employee_Popup';
+import EmployeeDashboard from './EmployeeDashboard';
 import axios from 'axios';
 
 const MainDashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const isDark = document.documentElement.classList.contains('dark');
+    const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
+    useEffect(() => {
+        try {
+            const userInfoString = localStorage.getItem('UserInfo');
+            if (userInfoString) {
+                const userInfo = JSON.parse(userInfoString);
+                if (userInfo) {
+                    setIsAdmin(userInfo.is_owner);
+                }
+            } else {
+                console.log('No userInfo found in localStorage');
+            }
+        } catch (error) {
+            console.error('Error parsing userInfo:', error);
+            // Optionally clear invalid data
+            localStorage.removeItem('userInfo');
+        }
+    }, []);
 
     // Animation variants for staggered animations
     const containerVariants = {
@@ -129,36 +149,10 @@ const MainDashboard = () => {
             policyAcknowledgments: 98,
         },
     };
-    useEffect(() => {
-        axios
-            .post(
-                'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/late-arrival/',
-                {
-                    department: 0,
-                    allowed_late_minutes: 2147483647,
-                    late_arrival_penalty: 599,
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Add your token if needed
-                    },
-                }
-            )
-            .then((res) => console.log('Response:', res.data))
-            .catch((err) => console.error('Error:', err));
-    }, []);
-    useEffect(() => {
-        axios
-            .get('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/company-Setup/late-arrival/', {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`, // Add your token if needed
-                },
-            })
-            .then((res) => {
-                console.log('Response:', res.data);
-            });
-    }, []);
+
+    if (!isAdmin) {
+        return <EmployeeDashboard></EmployeeDashboard>;
+    }
 
     return (
         <motion.div className="dashboard-container p-6 max-w-[1920px] mx-auto" initial="hidden" animate="visible" variants={containerVariants}>

@@ -73,8 +73,6 @@ export default class TaskServices {
             throw new Error(msg);
         }
     }
-
-    // Analytics and Performance Related
     static async TaskAnalytics() {
         try {
             const response = await api.get(`/routine-tasks/task/analytics/`);

@@ -11,6 +11,8 @@ import TaskPopupForm from './TaskPopupForm';
 import AssignTasksPopup from './AssignTasksPopup';
 import ProgressUpdatePopup from './ProgressUpdatePopup';
 import { useFilterRows, FilterControls, FilterConfig } from '../../FilterControls';
+import EmployeeTasksPage from './EmployeeTasksPage';
+import { CheckOwner } from '../../../utils/Common';
 
 function formatName(name: string): string {
     if (!name.trim()) return '';
@@ -41,6 +43,7 @@ const taskFilters: FilterConfig[] = [
 ];
 const View_Tasks: React.FC = () => {
     const navigate = useNavigate();
+    const isOwner = CheckOwner(); // returns true/false
     const [allTasks, setAllTasks] = useState<TaskType[]>([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -55,6 +58,10 @@ const View_Tasks: React.FC = () => {
 
     // Fetching Tasks
     useEffect(() => {
+        if (!isOwner) {
+            setLoading(false);
+            return;
+        }
         TaskServices.FetchTasks()
             .then((r) => {
                 setAllTasks(r);
@@ -268,6 +275,10 @@ const View_Tasks: React.FC = () => {
         setRefresh((p) => !p);
         setSelectedTask(null);
     };
+
+    if (!isOwner) {
+        return <EmployeeTasksPage />;
+    }
     return (
         <div className="panel">
             <div className="mb-4 px-3 flex justify-between items-center">

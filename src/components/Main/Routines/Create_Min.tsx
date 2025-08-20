@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import CommonTable from '../Common_Table';
 import FormComponent from '../Common_Popup';
+import MeetingPage from './MeetingPage';
 
 // Define the interface for form data (excluding the 'id')
 interface FormData {
@@ -19,6 +20,7 @@ interface Meeting extends FormData {
 }
 
 const Create_Min = () => {
+    if (true) return <MeetingPage></MeetingPage>;
     const dispatch = useDispatch();
 
     useEffect(() => {

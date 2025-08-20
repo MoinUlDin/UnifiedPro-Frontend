@@ -5,7 +5,7 @@ import { Dialog, Transition } from '@headlessui/react';
 // import IconUserPlus from '../../components/Icon/IconUserPlus';
 import IconX from '../../../Icon/IconX';
 import IconCaretDown from '../../../Icon/IconCaretDown';
-import axios from "axios"
+import axios from 'axios';
 import Swal from 'sweetalert2';
 // import Edit from '../../../pages/Apps/Invoice/Edit';
 // import Job_Type from './Job_Type';
@@ -30,21 +30,21 @@ const Job_Type_Popup = ({ closeModal }: { closeModal: () => void }) => {
     const onSubmit = async (e: any) => {
         e.preventDefault();
         try {
-            const res = await axios.post("https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/Job-type/", params,
-                { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` } }
-            )
-            console.log(res)
-            closeModal()
+            const res = await axios.post('https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/Job-type/', params, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            console.log(res);
+            closeModal();
         } catch (error) {
-            console.log(error)
-             Swal.fire({
-                title:'Error',
-                text:'Failed to create Salary Compoonent',
-                timer:10000
-            })
-            closeModal()
+            console.log(error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Failed to create Salary Compoonent',
+                timer: 10000,
+            });
+            closeModal();
         }
-    }
+    };
     return (
         <Transition appear show={true} as={Fragment}>
             <Dialog as="div" open={true} onClose={closeModal} className="   relative z-[51]">

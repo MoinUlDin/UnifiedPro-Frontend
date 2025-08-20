@@ -4,13 +4,17 @@ import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import CommonTable from '../Common_Table';
 import FormComponent from '../Common_Popup';
-import EmployeeServices from '../../../services/EmployeeServices';
 import { LeaveRequestOwnerType } from '../../../constantTypes/EmployeeRelated';
 import { CheckCircle, Edit2, HopOff, Plus, Trash2, XCircle, XOctagon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
+import EmployeeServices from '../../../services/EmployeeServices';
+import LeaveRequestsPage from './LeaveRequestsPage';
 
 const Time_Req = () => {
+    if (true) {
+        return <LeaveRequestsPage></LeaveRequestsPage>;
+    }
     const dispatch = useDispatch();
     const [leaveRequests, setLeaveRequests] = useState<LeaveRequestOwnerType[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,6 +28,7 @@ const Time_Req = () => {
     const FetchLeaveRequests = () => {
         EmployeeServices.FetchLeaveRequests()
             .then((r) => {
+                console.log('leaves requests: ', r);
                 setLeaveRequests(r);
             })
             .catch((e) => {
@@ -190,34 +195,35 @@ const Time_Req = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {leaveRequests?.map((r) => (
-                                <tr key={r.id}>
-                                    <td className="py-3 px-4">{r.employee.name}</td>
-                                    <td className="py-3 px-4">{r.employee.department}</td>
-                                    <td className="py-3 px-4">{r.employee.designation}</td>
-                                    <td className="py-3 px-4">{r.start_date}</td>
-                                    <td className="py-3 px-4">{r.end_date}</td>
-                                    <td className={`py-3 px-4 flex items-center `}>
-                                        <span className={`py-1 px-2 text-[12px] rounded-full ${r.is_approved ? 'bg-green-500' : 'bg-yellow-400'} `}>{r.is_approved ? 'Approved' : 'Pending'}</span>
-                                    </td>
+                            {leaveRequests &&
+                                leaveRequests?.map((r) => (
+                                    <tr key={r.id}>
+                                        <td className="py-3 px-4">{r.employee?.name}</td>
+                                        <td className="py-3 px-4">{r.employee?.department}</td>
+                                        <td className="py-3 px-4">{r.employee?.designation}</td>
+                                        <td className="py-3 px-4">{r?.start_date}</td>
+                                        <td className="py-3 px-4">{r?.end_date}</td>
+                                        <td className={`py-3 px-4 flex items-center `}>
+                                            <span className={`py-1 px-2 text-[12px] rounded-full ${r?.is_approved ? 'bg-green-500' : 'bg-yellow-400'} `}>{r.is_approved ? 'Approved' : 'Pending'}</span>
+                                        </td>
 
-                                    <td className="py-3 px-4 space-x-4 min-w-32">
-                                        <button
-                                            onClick={() => handleApprove(r.id)}
-                                            disabled={r.is_approved}
-                                            className={`text-gray-600  ${!r.is_approved && 'hover:text-indigo-600'}`}
-                                            aria-label="Edit"
-                                        >
-                                            {/* <Edit2 className="w-4 h-4" /> */}
-                                            <CheckCircle className={`w-5 h-5 ${r.is_approved && 'text-gray-300'}`} />
-                                        </button>
+                                        <td className="py-3 px-4 space-x-4 min-w-32">
+                                            <button
+                                                onClick={() => handleApprove(r.id)}
+                                                disabled={r.is_approved}
+                                                className={`text-gray-600  ${!r.is_approved && 'hover:text-indigo-600'}`}
+                                                aria-label="Edit"
+                                            >
+                                                {/* <Edit2 className="w-4 h-4" /> */}
+                                                <CheckCircle className={`w-5 h-5 ${r.is_approved && 'text-gray-300'}`} />
+                                            </button>
 
-                                        <button onClick={() => handleRejection(r.id)} className="text-gray-600 hover:text-red-600" aria-label="Delete">
-                                            <HopOff className="w-5 h-5" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                                            <button onClick={() => handleRejection(r.id)} className="text-gray-600 hover:text-red-600" aria-label="Delete">
+                                                <HopOff className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
                             {leaveRequests.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="py-6 px-4 text-center text-gray-500">
