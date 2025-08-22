@@ -57,6 +57,7 @@ export default class SettingServices {
             throw new Error(msg);
         }
     }
+    // Departments
     static async fetchDepartments(dispatch: any) {
         try {
             const response = await api.get(`/company-Setup/departments/`);
@@ -103,6 +104,7 @@ export default class SettingServices {
             throw e;
         }
     }
+    // Designations
     static async createDesignation(payload: any) {
         try {
             const response = await api.post(`/company-Setup/designations/`, payload);
@@ -112,9 +114,27 @@ export default class SettingServices {
             throw e;
         }
     }
+    static async fetchDesignationTree() {
+        try {
+            const response = await api.get(`/company-Setup/designations/tree/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async fetchDesignations() {
         try {
             const response = await api.get(`/company-Setup/designations/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async fetchParentDesignation(id: number) {
+        try {
+            const response = await api.get(`/company-Setup/designations/${id}/get_parent/`);
             return response.data;
         } catch (e) {
             console.log(e);
@@ -149,6 +169,7 @@ export default class SettingServices {
             throw new Error(msg);
         }
     }
+    // Working Days
     static async AddWorkingDay(payload: any) {
         try {
             const response = await api.post(`/company-Setup/working-days/`, payload);

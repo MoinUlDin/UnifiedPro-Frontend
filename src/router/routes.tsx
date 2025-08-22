@@ -57,6 +57,7 @@ const CompanyInfo = lazy(() => import('../components/Main/Settings/Company_Info'
 const GroupCompany = lazy(() => import('../components/Main/Settings/Group_Company'));
 const CreateDepartment = lazy(() => import('../components/Main/Settings/Create_Depart'));
 const CreateDesignation = lazy(() => import('../components/Main/Settings/Designation'));
+const DesignationPage = lazy(() => import('../components/Main/Settings/DesignationPage'));
 const CreateSalary = lazy(() => import('../components/Main/Settings/Create_Salary'));
 const PerformanceMoni = lazy(() => import('../components/Main/Settings/Performance_Moni'));
 const SettingsPermission = lazy(() => import('../components/Main/Settings/Permissions'));
@@ -276,8 +277,6 @@ const routes: AppRoute[] = [
         path: '/mark_holidays',
         element: <MarkHoliday />,
         layout: 'default',
-        label: 'Mark Holiday',
-        category: 'Routines',
     },
     {
         path: '/view-marked-holidays',
@@ -409,7 +408,7 @@ const routes: AppRoute[] = [
     },
     {
         path: '/add_designation',
-        element: <CreateDesignation />,
+        element: <DesignationPage />,
         layout: 'default',
         label: 'Designations',
         category: 'Settings',

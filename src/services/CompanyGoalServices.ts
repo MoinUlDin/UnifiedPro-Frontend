@@ -12,6 +12,15 @@ export default class CompanyGoalServices {
             throw e;
         }
     }
+    static async FetchRemainingWeight() {
+        try {
+            const response = await api.get(`/company-performace/company-goal/get_remaing_weight/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async FetchAllGoalsInOneGo(dispatch: any) {
         try {
             const response = await api.get(`/company-performace/get_all_in_one/`);

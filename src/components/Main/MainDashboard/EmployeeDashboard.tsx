@@ -535,7 +535,7 @@ export const EmployeeDashboard: React.FC = () => {
 
                 {/* Quick Links */}
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.36 }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg hover:shadow-xl transition cursor-pointer text-center group">
+                    <div onClick={() => navigate('/staff_attendence')} className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg hover:shadow-xl transition cursor-pointer text-center group">
                         <div className="p-3 bg-blue-50 rounded-full w-fit mx-auto mb-4 group-hover:bg-blue-100 transition">
                             <Calendar className="w-6 h-6 text-blue-600" />
                         </div>
@@ -543,7 +543,7 @@ export const EmployeeDashboard: React.FC = () => {
                         <p className="text-sm text-gray-500">Check your attendance history and patterns</p>
                     </div>
 
-                    <div onClick={() => navigate('view_tasks/')} className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg hover:shadow-xl transition cursor-pointer text-center group">
+                    <div onClick={() => navigate('/view_tasks')} className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg hover:shadow-xl transition cursor-pointer text-center group">
                         <div className="p-3 bg-green-50 rounded-full w-fit mx-auto mb-4 group-hover:bg-green-100 transition">
                             <Target className="w-6 h-6 text-green-600" />
                         </div>

@@ -7,6 +7,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import ConfirmActionModal from '../../ConfirmActionModel';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
+import DepartmentPageNew from './DepartmentPageNew';
 
 interface Department {
     id: number;
@@ -16,6 +17,7 @@ interface Department {
 }
 
 export default function DepartmentsTable() {
+    return <DepartmentPageNew />;
     const [departments, setDepartments] = useState<Department[]>([]);
     const storedDepartments = useSelector((s: any) => s.settings.departmentList);
     const [page, setPage] = useState(1);
@@ -34,7 +36,7 @@ export default function DepartmentsTable() {
         SettingServices.fetchDepartments(dispatch)
             .then((res) => {
                 setDepartments(res);
-                console.log('depart: ', res);
+                console.log('e: ', res);
             })
             .catch((err) => console.error(err));
     };

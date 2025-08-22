@@ -100,3 +100,14 @@ export function CheckOwner() {
     }
     return false;
 }
+
+export function formatTime(input: string | null): string | null {
+    if (!input) return null;
+    const d = new Date(input);
+    // e.g. “7:00 PM”
+    return d.toLocaleString('en-GB', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    });
+}

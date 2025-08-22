@@ -9,8 +9,16 @@ import IconDownload from '../../../components/Icon/IconDownload';
 import AttendenceServices from '../../../services/AttendenceServices';
 import { AttendenceOverviewType } from '../../../constantTypes/EmployeeRelated';
 import toast from 'react-hot-toast';
+import { formatTime } from '../../../utils/Common';
+import My_Attendance from './My_Attendance';
+import { CheckOwner } from '../../../utils/Common';
+import EmployeeServices from '../../../services/EmployeeServices';
 
 const Attendance = () => {
+    const is_owner = CheckOwner();
+    if (!is_owner) {
+        return <My_Attendance />;
+    }
     const [view, setView] = useState<'card' | 'list'>('list');
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
@@ -147,14 +155,14 @@ const Attendance = () => {
                                     <tr key={emp.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                {/* <img src={emp.avatar} alt={emp.name} className="w-10 h-10 rounded-full object-cover" /> */}
+                                                <img src={emp.profile_image} alt="profile" className="w-10 h-10 rounded-full object-cover" />
                                                 <div>
-                                                    <div className="font-medium">{emp.employee.name}</div>
-                                                    <div className="text-gray-500 text-sm">{emp.employee.designation}</div>
+                                                    <div className="font-medium">{emp.employee?.name}</div>
+                                                    <div className="text-gray-500 text-sm">{emp.employee?.designation}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4">{emp.employee.department}</td>
+                                        <td className="p-4">{emp.employee?.department}</td>
                                         <td className="p-4">
                                             {emp.is_present && (
                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(emp.is_present ? 'present' : 'absent')}`}>
@@ -162,8 +170,8 @@ const Attendance = () => {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="p-4 text-center">{emp.clock_in_time || '-'}</td>
-                                        <td className="p-4 text-center">{emp.clock_out_time || '-'}</td>
+                                        <td className="p-4 text-center">{formatTime(emp.clock_in_time) || '-'}</td>
+                                        <td className="p-4 text-center">{formatTime(emp.clock_out_time) || '-'}</td>
                                         <td className="p-4 text-center">
                                             <button className="text-primary hover:text-primary-dark">View Details</button>
                                         </td>
@@ -179,7 +187,7 @@ const Attendance = () => {
                     {attendance?.attendance_rows.map((emp) => (
                         <div key={emp.id} className="bg-white dark:bg-[#1c232f] rounded-lg shadow-sm p-4">
                             <div className="flex items-center gap-4 mb-4">
-                                {/* <img src={emp.avatar} alt={emp.name} className="w-12 h-12 rounded-full object-cover" /> */}
+                                <img src={emp.profile_image} alt="profile" className="w-12 h-12 rounded-full object-cover" />
                                 <div>
                                     <h3 className="font-medium">{emp.employee.name}</h3>
                                     <p className="text-gray-500 text-sm">{emp.employee.designation}</p>
@@ -197,13 +205,13 @@ const Attendance = () => {
                                     {emp.clock_in_time && (
                                         <div className="text-right">
                                             <div className="text-xs text-gray-500">Check In</div>
-                                            <div className="font-medium">{emp.clock_in_time}</div>
+                                            <div className="font-medium">{formatTime(emp.clock_in_time)}</div>
                                         </div>
                                     )}
                                     {emp.clock_out_time && (
                                         <div className="text-right">
                                             <div className="text-xs text-gray-500">Check Out</div>
-                                            <div className="font-medium">{emp.clock_out_time}</div>
+                                            <div className="font-medium">{formatTime(emp.clock_out_time)}</div>
                                         </div>
                                     )}
                                 </div>

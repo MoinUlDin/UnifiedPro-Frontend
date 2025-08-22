@@ -76,7 +76,7 @@ const MeetingPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white p-6">
-            {selectedMeeting && <MeetingDetail onBack={setSelectedMeeting} details={selectedMeeting} />}
+            {selectedMeeting && <MeetingDetail fetchMeetings={fetchMeetings} onBack={setSelectedMeeting} details={selectedMeeting} />}
             {!selectedMeeting && (
                 <div>
                     <div className="flex items-center justify-between mb-6">

@@ -95,6 +95,7 @@ export interface EmployeeType {
     id: number;
     first_name: string;
     last_name: string;
+    email: string;
     designation: { id: number; name: string };
     profile_image: string | null; // URL or null
     department: { id: number; name: string };

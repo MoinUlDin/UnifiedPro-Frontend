@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import EmployeeServices from '../../../services/EmployeeServices';
 import { getAbbrivation } from '../../../utils/Common';
 import toast from 'react-hot-toast';
+import MeetingModal from './MeetingModal';
 
 interface MinutesOfMeeting {
     id: number;
@@ -41,14 +42,19 @@ interface MinutesOfMeeting {
 interface Props {
     onBack: (data: any) => void;
     details?: MinutesOfMeeting | null; // incoming data (optional)
+    fetchMeetings: () => void;
 }
 
-const MeetingDetail: React.FC<Props> = ({ onBack, details = null }) => {
+const MeetingDetail: React.FC<Props> = ({ onBack, details = null, fetchMeetings }) => {
     const params = useParams<{ id: string }>();
     const idParam = params.id ? Number(params.id) : undefined;
     const [meeting, setMeeting] = useState<MinutesOfMeeting | null>(details ?? null);
     const [loading, setLoading] = useState<boolean>(!details);
     const [savingIds, setSavingIds] = useState<number[]>([]); // optimistic saving indicator for checkboxes
+    const [selectedMeeting, setSelectedMeeting] = useState<any>(null);
+    const [openModal, setOpenModal] = useState<boolean>(false);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [initialData, setInitialData] = useState<any>(null);
 
     useEffect(() => {
         // If parent passed details prop, use it; otherwise fetch by id param
@@ -119,6 +125,11 @@ const MeetingDetail: React.FC<Props> = ({ onBack, details = null }) => {
 
     const formatDateLong = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '');
 
+    const handleEdit = () => {
+        setInitialData(meeting);
+        setIsEditing(true);
+        setOpenModal(true);
+    };
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
@@ -133,7 +144,7 @@ const MeetingDetail: React.FC<Props> = ({ onBack, details = null }) => {
                     </div>
 
                     <div className="flex gap-2">
-                        <button className="bg-white border border-gray-200 px-4 py-2 rounded-md flex items-center gap-2 shadow-sm hover:shadow">
+                        <button onClick={handleEdit} className="bg-white border border-gray-200 px-4 py-2 rounded-md flex items-center gap-2 shadow-sm hover:shadow">
                             <Edit className="w-4 h-4 text-gray-700" />
                             Edit Meeting
                         </button>
@@ -340,6 +351,7 @@ const MeetingDetail: React.FC<Props> = ({ onBack, details = null }) => {
                     </div>
                 </div>
             </div>
+            {openModal && <MeetingModal onSuccess={fetchMeetings} isEditing={isEditing} initialData={initialData} onClose={() => setOpenModal(false)} />}
         </div>
     );
 };

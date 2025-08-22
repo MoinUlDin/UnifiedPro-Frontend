@@ -4,7 +4,11 @@ import SettingServices from '../../../services/SettingServices';
 import IconX from '../../Icon/IconX';
 import IconCaretDown from '../../Icon/IconCaretDown';
 import EmployeeServices from '../../../services/EmployeeServices';
+import { ParentDesignationType } from '../../../constantTypes/CompanySetupTypes';
+import { EmployeeType } from '../../../constantTypes/Types';
 import Swal from 'sweetalert2';
+import toast from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
 
 interface Designation {
     id: number;
@@ -20,19 +24,10 @@ interface Department {
     expected_arrival_time: string | null;
     parent: number | null;
 }
-interface InitialDatatype {
-    id: number;
-    email?: string;
-    first_name: string;
-    last_name: string;
-    department: { id: number; name: string };
-    designation: { id: number; name: string };
-    hire_date: string;
-}
 interface InputProps {
     closeModal: () => void;
     isEditMode?: boolean;
-    initailData?: InitialDatatype | null;
+    initailData?: EmployeeType | null;
     response?: (data: any) => void;
 }
 
@@ -47,31 +42,64 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
         department: '',
         hire_date: '',
         profile_image: null as File | null,
+        parent: '' as string | null, // NEW: store selected manager id as string
     });
     const [loadingInitialdata, setLoadingInitailData] = useState<boolean>(false);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [allDesignations, setAllDesignations] = useState<Designation[]>([]);
+    const [parentDesignations, setParentDesignation] = useState<ParentDesignationType>();
     const [filteredDesigs, setFilteredDesigs] = useState<Designation[]>([]);
     const [errors, setErrors] = useState<Partial<Record<keyof typeof params, string>>>({});
+    const [sendingReq, setSendingReq] = useState<boolean>(false);
+    const dispatch = useDispatch();
     useEffect(() => {
         // fetch departments
-        SettingServices.fetchParentDepartments()
+        SettingServices.fetchDepartments(dispatch)
             .then((r) => setDepartments(r))
             .catch(console.error);
         // fetch all designations
         SettingServices.fetchDesignations()
-            .then((r) => setAllDesignations(r))
+            .then((r) => {
+                setAllDesignations(r);
+                console.log('Designations: ', r);
+            })
             .catch(console.error);
     }, []);
+
+    const FetchParentDesignation = (id: number | string) => {
+        if (!id) return;
+        SettingServices.fetchParentDesignation(Number(id))
+            .then((r) => {
+                setParentDesignation(r);
+                console.log('r: ', r);
+            })
+            .catch((e) => {
+                console.log(e);
+                toast.error(e.message);
+            });
+    };
 
     // when department changes, recompute filtered designations
     useEffect(() => {
         if (loadingInitialdata) return;
+        console.log('Selected Department: ', params.department);
         if (params.department) {
-            const depId = parseInt(params.department, 10);
-            setFilteredDesigs(allDesignations.filter((d) => d.department === depId));
+            SettingServices.fetchDesignationsByDepartment(Number(params.department))
+                .then((r) => {
+                    console.log('new Designations: ', r);
+                    setFilteredDesigs(r);
+                })
+                .catch((e) => {
+                    console.log(e);
+                });
+            setParams({
+                ...params,
+                designation: '', //reseting the designation on department change
+                parent: '',
+            });
         } else {
             setFilteredDesigs([]);
+            setParams((p) => ({ ...p, parent: '' }));
         }
     }, [params.department, allDesignations]);
 
@@ -93,6 +121,7 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
                 designation: String(initailData.designation.id),
                 hire_date: initailData.hire_date,
                 profile_image: null, // you can’t prefill a File input
+                parent: initailData.parent?.id ? String(initailData.parent.id) : '',
             });
         }
 
@@ -139,7 +168,7 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
+        setSendingReq(true);
         if (!validate()) return;
         const form = new FormData();
         Object.entries(params).forEach(([key, value]) => {
@@ -174,8 +203,15 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
                 titleText: err,
                 icon: 'error',
             });
+        } finally {
+            setSendingReq(false);
         }
     };
+
+    useEffect(() => {
+        console.log('Desingation changed: ', params.designation);
+        FetchParentDesignation(params.designation);
+    }, [params.designation, params.department]);
 
     return (
         <Transition appear show as={Fragment}>
@@ -293,14 +329,35 @@ export default function Edit_Employee_Popup({ closeModal, isEditMode = false, in
                                             {errors.designation && <p className="text-red-600">{errors.designation}</p>}
                                         </div>
                                     </div>
+                                    {/* REPORT TO: appears when parentDesignations.parent && employees exist */}
+                                    {parentDesignations?.parent && parentDesignations.parent.employees && parentDesignations.parent.employees.length > 0 && (
+                                        <div>
+                                            <label htmlFor="parent" className="block font-medium mb-2">
+                                                Report To ({parentDesignations.parent.name})
+                                            </label>
+                                            <div className="relative">
+                                                <select id="parent" value={params.parent ?? ''} onChange={handleChange} className="form-input w-full pr-8">
+                                                    <option value="">-- Select reporting person (optional) --</option>
+                                                    {parentDesignations.parent.employees.map((emp) => (
+                                                        <option key={String(emp.id)} value={String(emp.id)}>
+                                                            {emp.first_name} {emp.last_name} {emp.email ? `(${emp.email})` : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <IconCaretDown className="absolute top-9 right-3 pointer-events-none" />
+                                            </div>
+                                            <p className="text-sm text-gray-500 mt-1">Employees holding the parent designation are listed here.</p>
+                                        </div>
+                                    )}
 
                                     {/* Submit */}
                                     <div className="flex justify-end mt-6">
                                         <button type="button" onClick={closeModal} className="btn btn-outline-danger mr-3">
                                             Cancel
                                         </button>
+
                                         <button type="submit" className="btn btn-primary">
-                                            {isEditMode ? 'Update' : 'Add'}
+                                            {isEditMode ? (sendingReq ? 'Updating..' : 'Update') : sendingReq ? 'Saving..' : 'Add'}
                                         </button>
                                     </div>
                                 </form>

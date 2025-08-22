@@ -15,6 +15,7 @@ import CompanyInfoPopup from './CompanyInfoPopup';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaBuilding, FaCalendar, FaCalendarAlt, FaCog, FaFileInvoice, FaMoneyBill } from 'react-icons/fa';
 import { Building2, Mail, Globe, Phone, Clock, Coffee, CreditCard, Receipt, Percent, Calendar, Edit, Plus, Trash2, Save, X, CheckCircle, AlertCircle, Info, Settings } from 'lucide-react';
+import Swal from 'sweetalert2';
 // Define the policy type to match the shape of policy objects
 
 interface WorkingDay {
@@ -83,7 +84,7 @@ const Company_Info = () => {
         dispatch(setPageTitle('Company Policies'));
     }, [dispatch]);
 
-    useEffect(() => {
+    const fetchCompanyInfo = () => {
         SettingServices.fetchCompanyInfo()
             .then((r) => {
                 console.log('Comapany Info: ', r);
@@ -92,6 +93,9 @@ const Company_Info = () => {
             .catch((e) => {
                 console.log(e);
             });
+    };
+    useEffect(() => {
+        fetchCompanyInfo();
     }, []);
 
     const initialFormFields: Policy = {
@@ -120,7 +124,7 @@ const Company_Info = () => {
             render: (row: any) => (
                 <span className="flex items-center gap-4">
                     <Edit className="hover:text-blue-500 hover:cursor-pointer" size={14} onClick={() => openWorkingDayForm(row.id)} />
-                    <Trash2 size={14} className="hover:text-red-500 hover:cursor-pointer" />
+                    <Trash2 onClick={() => handleDeleteWorkDay(row.id)} size={14} className="hover:text-red-500 hover:cursor-pointer" />
                 </span>
             ),
         },
@@ -213,7 +217,6 @@ const Company_Info = () => {
         });
     };
     // ─── open Standard form ───────────────────────
-    // 2. In your component, add:
     const openWorkingDayForm = (id: number) => {
         console.log('Given Id: ', id);
         const wd = policies[0]?.working_days_details?.find((w) => w.id === id); // or pick which day you want
@@ -285,6 +288,32 @@ const Company_Info = () => {
                     toast.error(e.message);
                 }
             },
+        });
+    };
+    const handleDeleteWorkDay = (id: number) => {
+        if (!id) return;
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you really want to Delete this WorkingDay#${id}? This action is irreversible.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Delete',
+            cancelButtonText: 'Cancel',
+            timer: 8000,
+            timerProgressBar: true,
+            showCloseButton: true,
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                SettingServices.DeleteWorkingDay(id)
+                    .then(() => {
+                        toast.success('Working day deleted successfully', { duration: 4000 });
+                        fetchCompanyInfo();
+                    })
+                    .catch((e) => {
+                        toast.error(e.message);
+                    });
+            }
         });
     };
 

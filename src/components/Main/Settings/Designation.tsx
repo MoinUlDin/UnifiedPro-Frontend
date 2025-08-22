@@ -70,11 +70,7 @@ const Create_Design = () => {
             options: departments,
             value: formData.department,
         },
-        // Note: we won’t use a select field here for parent but our custom UI below
     ];
-
-    // filtered list
-    const filteredParents = parentOptions.filter((d) => d.name.toLowerCase().includes(parentSearch.toLowerCase()));
 
     const openModal = () => {
         setIsEditMode(false);
@@ -121,13 +117,12 @@ const Create_Design = () => {
     };
 
     const handleEdit = (row: Designation) => {
-        console.log('FormData: ', formData, 'row: ', row);
-        console.log('row: ', row);
         setFormData({
             department: row.department,
             name: row.name,
             parent: row.parent,
         });
+
         setCurrentEditId(row.id);
         setIsEditMode(true);
         setParentSearch('');
@@ -150,7 +145,7 @@ const Create_Design = () => {
 
     return (
         <div>
-            <CommonTable heading="Designations" buttonLabel="Add" columns={columns} formFields={formFields} data={designations} onButtonClick={openModal} onEdit={handleEdit} onDelete={handleDelete} />
+            <CommonTable buttonLabel="Add" columns={columns} formFields={formFields} data={designations} onButtonClick={openModal} onEdit={handleEdit} onDelete={handleDelete} />
 
             {/* Create edit Designation */}
             <Transition appear show={isModalOpen} as={Fragment}>

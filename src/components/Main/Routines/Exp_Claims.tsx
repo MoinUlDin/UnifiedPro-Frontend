@@ -24,6 +24,7 @@ const Exp_Claims = () => {
     const FetchExpenseClaims = () => {
         SalaryServices.FetchExpenseClaims()
             .then((r) => {
+                console.log('Expense Claims: ', r);
                 setExpClaims(r);
             })
             .catch((e: any) => {
@@ -135,7 +136,12 @@ const Exp_Claims = () => {
                                         >
                                             <CheckCircle className="w-5 h-5" />
                                         </button>
-                                        <button onClick={() => openRejectModal(exp)} className="text-gray-600 hover:text-red-600" aria-label="Reject">
+                                        <button
+                                            disabled={exp.rejected}
+                                            onClick={() => openRejectModal(exp)}
+                                            className={`${exp.rejected ? 'text-gray-400' : 'text-gray-600 hover:text-red-600'} `}
+                                            aria-label="Reject"
+                                        >
                                             <SquareX className="w-5 h-5" />
                                         </button>
                                     </td>

@@ -230,8 +230,16 @@ export default class EmployeeServices {
         }
     }
 
-    // Clockin out calls
-    // Create Menutes of Meeting Calls
+    // Clockin-out & attentence calls
+    static async FetchAttendence() {
+        try {
+            const response = await api.get(`/routine-tasks/attendace/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async MarkClockIn() {
         try {
             const response = await api.post(`/routine-tasks/mark-clock-in/`);
@@ -245,6 +253,25 @@ export default class EmployeeServices {
         try {
             const payload = { mark_clock_out: true };
             const response = await api.post(`/routine-tasks/mark-clock-out/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    // Mark Holidays
+    static async FetchHolidays() {
+        try {
+            const response = await api.get(`/routine-tasks/holidays/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+    static async MarkHolidays(payload: any) {
+        try {
+            const response = await api.post(`/routine-tasks/holidays/`, payload);
             return response.data;
         } catch (e) {
             console.log(e);

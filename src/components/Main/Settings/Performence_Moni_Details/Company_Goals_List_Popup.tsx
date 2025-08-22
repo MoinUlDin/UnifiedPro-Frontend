@@ -3,14 +3,26 @@ import { Dialog, Transition } from '@headlessui/react';
 import IconX from '../../../Icon/IconX';
 import IconCaretDown from '../../../Icon/IconCaretDown';
 import { Props, InputData } from '../../../../constantTypes/Types';
+import CompanyGoalServices from '../../../../services/CompanyGoalServices';
+import toast from 'react-hot-toast';
 
 export default function Company_Goals_List_Popup({ closeModel, onSubmit, initialData = null, isEditing }: Props) {
+    const [rW, setRW] = useState<number>(100);
+    const [wError, setWError] = useState<string | null>(null);
     const [params, setParams] = useState<InputData>({
         goal_text: '',
         weight: 0,
     });
 
     useEffect(() => {
+        CompanyGoalServices.FetchRemainingWeight()
+            .then((r) => {
+                console.log('remaining Weight is : ', r.remaining_weight);
+                setRW(r.remaining_weight);
+            })
+            .catch((e) => {
+                toast.error(e?.message || 'error fetching Remaining Weight ');
+            });
         if (initialData) {
             setParams({
                 id: initialData.id,
@@ -21,6 +33,20 @@ export default function Company_Goals_List_Popup({ closeModel, onSubmit, initial
             setParams({ goal_text: '', weight: 0 });
         }
     }, [initialData]);
+
+    // watch the numeric weight
+    useEffect(() => {
+        if (params.weight == null) {
+            setWError(null);
+            return;
+        }
+        console.log(`Expression: ${Number(params.weight)} > ${rW} `, Number(params.weight) > rW);
+        if (Number(params.weight) > rW) {
+            setWError(`Allowed remaining weight: ${rW}`);
+        } else {
+            setWError(null);
+        }
+    }, [params.weight, rW]);
 
     const changeValue = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -68,6 +94,7 @@ export default function Company_Goals_List_Popup({ closeModel, onSubmit, initial
                                         <div className="mb-5">
                                             <label htmlFor="weight">Weight</label>
                                             <input id="weight" type="text" className="form-input" value={params.weight} onChange={changeValue} required />
+                                            {wError && <p className="text-[12px] text-red-500 mt-1">{wError}</p>}
                                         </div>
 
                                         <div className="flex justify-end items-center mt-8 space-x-4">

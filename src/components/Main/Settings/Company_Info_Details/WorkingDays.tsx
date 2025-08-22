@@ -33,8 +33,8 @@ const WorkingDays = () => {
             id: 1,
             DayName: 'Monday',
             StartTime: '09:00',
-            EndTime: '17:00'
-        }
+            EndTime: '17:00',
+        },
     ]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,7 +45,7 @@ const WorkingDays = () => {
         id: 0,
         DayName: '',
         StartTime: '',
-        EndTime: ''
+        EndTime: '',
     };
 
     const [formData, setFormData] = useState<WorkingDay>(initialFormFields);
@@ -54,32 +54,26 @@ const WorkingDays = () => {
         { accessor: 'id', title: 'ID' },
         { accessor: 'DayName', title: 'Day Name' },
         { accessor: 'StartTime', title: 'Start Time' },
-        { accessor: 'EndTime', title: 'End Time' }
+        { accessor: 'EndTime', title: 'End Time' },
     ];
 
     const formFields: FormField[] = [
         { id: 'DayName', label: 'Day Name', type: 'text', value: formData.DayName },
         { id: 'StartTime', label: 'Start Time', type: 'time', value: formData.StartTime },
-        { id: 'EndTime', label: 'End Time', type: 'time', value: formData.EndTime }
+        { id: 'EndTime', label: 'End Time', type: 'time', value: formData.EndTime },
     ];
 
     const handleAddOrEditWorkingDay = (submittedData: WorkingDay) => {
         if (isEditMode && currentEditId !== null) {
-            setWorkingDays(prev =>
-                prev.map(day =>
-                    day.id === currentEditId
-                        ? { ...day, ...submittedData }
-                        : day
-                )
-            );
+            setWorkingDays((prev) => prev.map((day) => (day.id === currentEditId ? { ...day, ...submittedData } : day)));
             setIsEditMode(false);
             setCurrentEditId(null);
         } else {
             const newWorkingDay = {
                 ...submittedData,
-                id: workingDays.length + 1
+                id: workingDays.length + 1,
             };
-            setWorkingDays(prev => [...prev, newWorkingDay]);
+            setWorkingDays((prev) => [...prev, newWorkingDay]);
         }
 
         setFormData(initialFormFields);
@@ -97,25 +91,10 @@ const WorkingDays = () => {
 
     return (
         <div>
-            <CommonTable
-                heading="Working Day"
-                buttonLabel="Working Day"
-                formFields={formFields}
-                columns={columns}
-                data={workingDays}
-            />
-
+            <CommonTable heading="Working Day" buttonLabel="Working Day" formFields={formFields} columns={columns} data={workingDays} />
             <Transition appear show={isModalOpen} as={Fragment}>
                 <Dialog as="div" className="relative z-10" onClose={closeModal}>
-                    <Transition.Child
-                        as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
+                    <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
                         <div className="fixed inset-0 bg-black bg-opacity-25" />
                     </Transition.Child>
 
@@ -134,11 +113,7 @@ const WorkingDays = () => {
                                     <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
                                         {isEditMode ? 'Edit Working Day' : 'Add Working Day'}
                                     </Dialog.Title>
-                                    <CommonPopup
-                                        fields={formFields}
-                                        onSubmit={handleAddOrEditWorkingDay}
-                                        onCancel={closeModal}
-                                    />
+                                    <CommonPopup fields={formFields} onSubmit={handleAddOrEditWorkingDay} onCancel={closeModal} />
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>

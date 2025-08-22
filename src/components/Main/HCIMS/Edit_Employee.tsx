@@ -196,7 +196,7 @@ const Edit_Employee = () => {
                         <div className="fixed inset-0 bg-black bg-opacity-25" />
                     </Transition.Child>
 
-                    <Edit_Employee_Popup response={handleResponse} initailData={initailData} closeModal={closeModal} isEditMode={isEditMode} />
+                    <Edit_Employee_Popup response={handleResponse} initailData={initailData!} closeModal={closeModal} isEditMode={isEditMode} />
                 </Dialog>
             </Transition>
             <TerminateEmployeeModal open={openTerminate} onClose={() => setOpenTerminate(false)} user={terminateSelection} onSuccess={handleSuccess} />

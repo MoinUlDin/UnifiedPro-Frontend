@@ -22,24 +22,7 @@ export interface AttendenceOverviewType {
             date: '2025-08-13';
             holiday_date: string | null;
             clock_in_time: '2025-08-13T19:51:31.358431';
-            clock_out_time: string | null;
-            is_absent: false;
-            is_late: true;
-            on_time: false;
-            is_present: true;
-            is_holiday: false;
-        },
-        {
-            id: 2;
-            employee: {
-                id: 4;
-                name: 'Fahim Ahmed';
-                department: 'Sales';
-                designation: 'Salas Executive';
-            };
-            date: '2025-08-13';
-            holiday_date: string | null;
-            clock_in_time: '2025-08-13T20:13:42.646619';
+            profile_image: string;
             clock_out_time: string | null;
             is_absent: false;
             is_late: true;
@@ -69,4 +52,19 @@ export interface LeaveRequestOwnerType {
     description: null;
     duration: '0:00:14';
     created_at: '2025-08-15T18:09:13.897455+05:00';
+}
+
+export interface MarkedHolidaysType {
+    id: number;
+    company: number;
+    date: string;
+    holiday_type: string;
+    remarks: string;
+    created_by: {
+        id: number;
+        first_name: string;
+        last_name: string;
+    };
+    created_at: string;
+    updated_at: string;
 }

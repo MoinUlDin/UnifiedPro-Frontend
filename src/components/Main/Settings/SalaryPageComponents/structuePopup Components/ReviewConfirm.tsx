@@ -2,7 +2,7 @@
 import { AlertCircle, FileText, Percent, CreditCard, CheckCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { DeductionType } from '../../../../../constantTypes/SalaryTypes';
-import { getAbbr } from './SelectEmployee';
+import { getAbbrivation } from '../../../../../utils/Common';
 import SalaryServices from '../../../../../services/SalaryServices';
 import toast, { Toaster } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
@@ -83,7 +83,7 @@ export default function ReviewConfirm({ isEditing, onFinalSubmit = () => {}, sel
                 <div className="p-4 rounded-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded bg-gradient-to-br from-pink-400 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                            {getAbbr(selectedEmployee?.first_name, selectedEmployee?.last_name) ?? 'ED'}
+                            {getAbbrivation(`${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`) ?? 'ED'}
                         </div>
                         <div>
                             <div className="font-semibold">{selectedEmployee.employee.name ?? 'Emp n/a'}</div>

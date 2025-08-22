@@ -4,7 +4,9 @@ import { useDispatch } from 'react-redux';
 import { addHoliday } from '../../../store/holidaySlice';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import axios from 'axios';
+import EmployeeServices from '../../../services/EmployeeServices';
+import SettingServices from '../../../services/SettingServices';
+import toast from 'react-hot-toast';
 
 interface Holiday {
     date: Date;
@@ -63,33 +65,26 @@ const MarkHoliday = () => {
         if (!validateForm()) return;
 
         setLoading(true);
-        try {
-            const holidays: Holiday[] = selectedDates.map((date) => ({
-                date,
-                type: holidayType,
-                remarks,
-            }));
-
-            const response = await axios.post(
-                'https://success365-backend-86f1c1-145db9-65-108-245-140.traefik.me/routine-tasks/holidays/',
-                {
-                    holiday_dates: ['2025-03-29'],
-                },
-                {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
-                }
-            );
-            dispatch(addHoliday(holidays));
-
-            setSuccess('Holidays marked successfully!');
-            setTimeout(() => {
-                navigate('/staff_attendence');
-            }, 1500);
-        } catch (err) {
-            setError('Failed to mark holidays. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+        const holidays: Holiday[] = selectedDates.map((date) => ({
+            date,
+            type: holidayType,
+            remarks,
+        }));
+        console.log('holidays: ', holidays);
+        EmployeeServices.MarkHolidays(holidays)
+            .then((r) => {
+                toast.success(`Holidays Created Count #${r.count_created}`);
+                setTimeout(() => {
+                    navigate('/staff_attendence');
+                }, 4000);
+            })
+            .catch((e) => {
+                console.log(e);
+                toast.error(e.message);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     };
 
     return (
