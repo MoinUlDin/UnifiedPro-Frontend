@@ -93,7 +93,10 @@ const Exp_Claims = () => {
 
     return (
         <div>
-            <h2 className="text-xl font-bold mb-4">Expense Claims</h2>
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold mb-4">Expense Claims</h2>
+                <button className="btn btn-outline btn-success">Create Claim</button>
+            </div>
 
             {/* Filters */}
             <div className="mb-4 flex gap-4">
@@ -158,7 +161,6 @@ const Exp_Claims = () => {
                     </tbody>
                 </table>
             </div>
-
             {/* Modal placeholder replaced by the actual modal below */}
             {isModalOpen && (
                 <div className="inset-0 fixed z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">

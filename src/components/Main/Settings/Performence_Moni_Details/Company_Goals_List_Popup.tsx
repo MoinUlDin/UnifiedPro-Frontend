@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 export default function Company_Goals_List_Popup({ closeModel, onSubmit, initialData = null, isEditing }: Props) {
     const [rW, setRW] = useState<number>(100);
+    const initailWeight = initialData?.weight || 0;
     const [wError, setWError] = useState<string | null>(null);
     const [params, setParams] = useState<InputData>({
         goal_text: '',
@@ -40,9 +41,8 @@ export default function Company_Goals_List_Popup({ closeModel, onSubmit, initial
             setWError(null);
             return;
         }
-        console.log(`Expression: ${Number(params.weight)} > ${rW} `, Number(params.weight) > rW);
-        if (Number(params.weight) > rW) {
-            setWError(`Allowed remaining weight: ${rW}`);
+        if (Number(params.weight) > rW + initailWeight) {
+            setWError(`Allowed remaining weight: ${rW + initailWeight}`);
         } else {
             setWError(null);
         }

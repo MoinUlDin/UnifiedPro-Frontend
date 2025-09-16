@@ -11,6 +11,17 @@ export function formatDate(input: string): string {
         hour12: true,
     });
 }
+export function formatDateOnly(input: string): string {
+    const d = new Date(input);
+    // e.g. “28 Jul 2025, 7:00 PM”
+    return d
+        .toLocaleString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        })
+        .replaceAll(' ', '/');
+}
 export function capitalizeName(name: string): string {
     if (!name) return '';
 
@@ -110,4 +121,12 @@ export function formatTime(input: string | null): string | null {
         minute: '2-digit',
         hour12: true,
     });
+}
+
+export function getUser() {
+    const raw = localStorage.getItem('UserInfo');
+    if (!raw) return null;
+    const user = JSON.parse(raw);
+    if (user) return user;
+    return null;
 }

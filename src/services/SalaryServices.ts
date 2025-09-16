@@ -437,4 +437,17 @@ export default class SalaryServices {
             throw new Error(msg);
         }
     }
+
+    // Fetch Salary Slip Calls
+    static async FetchSalarySlip() {
+        try {
+            const response = await api.get(`/routine-tasks/generated-salary-slip-new/`);
+
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.user || 'error fetching Jobs Data';
+            throw new Error(msg);
+        }
+    }
 }

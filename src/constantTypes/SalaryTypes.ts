@@ -133,3 +133,59 @@ export interface ExpenseClaimListType {
     department: null;
     designation: null;
 }
+
+// Salary Slip Type
+
+export type Period = {
+    from: string;
+    to: string;
+    days_in_range?: number;
+};
+export type ComponentItem = {
+    component: string;
+    amount: number;
+};
+
+export type Breakdown = {
+    basic_profile_id?: number;
+    employee_id?: number;
+    employee_name?: string;
+    period: Period;
+    required_work_days_count?: number;
+    hours_per_day?: number;
+    required_work_hours?: number;
+    worked_hours?: number;
+    variance_hours?: number;
+    absent_days?: number;
+    components: ComponentItem[];
+    total_earnings?: number;
+    total_percentage_deductions?: number;
+    gross_salary?: number;
+    basic_component_amount?: number | null;
+    per_day_income?: number;
+    work_bonus?: number;
+    work_deduction?: number;
+    expense_claims_total?: number;
+    net_payable?: number;
+    manual_bonus?: number;
+    bonus_total?: number;
+};
+
+export type SalarySlipDetailType = {
+    id: number;
+    company?: number;
+    basic_profile?: number;
+    From_date?: string;
+    To_date?: string;
+    remarks?: string;
+    bonus?: string | number;
+    manual_bonus?: string | number;
+    work_bonus?: string | number;
+    deduction?: string | number;
+    total_amount?: string | number;
+    breakdown: Breakdown;
+    status?: string;
+    locked?: boolean;
+    created_at?: string;
+    updated_at?: string;
+};

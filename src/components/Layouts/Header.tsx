@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { IRootState } from '../../store';
+import { RootState } from '../../store';
 import { toggleRTL, toggleTheme, toggleSidebar } from '../../store/themeConfigSlice';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
@@ -25,22 +25,18 @@ import IconLockDots from '../Icon/IconLockDots';
 import IconLogout from '../Icon/IconLogout';
 import IconMenuDashboard from '../Icon/Menu/IconMenuDashboard';
 import IconCaretDown from '../Icon/IconCaretDown';
-import IconMenuApps from '../Icon/Menu/IconMenuApps';
-import IconMenuComponents from '../Icon/Menu/IconMenuComponents';
-import IconMenuElements from '../Icon/Menu/IconMenuElements';
-import IconMenuDatatables from '../Icon/Menu/IconMenuDatatables';
-import IconMenuForms from '../Icon/Menu/IconMenuForms';
-import IconMenuPages from '../Icon/Menu/IconMenuPages';
-import IconMenuMore from '../Icon/Menu/IconMenuMore';
+
 import IconServer from '../Icon/IconServer';
 import IconListCheck from '../Icon/IconListCheck';
 import IconTrendingUp from '../Icon/IconTrendingUp';
 import IconSettings from '../Icon/IconSettings';
 import IconNotes from '../Icon/IconNotes';
 import IconLogin from '../Icon/IconLogin';
+import { getUser } from '../../utils/Common';
 
 const Header = () => {
     const location = useLocation();
+    const user = getUser();
     useEffect(() => {
         const updateActiveLink = () => {
             const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
@@ -56,28 +52,24 @@ const Header = () => {
         updateActiveLink();
     }, [location.pathname]);
 
-    const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
+    const isRtl = useSelector((state: RootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
 
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+    const themeConfig = useSelector((state: RootState) => state.themeConfig);
     const dispatch = useDispatch();
 
     function createMarkup(messages: any) {
         return { __html: messages };
     }
-    const [messages, setMessages] = useState([
-     
-    ]);
+    const [messages, setMessages] = useState([]);
 
     const removeMessage = (value: number) => {
-        setMessages(messages.filter((user) => user.id !== value));
+        setMessages(messages.filter((user: any) => user.id !== value));
     };
 
-    const [notifications, setNotifications] = useState([
-      
-    ]);
+    const [notifications, setNotifications] = useState([]);
 
     const removeNotification = (value: number) => {
-        setNotifications(notifications.filter((user) => user.id !== value));
+        setNotifications(notifications.filter((user: any) => user.id !== value));
     };
 
     const [search, setSearch] = useState(false);
@@ -233,6 +225,7 @@ const Header = () => {
                                 </ul>
                             </Dropdown>
                         </div>
+                        {/* Messges */}
                         <div className="dropdown shrink-0">
                             <Dropdown
                                 offset={[0, 8]}
@@ -296,6 +289,7 @@ const Header = () => {
                                 </ul>
                             </Dropdown>
                         </div>
+                        {/* Notifications */}
                         <div className="dropdown shrink-0">
                             <Dropdown
                                 offset={[0, 8]}
@@ -370,6 +364,7 @@ const Header = () => {
                                 </ul>
                             </Dropdown>
                         </div>
+                        {/* Profile */}
                         <div className="dropdown shrink-0 flex">
                             <Dropdown
                                 offset={[0, 8]}
@@ -383,17 +378,17 @@ const Header = () => {
                                             <img className="rounded-md w-10 h-10 object-cover" src="/assets/images/user-profile.jpeg" alt="userProfile" />
                                             <div className="ltr:pl-4 rtl:pr-4 truncate">
                                                 <h4 className="text-base">
-                                                    John Doe
-                                                    <span className="text-xs bg-success-light rounded text-success px-1 ltr:ml-2 rtl:ml-2">Pro</span>
+                                                    {user?.name}
+                                                    {user.is_owner && <span className="text-xs bg-success-light rounded text-success px-1 ltr:ml-2 rtl:ml-2">Admin</span>}
                                                 </h4>
                                                 <button type="button" className="text-black/60 hover:text-primary dark:text-dark-light/60 dark:hover:text-white">
-                                                    johndoe@gmail.com
+                                                    {user?.email}
                                                 </button>
                                             </div>
                                         </div>
                                     </li>
                                     <li>
-                                        <Link to="/users/profile" className="dark:hover:text-white">
+                                        <Link to={`/employees/${user.id}/profile`} className="dark:hover:text-white">
                                             <IconUser className="w-4.5 h-4.5 ltr:mr-2 rtl:ml-2 shrink-0" />
                                             Profile
                                         </Link>

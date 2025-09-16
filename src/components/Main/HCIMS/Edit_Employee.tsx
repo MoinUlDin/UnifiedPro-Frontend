@@ -11,6 +11,7 @@ import IconUser from '../../Icon/IconUser';
 import TerminateEmployeeModal from '../Tasks/TerminateEmployeeModal';
 import Swal from 'sweetalert2';
 import { Edit, Edit2, Trash, Trash2, UserMinus, UserMinus2, UserRoundMinus, UserRoundX } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Edit_Employee = () => {
     const dispatch = useDispatch();
@@ -46,7 +47,7 @@ const Edit_Employee = () => {
             accessor: 'first_name',
             title: 'Name',
             render: (row: any) => (
-                <div className="flex items-cente gap-2">
+                <Link to={`/employees/${row.id}/profile`} className="flex items-cente gap-2">
                     {row.profile_image ? (
                         <img className="h-8 w-8 bg-cover rounded-full" src={row.profile_image} alt="" />
                     ) : (
@@ -57,7 +58,7 @@ const Edit_Employee = () => {
                     <span>
                         {row.first_name} {row.last_name}
                     </span>
-                </div>
+                </Link>
             ),
         },
 

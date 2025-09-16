@@ -19,6 +19,15 @@ export default class SessionalGoalServices {
             throw e;
         }
     }
+    static async FetchRemainingWeight(payload: any) {
+        try {
+            const response = await api.post(`/company-performace/department-session-goal/remaining_weight/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async AddGoal(payload: any) {
         try {
             const response = await api.post(`/company-performace/department-session-goal/`, payload);
@@ -46,6 +55,18 @@ export default class SessionalGoalServices {
         } catch (e: any) {
             console.log('Delete Goal Error:', e);
             const msg = 'Error Deleting Goal';
+            throw new Error(msg);
+        }
+    }
+
+    // allowed Sessions
+    static async FetchAllowedSessions() {
+        try {
+            const response = await api.get(`/company-performace/department-session-goal/allowed_sessions/`);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.detail || 'Error Fetching allowed Sessions';
             throw new Error(msg);
         }
     }

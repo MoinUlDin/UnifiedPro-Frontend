@@ -1,3 +1,4 @@
+// router/Privateroute.tsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { hasPermission } from '../utils/Permissions';

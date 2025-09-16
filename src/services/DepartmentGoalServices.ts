@@ -10,6 +10,15 @@ export default class DepartmentGoalServices {
             throw e;
         }
     }
+    static async FetchRemainingWeightDept(id: number) {
+        try {
+            const response = await api.get(`/company-performace/department-goal/${id}/remaining_weight/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async FetchChildGoals(id: number) {
         try {
             const response = await api.get(`/company-performace/department-goal/${id}/child_goals/`);

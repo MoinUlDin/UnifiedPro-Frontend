@@ -3,7 +3,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import IconX from '../../../Icon/IconX';
 import { useSelector } from 'react-redux';
 import DepartmentGoalServices from '../../../../services/DepartmentGoalServices';
-import { SessionalGoalType } from './Departmental_Session_Goals';
+import SessionalGoalServices from '../../../../services/SessionalGoalServices';
+import { SessionalGoalType } from '../../../../constantTypes/Types';
 
 export interface EditedData {
     id?: number | null;
@@ -23,9 +24,16 @@ interface departmentGoalType {
     id: string;
     goal_text: string;
 }
+interface AllowedSessionType {
+    key: '2025-04';
+    label: 'April 2025';
+}
 
 const Departmental_session_Goals_Popup = ({ closeModel, onSubmit, initialData, isEditing = false }: Props) => {
     const [departmentsGoals, setDepartmentsGoals] = useState<departmentGoalType[]>([]);
+    const [allowedSessions, setAllowedSessions] = useState<AllowedSessionType[]>([]);
+    const [rWeight, setrWeight] = useState<number>(100);
+    const [rwError, setRwError] = useState<string | null>(null);
     const [params, setParams] = useState<EditedData>({
         department_goals: '',
         session: '',
@@ -63,6 +71,42 @@ const Departmental_session_Goals_Popup = ({ closeModel, onSubmit, initialData, i
         // clear error on change
         setErrors((err) => ({ ...err, [id]: undefined }));
     };
+    const fetchAllwoedSessions = () => {
+        SessionalGoalServices.FetchAllowedSessions()
+            .then((r) => {
+                setAllowedSessions(r);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    };
+    useEffect(() => {
+        fetchAllwoedSessions();
+    }, []);
+
+    // remaining weight Logic
+    const initialWeight = initialData?.weight || 0;
+    useEffect(() => {
+        if (!params.session) return;
+        console.log('session Changed:', params.session);
+
+        SessionalGoalServices.FetchRemainingWeight({ session: params.session })
+            .then((r) => {
+                setrWeight(r.remaining_weight);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+        setParams((prev) => ({ ...prev, weight: String(initialWeight) }));
+    }, [params.session]);
+    // seting error if weight is > then remaning weight
+    useEffect(() => {
+        if (Number(params.weight) > rWeight + initialWeight) {
+            setRwError(`Allowed remaining weight: ${rWeight + initialWeight}`);
+        } else {
+            setRwError(null);
+        }
+    }, [params.weight]);
 
     const validate = (): boolean => {
         const errs: typeof errors = {};
@@ -135,6 +179,25 @@ const Departmental_session_Goals_Popup = ({ closeModel, onSubmit, initialData, i
                                         {errors.department_goals && <p className="mt-1 text-sm text-red-600">{errors.department_goals}</p>}
                                     </div>
 
+                                    {/* Session */}
+                                    <div className="mb-6">
+                                        <label htmlFor="session" className="block mb-1">
+                                            Session
+                                        </label>
+                                        <select id="session" value={params.session} onChange={changeValue} className="form-input w-full">
+                                            <option value="" disabled>
+                                                ---Select Session---
+                                            </option>
+                                            {allowedSessions &&
+                                                allowedSessions.map((item) => (
+                                                    <option key={item.key} value={item.key}>
+                                                        {item.label}
+                                                    </option>
+                                                ))}
+                                        </select>
+                                        {errors.session && <p className="mt-1 text-sm text-red-600">{errors.session}</p>}
+                                    </div>
+
                                     {/* Goal Text */}
                                     <div className="mb-4">
                                         <label htmlFor="goal_text" className="block mb-1">
@@ -159,24 +222,8 @@ const Departmental_session_Goals_Popup = ({ closeModel, onSubmit, initialData, i
                                             </label>
                                             <input id="weight" type="number" value={params.weight} onChange={changeValue} className="form-input w-full" />
                                             {errors.weight && <p className="mt-1 text-sm text-red-600">{errors.weight}</p>}
+                                            {rwError && <p className="mt-1 text-sm text-red-600">{rwError}</p>}
                                         </div>
-                                    </div>
-
-                                    {/* Session */}
-                                    <div className="mb-6">
-                                        <label htmlFor="session" className="block mb-1">
-                                            Session
-                                        </label>
-                                        <select id="session" value={params.session} onChange={changeValue} className="form-input w-full">
-                                            <option value="" disabled>
-                                                ---Select Session---
-                                            </option>
-                                            <option value="Q1">Quarter 1</option>
-                                            <option value="Q2">Quarter 2</option>
-                                            <option value="Q3">Quarter 3</option>
-                                            <option value="Q4">Quarter 4</option>
-                                        </select>
-                                        {errors.session && <p className="mt-1 text-sm text-red-600">{errors.session}</p>}
                                     </div>
 
                                     {/* Actions */}

@@ -20,6 +20,7 @@ const ReportEmpForm = lazy(() => import('../components/Main/HCIMS/Reports_Emp_Fo
 const EmployeeDetails = lazy(() => import('../components/Main/HCIMS/Report-Details/Employee_Details'));
 const EmployeeContactDirectory = lazy(() => import('../components/Main/HCIMS/Report-Details/Employee_Contact_Directory'));
 const BirthdayDirectory = lazy(() => import('../components/Main/HCIMS/Report-Details/Birthday_Directory'));
+const ProfilePage = lazy(() => import('../components/Main/HCIMS/EmployeeProfile'));
 
 // Tasks
 const TasksDashboard = lazy(() => import('../components/Main/Tasks/Dashboard'));
@@ -51,6 +52,7 @@ const SubmitManagerEval = lazy(() => import('../components/Main/Evaluation/Submi
 const SubmitEngmntEval = lazy(() => import('../components/Main/Evaluation/Submit_Engmnt_Eval'));
 const SubmitStftnEval = lazy(() => import('../components/Main/Evaluation/Submit_Stftn_Eval'));
 const SubmitSelfEval = lazy(() => import('../components/Main/Evaluation/Submit_Self_Eval'));
+const FormBuilderPage = lazy(() => import('../components/Main/Evaluation/FromBuilderPage'));
 
 // Settings
 const CompanyInfo = lazy(() => import('../components/Main/Settings/Company_Info'));
@@ -62,6 +64,7 @@ const CreateSalary = lazy(() => import('../components/Main/Settings/Create_Salar
 const PerformanceMoni = lazy(() => import('../components/Main/Settings/Performance_Moni'));
 const SettingsPermission = lazy(() => import('../components/Main/Settings/Permissions'));
 const StandalonePermissionsPage = lazy(() => import('../components/Main/Settings/StandalonePermissionsPage'));
+const SalarySlipPage = lazy(() => import('../components/Main/Settings/SalarySlipPage'));
 const Departments = lazy(() => import('../components/Main/Settings/Departments'));
 const SalaryPageNew = lazy(() => import('../components/Main/Settings/SalaryPageNew'));
 // Training Section
@@ -202,6 +205,15 @@ const routes: AppRoute[] = [
         layout: 'default',
     },
     {
+        path: '/employees/:id/profile',
+        element: <ProfilePage />,
+        layout: 'default',
+        protected: true,
+        permissions: ['p11.can_read'],
+        label: 'Employee Profile',
+        icon: 'User',
+    },
+    {
         path: '/Birthday_Directory',
         element: <BirthdayDirectory />,
         layout: 'default',
@@ -334,6 +346,13 @@ const routes: AppRoute[] = [
     },
     // Evaluation Routes
     {
+        path: '/form-builder',
+        element: <FormBuilderPage />,
+        layout: 'default',
+        label: 'Form Builder',
+        category: 'Evaluation',
+    },
+    {
         path: '/company_policies',
         element: <CompanyPolicies />,
         layout: 'default',
@@ -418,6 +437,13 @@ const routes: AppRoute[] = [
         element: <SalaryPageNew />,
         layout: 'default',
         label: 'Salary Structures',
+        category: 'Settings',
+    },
+    {
+        path: '/create_salary_slip',
+        element: <SalarySlipPage />,
+        layout: 'default',
+        label: 'Salary Slip',
         category: 'Settings',
     },
     {

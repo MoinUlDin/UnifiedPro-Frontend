@@ -12,6 +12,15 @@ export default class EmployeeServices {
             throw e;
         }
     }
+    static async fetchProfileData(id: number) {
+        try {
+            const response = await api.get(`/company-Setup/employee-details/${id}/profile/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async FetchEmployeesDashboard(dispatch: any) {
         try {
             const response = await api.get(`/routine-tasks/employee-dashboard/`);

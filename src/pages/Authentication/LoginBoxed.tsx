@@ -73,9 +73,10 @@ const LoginBoxed: React.FC = () => {
                 console.error('❌ Login Error:', err);
 
                 if (err.response) {
-                    const { status } = err.response;
-
-                    if (status === 400) {
+                    const { status, data } = err.response;
+                    if (data.detail) {
+                        setError(data.detail);
+                    } else if (status === 400) {
                         setError('Invalid credentials. Please check your email and password.');
                     } else if (status === 401) {
                         setError('No active account found with the given credentials');

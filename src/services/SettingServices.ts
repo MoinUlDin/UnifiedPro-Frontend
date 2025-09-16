@@ -198,4 +198,16 @@ export default class SettingServices {
             throw e;
         }
     }
+
+    // allowed Sessions
+    static async FetchAllowedPMChoices() {
+        try {
+            const response = await api.get(`/company-performace/performance-monitoring/allowed_pm_choices/`);
+            return response.data;
+        } catch (e: any) {
+            console.log(e);
+            const msg = e.response.data.detail || 'Error Fetching allowed Sessions';
+            throw new Error(msg);
+        }
+    }
 }

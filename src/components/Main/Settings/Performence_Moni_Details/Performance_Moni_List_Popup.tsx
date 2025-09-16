@@ -9,7 +9,11 @@ export interface PMFormData {
     id?: number;
     start_date: string; // "YYYY-MM-DD"
     end_date: string; // "YYYY-MM-DD"
-    session_type: 'monthly' | 'quarterly' | 'yearly' | string;
+    session_type: string;
+}
+export interface AllowedSessionType {
+    label: 'Monthly';
+    value: 'monthly';
 }
 
 interface Props {
@@ -19,12 +23,26 @@ interface Props {
 
 export default function Performance_Moni_List_Popup({ initialData, closeModal }: Props) {
     // initialize from initialData or blanks
+    const [allowedSessions, setAllowedSessions] = useState<AllowedSessionType[]>([]);
     const [params, setParams] = useState<PMFormData>({
         start_date: '',
         end_date: '',
         session_type: '',
     });
 
+    const fetchAllowedList = () => {
+        SettingServices.FetchAllowedPMChoices()
+            .then((r) => {
+                console.log('r:', r);
+                setAllowedSessions(r.choices);
+            })
+            .catch((e) => {
+                console.log('e');
+            });
+    };
+    useEffect(() => {
+        fetchAllowedList();
+    }, []);
     // when initialData arrives, seed the form
     useEffect(() => {
         if (initialData) {
@@ -103,9 +121,12 @@ export default function Performance_Moni_List_Popup({ initialData, closeModal }:
                                                     <option value="" disabled>
                                                         — select —
                                                     </option>
-                                                    <option value="monthly">Monthly</option>
-                                                    <option value="quarterly">Quarterly</option>
-                                                    <option value="yearly">Yearly</option>
+                                                    {allowedSessions &&
+                                                        allowedSessions.map((item) => (
+                                                            <option key={item.value} value={item.value}>
+                                                                {item.label}
+                                                            </option>
+                                                        ))}
                                                 </select>
                                                 <IconCaretDown className="absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none" />
                                             </div>

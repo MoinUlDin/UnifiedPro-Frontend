@@ -6,6 +6,8 @@ import { DepartmentGoalType, Props } from '../../../../constantTypes/Types';
 import CompanyGoalServices from '../../../../services/CompanyGoalServices';
 import SettingServices from '../../../../services/SettingServices';
 import { useDispatch } from 'react-redux';
+import DepartmentGoalServices from '../../../../services/DepartmentGoalServices';
+import toast from 'react-hot-toast';
 
 interface FormPayload {
     company_goal: number;
@@ -18,6 +20,9 @@ interface FormPayload {
 export default function DepartmentalGoalsPopup({ initialData, closeModel, onSubmit, isEditing }: Props) {
     // payload-shaped state
     const [loading, setloading] = useState<boolean>(false);
+    const initailWeight = initialData?.weight || 0;
+    const [remaingW, setRemainingW] = useState<number>(100);
+    const [WError, setWError] = useState<string | null>(null);
     const [companyGoals, setCompanyGoals] = useState<any>();
     const [departments, setDepartments] = useState<any>();
     const dispatch = useDispatch();
@@ -36,8 +41,7 @@ export default function DepartmentalGoalsPopup({ initialData, closeModel, onSubm
                 console.log('companyGaols: ', g);
                 setCompanyGoals(g);
             });
-            SettingServices.fetchDepartments(dispatch).then((d) => {
-                console.log('Departments: ', d);
+            SettingServices.fetchParentDepartments().then((d) => {
                 setDepartments(d);
             });
         } catch (e) {
@@ -51,10 +55,34 @@ export default function DepartmentalGoalsPopup({ initialData, closeModel, onSubm
         if (!departments || !companyGoals) return;
         setPayload({
             ...payload,
-            company_goal: companyGoals[0].id,
-            department: departments[0].id,
+            company_goal: companyGoals[0]?.id,
+            department: departments[0]?.id,
         });
     }, [departments, companyGoals]);
+
+    // when department changes, refetch remaining weight
+    useEffect(() => {
+        if (!payload.department) return; // 👈 skip if 0 or empty
+
+        DepartmentGoalServices.FetchRemainingWeightDept(payload.department)
+            .then((r) => {
+                setRemainingW(r.remaining_weight); // save it
+            })
+            .catch((e) => {
+                toast.error(e.message);
+            });
+
+        setPayload((prev) => ({ ...prev, weight: initailWeight })); // 👈 safe state update
+    }, [payload.department]);
+
+    // watch Weight
+    useEffect(() => {
+        if (payload.weight > remaingW + initailWeight) {
+            setWError(`Allowed remaining weight: ${remaingW + initailWeight}`);
+        } else {
+            setWError(null);
+        }
+    }, [payload.weight]);
 
     // seed from initialData
     useEffect(() => {
@@ -72,14 +100,10 @@ export default function DepartmentalGoalsPopup({ initialData, closeModel, onSubm
 
     const changeValue = (e: any) => {
         const { id, value } = e.target;
-        setPayload(
-            (p) =>
-                ({
-                    ...p,
-                    // for number fields, parseInt
-                    [id]: id === 'company_goal' || id === 'department' ? parseInt(value, 10) : id === 'target' || id === 'weight' ? Number(value) : value,
-                } as any)
-        );
+        setPayload((prev) => ({
+            ...prev,
+            [id]: id === 'company_goal' || id === 'department' ? parseInt(value, 10) : id === 'target' || id === 'weight' ? parseInt(value) : value,
+        }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -167,6 +191,7 @@ export default function DepartmentalGoalsPopup({ initialData, closeModel, onSubm
                                             <div className="mb-5 w-[48%]">
                                                 <label htmlFor="weight">Weight</label>
                                                 <input id="weight" type="number" className="form-input" value={payload.weight} onChange={changeValue} required />
+                                                {WError && <p className="text-[12px] text-red-500 mt-1">{WError}</p>}
                                             </div>
                                         </div>
 

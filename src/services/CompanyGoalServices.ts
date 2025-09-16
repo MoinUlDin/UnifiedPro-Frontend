@@ -14,7 +14,7 @@ export default class CompanyGoalServices {
     }
     static async FetchRemainingWeight() {
         try {
-            const response = await api.get(`/company-performace/company-goal/get_remaing_weight/`);
+            const response = await api.get(`/company-performace/company-goal/remaining_weight/`);
             return response.data;
         } catch (e) {
             console.log(e);
