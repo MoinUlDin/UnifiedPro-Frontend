@@ -128,7 +128,9 @@ export type AssignmentPayload = {
 export type Props = {
     versionId: number | string;
     open: boolean;
+    qCount: number;
     initial?: Partial<AssignmentPayload> | null;
     onClose: () => void;
     onSubmit: (payload: AssignmentPayload) => Promise<any> | void;
+    formType?: 'self' | 'manager' | '360' | 'employee_manager';
 };

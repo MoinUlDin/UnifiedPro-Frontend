@@ -29,7 +29,7 @@ type Template = {
     description?: string;
     created_by?: TemplateUser;
     created_at?: string;
-    form_type?: string;
+    form_type?: 'self' | 'manager' | '360' | 'employee_manager';
     default_visibility?: Record<string, boolean>;
     reusable?: boolean;
     questions?: Question[];
@@ -60,7 +60,8 @@ export default function FormVersionsAssignmentsPage(): JSX.Element {
     const [openAssignPopup, setOpenAssignPopup] = useState<boolean>(false);
     const [initails, setInitails] = useState<any>(null);
     const [versionId, setVersionId] = useState<number | null>(null);
-    const [assignVersion, setAssignVersion] = useState<Version | null>(null);
+    const [form_type, setFormType] = useState<'self' | 'manager' | '360' | 'employee_manager' | null>(null);
+    const [qCount, setQCount] = useState<number>(0);
 
     // allowed form types (derive dynamically from data or fallback)
     const formTypes = useMemo<Choice[]>(() => {
@@ -143,7 +144,10 @@ export default function FormVersionsAssignmentsPage(): JSX.Element {
     }
 
     function openAssign(v: Version) {
+        console.log('V: ', v);
         setVersionId(v.id);
+        setFormType(v.template.form_type!);
+        setQCount(v.snapshot?.length || 0);
         setInitails(null);
         setOpenAssignPopup(true);
     }
@@ -367,6 +371,8 @@ export default function FormVersionsAssignmentsPage(): JSX.Element {
                 open={openAssignPopup}
                 versionId={Number(versionId)}
                 initial={initails}
+                qCount={qCount}
+                formType={form_type!}
                 onClose={() => setOpenAssignPopup(false)}
                 onSubmit={async (payload) => {
                     // call backend to create assignment (e.g. EvaluationServices.createAssignment(payload))

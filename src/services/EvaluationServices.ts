@@ -77,9 +77,11 @@ export default class EvaluationServices {
 
     static async createAssignment(payload: any) {
         try {
+            console.log('sending Payload: ', payload);
             const r = await api.post('/privacy-evel/assignments/', payload);
             return r.data;
         } catch (e: any) {
+            console.log('Org Error: ', e);
             throw new Error(e.response?.data || e.message);
         }
     }
