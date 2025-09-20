@@ -18,7 +18,7 @@ export default class EvaluationServices {
             const r = await api.get('/privacy-evel/templates/');
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -27,7 +27,7 @@ export default class EvaluationServices {
             const r = await api.post('/privacy-evel/templates/', payload);
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
     static async CreateUpdateTemplateWithQuestions(payload: any) {
@@ -37,7 +37,7 @@ export default class EvaluationServices {
             return r.data;
         } catch (e: any) {
             console.log('org Error: ', e);
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
     static async deleteTemplate(id: number, payload: any = null) {
@@ -45,7 +45,7 @@ export default class EvaluationServices {
             const r = await api.delete(`/privacy-evel/templates/${id}/`, payload);
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -54,7 +54,7 @@ export default class EvaluationServices {
             const r = await api.post('/privacy-evel/versions/', payload);
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
     static async listVersions() {
@@ -62,7 +62,7 @@ export default class EvaluationServices {
             const r = await api.get('/privacy-evel/versions/');
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -71,7 +71,7 @@ export default class EvaluationServices {
             const r = await api.get('/privacy-evel/assignments/');
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -82,7 +82,7 @@ export default class EvaluationServices {
             return r.data;
         } catch (e: any) {
             console.log('Org Error: ', e);
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -91,7 +91,7 @@ export default class EvaluationServices {
             const r = await api.get('/privacy-evel/submissions/');
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -100,7 +100,7 @@ export default class EvaluationServices {
             const r = await api.post('/privacy-evel/submissions/', payload);
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -109,7 +109,7 @@ export default class EvaluationServices {
             const r = await api.get(`/privacy-evel/submissions/${id}/`);
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -119,7 +119,7 @@ export default class EvaluationServices {
             const r = await api.get(`/privacy-evel/submissions/aggregate/${targetId}/${qs}`);
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
 
@@ -128,7 +128,7 @@ export default class EvaluationServices {
             const r = await api.post(`/privacy-evel/submissions/${submissionId}/comment/`, payload);
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            throw e;
         }
     }
     // Assignments
@@ -137,7 +137,44 @@ export default class EvaluationServices {
             const r = await api.get(`/privacy-evel/assignments/assignment-options/?template_version=${id}`);
             return r.data;
         } catch (e: any) {
-            throw new Error(e.response?.data || e.message);
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async getEmployeeMangerAssignments() {
+        try {
+            const r = await api.get(`/privacy-evel/assignments/employee-manager/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async get360Assignments() {
+        try {
+            const r = await api.get(`/privacy-evel/assignments/360/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async getSelfAssignments() {
+        try {
+            const r = await api.get(`/privacy-evel/assignments/self/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async getManagerAssignments() {
+        try {
+            const r = await api.get(`/privacy-evel/assignments/manager/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
         }
     }
 }

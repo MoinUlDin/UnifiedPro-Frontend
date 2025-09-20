@@ -1,5 +1,4 @@
 // src/components/Evaluation/AssignmentPopup.tsx
-// src/components/Evaluation/AssignmentPopup.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { X, Users, Home, Layers, Search, ChevronDown, ChevronUp, Target, Info } from 'lucide-react';
 import EvaluationServices from '../../../../services/EvaluationServices';
@@ -29,8 +28,8 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
     const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]); // used mainly for respondent selection in 360 or specific users
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | null>(null);
 
-    // subject (single) for employee_manager / manager / 360
-    const [selectedSubjectUserId, setSelectedSubjectUserId] = useState<number | null>(null);
+    // subjects (multiple) for manager / 360. employee_manager will still require exactly 1 subject.
+    const [selectedSubjectUserIds, setSelectedSubjectUserIds] = useState<number[]>([]);
     const [selectedSubjectAllUsersId, setSelectedSubjectAllUsersId] = useState<number | null>(null);
     const [derivedRespondentUserId, setDerivedRespondentUserId] = useState<number | null>(null);
 
@@ -38,7 +37,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string | null>(null);
     const [period, setPeriod] = useState<AssignmentPayload['period']>('one-off');
-    const [includeMetrics, setIncludeMetrics] = useState<boolean>(true);
+    const [includeMetrics, setIncludeMetrics] = useState<boolean>(false);
 
     // UI helpers
     const [expandedDepts, setExpandedDepts] = useState<Record<number, boolean>>({});
@@ -77,7 +76,8 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
             })
             .catch((e: any) => {
                 console.error(e);
-                setError('Failed to fetch employee list.');
+                toast.error(e.response?.data?.detail || 'Unknown Error');
+                setError(e.response?.data?.detail || 'Failed to fetch employee list.');
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
@@ -96,14 +96,25 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
         if (!parentFormType && initial.target_type) {
             setTab(initial.target_type === 'user' ? 'users' : initial.target_type === 'department' ? 'department' : 'company');
         }
-        if (initial.target_users && initial.target_users.length) {
-            // if initial is an employee-manager or manager, target_users likely contain subject(s)
-            setSelectedUserIds(initial.target_users.map((id: any) => Number(id)));
-            // if exactly 1 subject, set selectedSubjectUserId
-            if (Array.isArray(initial.target_users) && initial.target_users.length === 1) {
-                setSelectedSubjectUserId(Number(initial.target_users[0]));
+
+        // subjects may be provided (new API)
+        if (initial.subjects && initial.subjects.length) {
+            const ids = initial.subjects.map((id: any) => Number(id));
+            setSelectedUserIds(ids); // backward compat
+            setSelectedSubjectUserIds(ids);
+            if (ids.length === 1) {
+                setSelectedSubjectAllUsersId(Number(initial.subjects ?? null));
+            }
+        } else if (initial.target_users && initial.target_users.length) {
+            // backward compatibility if initial uses old key
+            const ids = initial.target_users.map((id: any) => Number(id));
+            setSelectedUserIds(ids);
+            setSelectedSubjectUserIds(ids);
+            if (ids.length === 1) {
+                setSelectedSubjectAllUsersId(Number(initial.target_users ?? null));
             }
         }
+
         if (initial.target_department) setSelectedDepartmentId(initial.target_department);
         if (initial.start_date) setStartDate(initial.start_date);
         if (initial.end_date) setEndDate(initial.end_date ?? null);
@@ -158,17 +169,36 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
         setSelectedUserIds([]);
     };
 
-    // Subject selection helper (single select)
-    const handleSelectSubject = (eItem: EmployeeItem) => {
-        setSelectedSubjectUserId(eItem.user_id ?? null);
+    // Subject single-select (used only for employee_manager where exactly one subject is required)
+    const selectSingleSubject = (eItem: EmployeeItem) => {
+        const id = eItem.user_id ?? null;
+        setSelectedSubjectUserIds(id ? [id] : []);
         setSelectedSubjectAllUsersId(eItem.allusers_id ?? null);
         // try derive respondent if available on employee item
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const asAny = eItem as any;
         if (asAny.manager_user_id) {
             setDerivedRespondentUserId(asAny.manager_user_id);
-        } else if (asAny.manager_allusers_id) {
+        } else {
             setDerivedRespondentUserId(null);
+        }
+    };
+
+    // Subject multi-select toggle (for manager and 360 flows)
+    const toggleSubjectSelection = (eItem: EmployeeItem) => {
+        if (!eItem.user_id) return;
+        setSelectedSubjectUserIds((prev) => {
+            const id = eItem.user_id as number;
+            if (prev.includes(id)) {
+                return prev.filter((x) => x !== id);
+            }
+            return [...prev, id];
+        });
+        // try derive respondent if available on employee item (informational)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const asAny = eItem as any;
+        if (asAny.manager_user_id) {
+            setDerivedRespondentUserId(asAny.manager_user_id);
         } else {
             setDerivedRespondentUserId(null);
         }
@@ -180,109 +210,120 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
             setError('Start date is required.');
             return null;
         }
+        if (!endDate) {
+            setError('End date is required.');
+            return null;
+        }
 
-        // Build payload logic differs per formType
-        // General payload base:
-        const payloadBase: AssignmentPayload = {
+        // We'll build payload as a loose object and cast to AssignmentPayload where needed.
+        const base: any = {
             template_version: versionId,
-            target_type: 'user', // we'll adjust below as needed
+            // target_type will be set later according to what the assignment is targeted at
             start_date: startDate,
             end_date: endDate ?? null,
             period,
-            include_system_metrics: includeMetrics,
-        } as AssignmentPayload;
+            include_system_metrics: formType === 'manager' ? includeMetrics : false,
+        };
 
+        // === employee_manager ===
         if (formType === 'employee_manager') {
-            // subject (manager) must be selected (single)
-            if (!selectedSubjectUserId) {
-                setError('Please select the manager (subject).');
+            if (!selectedSubjectUserIds || selectedSubjectUserIds.length !== 1) {
+                setError('Please select exactly one manager (subject).');
                 return null;
             }
-            payloadBase.target_type = 'user';
-            payloadBase.target_users = [selectedSubjectUserId];
-            return payloadBase;
+            // subjects = manager being evaluated. Respondents are manager's team (resolved server-side)
+            base.target_type = 'user';
+            base.subjects = selectedSubjectUserIds;
+            return base as AssignmentPayload;
         }
 
+        // === manager ===
         if (formType === 'manager') {
-            if (!selectedSubjectUserId) {
-                setError('Please select the subject (employee).');
+            if (!selectedSubjectUserIds || selectedSubjectUserIds.length === 0) {
+                setError('Please select at least one subject (employee).');
                 return null;
             }
-            // create assignment targeted at the subject employee
-            payloadBase.target_type = 'user';
-            payloadBase.target_users = [selectedSubjectUserId];
-            return payloadBase;
+            base.target_type = 'user';
+            base.subjects = selectedSubjectUserIds;
+            // if we were able to determine the respondent (manager) locally for a single subject, include them.
+            // For multiple subjects, it's better to let the server resolve respondents per-subject (recommended).
+            if (derivedRespondentUserId && selectedSubjectUserIds.length === 1) {
+                base.respondents = [derivedRespondentUserId];
+            }
+            return base as AssignmentPayload;
         }
 
+        // === 360 ===
         if (formType === '360') {
-            // subject required
-            if (!selectedSubjectUserId) {
-                setError('Please select the subject (employee).');
+            if (!selectedSubjectUserIds || selectedSubjectUserIds.length === 0) {
+                setError('Please select at least one subject (employee).');
                 return null;
             }
-            const built = { ...payloadBase };
+            const built = { ...base };
             built.target_type = 'user';
-            built.target_users = [selectedSubjectUserId];
+            built.subjects = selectedSubjectUserIds;
 
             if (tab === 'users') {
                 if (selectedUserIds.length === 0) {
                     setError('Please select at least one respondent (specific users).');
                     return null;
                 }
-                // @ts-ignore add ad-hoc key (backend must be updated to use this)
-                (built as any).respondents = selectedUserIds;
-                return built;
+                built.respondents = selectedUserIds;
+                return built as AssignmentPayload;
             }
             if (tab === 'department') {
                 if (!selectedDepartmentId) {
                     setError('Please select a department for respondents.');
                     return null;
                 }
-                // @ts-ignore
-                (built as any).respondent_department = selectedDepartmentId;
-                return built;
+                // we send this helper key so server can resolve respondents for that department
+                built.respondent_department = selectedDepartmentId;
+                return built as AssignmentPayload;
             }
             if (tab === 'company') {
-                // @ts-ignore
-                (built as any).respondent_company_wide = true;
-                return built;
+                built.respondent_company_wide = true;
+                return built as AssignmentPayload;
             }
             return null;
         }
 
-        // default 'self' behavior:
+        // === self (default) ===
+        // If user selected specific users -> these are the subjects (evaluated employees)
         if (tab === 'users') {
             if (selectedUserIds.length === 0) {
                 setError('Please select at least one target user.');
                 return null;
             }
-            payloadBase.target_type = 'user';
-            payloadBase.target_users = selectedUserIds;
-            return payloadBase;
+            base.target_type = 'user';
+            base.subjects = selectedUserIds;
+            return base as AssignmentPayload;
         }
+        // Department: target_type=department; subjects empty (server will resolve the recipient set)
         if (tab === 'department') {
             if (!selectedDepartmentId) {
                 setError('Please select a target department.');
                 return null;
             }
-            payloadBase.target_type = 'department';
-            payloadBase.target_department = selectedDepartmentId;
-            // We keep target_users empty for department/company modes per your stated preference
-            return payloadBase;
+            base.target_type = 'department';
+            base.target_department = selectedDepartmentId;
+            // Do NOT set subjects/respondents — server resolves who will be evaluated/respond
+            return base as AssignmentPayload;
         }
         if (tab === 'company') {
-            payloadBase.target_type = 'company';
-            return payloadBase;
+            base.target_type = 'company';
+            return base as AssignmentPayload;
         }
 
         return null;
     };
 
+    // Submiting the payload
     const handleCreate = async () => {
         const payload = validateAndBuildPayload();
         if (!payload) return;
         setLoading(true);
         try {
+            // send the payload — backend now expects subjects/respondents M2M fields
             await EvaluationServices.createAssignment(payload);
             toast.success('Assignment created', { duration: 4000 });
             onClose();
@@ -290,8 +331,9 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                 onSubmit(payload);
             }
         } catch (e: any) {
-            console.error(e);
-            toast.error(e.message || 'Failed to create assignment');
+            const msg = e?.response?.data?.detail ?? e?.message ?? 'Unknown Error';
+            toast.error(msg || 'Unknown Error');
+            setError(msg || 'Unknown Error');
         } finally {
             setLoading(false);
         }
@@ -312,6 +354,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                 return 'Self / Generic';
         }
     })();
+
     return (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 px-4 ">
             <div className="absolute inset-0 bg-black/40" onClick={onClose} />
@@ -362,7 +405,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                                 <div className="pl-4 mt-2">
                                                     {dept.employees.map((e) => {
                                                         // managers endpoint returns managers grouped in `employees`
-                                                        const checked = selectedSubjectUserId === e.user_id;
+                                                        const checked = selectedSubjectUserIds.includes(e.user_id ?? -1);
                                                         return (
                                                             <div key={e.allusers_id} className="flex items-center justify-between py-2 border-b last:border-b-0">
                                                                 <div>
@@ -370,7 +413,8 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                                                     <div className="text-xs text-slate-400">{e.email}</div>
                                                                 </div>
                                                                 <div>
-                                                                    <input type="radio" name="subject" checked={checked} onChange={() => handleSelectSubject(e)} />
+                                                                    {/* single-select (radio) UI for employee_manager */}
+                                                                    <input type="radio" name="subject" checked={checked} onChange={() => selectSingleSubject(e)} />
                                                                 </div>
                                                             </div>
                                                         );
@@ -384,7 +428,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
 
                         {formType === 'manager' && (
                             <div className="mb-4">
-                                <div className="text-sm font-medium mb-2">Select Subject (Employee)</div>
+                                <div className="text-sm font-medium mb-2">Select Subject(s) (Employee)</div>
                                 <div className="mt-2 flex items-center gap-2">
                                     <div className="relative flex-1">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -416,7 +460,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                                     {expanded && (
                                                         <div className="pl-10 pt-2 pb-1">
                                                             {dept.employees.map((e) => {
-                                                                const checked = selectedSubjectUserId === e.user_id;
+                                                                const checked = selectedSubjectUserIds.includes(e.user_id ?? -1);
                                                                 return (
                                                                     <div key={e.allusers_id} className="flex items-center justify-between py-2 border-b last:border-b-0">
                                                                         <div>
@@ -424,7 +468,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                                                             <div className="text-xs text-slate-400">{e.email}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <input type="radio" name="subject" checked={checked} onChange={() => handleSelectSubject(e)} />
+                                                                            <input type="checkbox" checked={checked} onChange={() => toggleSubjectSelection(e)} />
                                                                         </div>
                                                                     </div>
                                                                 );
@@ -437,13 +481,13 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                 </div>
 
                                 <div className="mt-3 text-xs text-slate-500">
-                                    {/* try to show derived respondent if possible */}
+                                    {/* try to show derived respondent if possible (informational) */}
                                     {derivedRespondentUserId ? (
-                                        <div>Derived respondent (manager) id: {derivedRespondentUserId} — this will be the respondent who evaluates the selected subject.</div>
+                                        <div>Derived respondent (manager) id: {derivedRespondentUserId} — this will be the respondent who evaluates the selected subject(s) if applicable.</div>
                                     ) : (
                                         <div>
-                                            If the system has manager info for this employee we will auto-assign the manager as responder. Otherwise, please ensure manager-level assignment flow is
-                                            used.
+                                            If the system has manager info for selected employee(s) we may auto-assign those managers as respondents. Otherwise, server will resolve respondents
+                                            per-policy.
                                         </div>
                                     )}
                                 </div>
@@ -464,7 +508,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                 </div>
                                 {tab360 === 1 && (
                                     <div>
-                                        <div className="text-sm font-medium mb-2">Select Subject (Employee)</div>
+                                        <div className="text-sm font-medium mb-2">Select Subject(s) (Employee)</div>
                                         <div className="mt-2">
                                             <div className="relative">
                                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -484,7 +528,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                                             <div className="text-sm font-medium">{dept.department_name}</div>
                                                             <div className="pl-4 mt-2">
                                                                 {dept.employees.map((e) => {
-                                                                    const checked = selectedSubjectUserId === e.user_id;
+                                                                    const checked = selectedSubjectUserIds.includes(e.user_id ?? -1);
                                                                     return (
                                                                         <div key={e.allusers_id} className="flex items-center justify-between py-1">
                                                                             <div>
@@ -492,7 +536,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                                                                 <div className="text-xs text-slate-400">{e.email}</div>
                                                                             </div>
                                                                             <div>
-                                                                                <input type="radio" name="subject360" checked={checked} onChange={() => handleSelectSubject(e)} />
+                                                                                <input type="checkbox" checked={checked} onChange={() => toggleSubjectSelection(e)} />
                                                                             </div>
                                                                         </div>
                                                                     );
@@ -772,7 +816,7 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                 <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full mt-1 p-2 border rounded" />
                             </div>
                             <div>
-                                <label className="text-xs text-slate-500">End Date (Optional)</label>
+                                <label className="text-xs text-slate-500">End Date</label>
                                 <input type="date" value={endDate ?? ''} onChange={(e) => setEndDate(e.target.value || null)} className="w-full mt-1 p-2 border rounded" />
                             </div>
                         </div>
@@ -780,7 +824,6 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                         {formType === 'manager' && (
                             <div className="mt-3 w-full flex items-start flex-col gap-3">
                                 {/* Toggle: Include System Metrics */}
-
                                 <div className="flex items-center justify-between w-full">
                                     <div>
                                         <label className="text-xs text-slate-500">Include System Metrics</label>
@@ -830,12 +873,12 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
                                     <div className="text-slate-600">Recipients</div>
                                     <div className="font-medium text-slate-800">
                                         {formType === 'employee_manager'
-                                            ? selectedSubjectUserId
+                                            ? selectedSubjectUserIds.length
                                                 ? 'Team of selected manager'
                                                 : '—'
                                             : tab === 'company'
                                             ? `${totalEmployees} employees`
-                                            : `${selectedCount || (selectedSubjectUserId ? 1 : 0)} employees`}
+                                            : `${selectedCount || (selectedSubjectUserIds.length ? selectedSubjectUserIds.length : 0)} employees`}
                                     </div>
                                 </div>
                                 <div className="flex justify-between">

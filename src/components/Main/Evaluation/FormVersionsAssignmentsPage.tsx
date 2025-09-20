@@ -273,7 +273,7 @@ export default function FormVersionsAssignmentsPage(): JSX.Element {
                                             <h3 className="mt-6">Questions Preview</h3>
                                             <div className="mt-1 flex flex-wrap gap-2">
                                                 {previewQuestions.map((t, i) => (
-                                                    <div key={i} className="text-xs px-2 py-1 bg-slate-100 rounded-full flex items-center gap-2">
+                                                    <div key={i} className="text-xs px-2 py-1 border rounded-lg flex items-center gap-2">
                                                         {t.qtype === 'bool' ? (
                                                             <CheckCircle size={12} />
                                                         ) : t.qtype === 'choice' ? (
@@ -287,7 +287,7 @@ export default function FormVersionsAssignmentsPage(): JSX.Element {
                                                         {truncate(t.text, 28)}
                                                     </div>
                                                 ))}
-                                                {more > 0 && <div className="text-xs px-2 py-1 bg-slate-100 rounded-full">+{more} more</div>}
+                                                {more > 0 && <div className="text-xs px-2 py-1 border bg-green-400 rounded-full">+{more} more</div>}
                                             </div>
 
                                             {/* default visibility chips */}
@@ -366,21 +366,22 @@ export default function FormVersionsAssignmentsPage(): JSX.Element {
                 </div>
             )}
 
-            {}
-            <AssignmentPopup
-                open={openAssignPopup}
-                versionId={Number(versionId)}
-                initial={initails}
-                qCount={qCount}
-                formType={form_type!}
-                onClose={() => setOpenAssignPopup(false)}
-                onSubmit={async (payload) => {
-                    // call backend to create assignment (e.g. EvaluationServices.createAssignment(payload))
-                    // await EvaluationServices.createAssignment(payload);
-                    console.log('we recieved payload: ', payload);
-                    setOpenAssignPopup(false);
-                }}
-            />
+            {openAssignPopup && (
+                <AssignmentPopup
+                    open={openAssignPopup}
+                    versionId={Number(versionId)}
+                    initial={initails}
+                    qCount={qCount}
+                    formType={form_type!}
+                    onClose={() => setOpenAssignPopup(false)}
+                    onSubmit={async (payload) => {
+                        // call backend to create assignment (e.g. EvaluationServices.createAssignment(payload))
+                        // await EvaluationServices.createAssignment(payload);
+                        console.log('we recieved payload: ', payload);
+                        setOpenAssignPopup(false);
+                    }}
+                />
+            )}
         </div>
     );
 

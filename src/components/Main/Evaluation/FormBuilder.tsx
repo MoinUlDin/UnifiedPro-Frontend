@@ -242,6 +242,7 @@ export default function FormBuilder({ existingTemplate }: { existingTemplate?: T
             fetchExistingTemplates();
             setDeletedQuestions([]);
             setQuestions([]);
+            setStep(0);
             setTemplate({
                 id: null,
                 name: '',

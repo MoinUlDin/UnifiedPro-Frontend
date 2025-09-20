@@ -115,6 +115,7 @@ export type AssignmentPayload = {
     template_version: number | string; // id of version
     target_type: 'user' | 'department' | 'company';
     target_users?: number[]; // user_id array (respondents)
+    subjects?: number[];
     target_department?: number | null;
     start_date: string; // ISO date YYYY-MM-DD
     end_date?: string | null; // ISO date

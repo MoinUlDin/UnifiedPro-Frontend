@@ -42,6 +42,8 @@ import CompanySetupServices from '../../../services/CompanySetupServices';
 import AddEditPermissionGroup from './AddEditPermissionGroup';
 import toast, { Toaster } from 'react-hot-toast';
 import ManageGroupMembersModal from './ManageGroupMembersModal';
+import { Globe, User, Users } from 'lucide-react';
+import Spinner from '../../Spinner';
 
 interface CorePermissionType {
     code: string;
@@ -101,6 +103,9 @@ const iconMap = {
     BiHelpCircle,
     BiTrophy,
     BiClipboard,
+    Globe,
+    Users,
+    User,
 };
 
 export default function StandalonePermissionsPage() {
@@ -118,6 +123,7 @@ export default function StandalonePermissionsPage() {
     const [membersModalOpen, setMembersModalOpen] = useState(false);
     const [fetchAgain, setFechAgain] = useState<number>(1);
     const [showTick, setShowTick] = useState<boolean>(false);
+    const [saving, setSaving] = useState<boolean>(false);
 
     useEffect(() => {
         console.log('fetching for number: ', fetchAgain);
@@ -180,6 +186,7 @@ export default function StandalonePermissionsPage() {
 
     const handleSave = () => {
         if (!selectedGroup) return;
+        setSaving(true);
         CompanySetupServices.BulkUpdatePermissions({
             groupId: Number(selectedGroup),
             permissions: groupPermissions.map((gp) => ({
@@ -200,6 +207,9 @@ export default function StandalonePermissionsPage() {
             })
             .catch((e) => {
                 toast.error(e.message || 'error Updating permissions');
+            })
+            .finally(() => {
+                setSaving(false);
             });
     };
     // Copy permissions handler:
@@ -246,6 +256,7 @@ export default function StandalonePermissionsPage() {
     }, [detailedList]);
     return (
         <Container size="xl" className="py-6">
+            {saving && <Spinner />}
             <Stack spacing="xl">
                 {/* Header */}
                 <Group position="apart">
@@ -375,12 +386,6 @@ export default function StandalonePermissionsPage() {
                                                                 </Badge>
                                                             )}
                                                         </Group>
-                                                        {/* <Group position="apart">
-                                                            <span className="text-gray-700 text-[10px]">
-                                                                {stats.granted}/{stats.total} permissions
-                                                            </span>
-                                                            <span className="text-gray-700 text-[10px]">{stats.coverage}%</span>
-                                                        </Group> */}
                                                     </Paper>
                                                 );
                                             })}

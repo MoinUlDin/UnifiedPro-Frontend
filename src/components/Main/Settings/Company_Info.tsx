@@ -263,8 +263,8 @@ const Company_Info = () => {
             fields: workingDayFields,
             initialValues: {
                 day_name: '',
-                start: '',
-                end: '',
+                start: '09:00',
+                end: '17:00',
                 is_selected: flag ? 'false' : 'true',
             },
             onSubmit: async (data) => {

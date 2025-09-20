@@ -52,6 +52,7 @@ const SubmitManagerEval = lazy(() => import('../components/Main/Evaluation/Submi
 const SubmitEngmntEval = lazy(() => import('../components/Main/Evaluation/Submit_Engmnt_Eval'));
 const SubmitStftnEval = lazy(() => import('../components/Main/Evaluation/Submit_Stftn_Eval'));
 const SubmitSelfEval = lazy(() => import('../components/Main/Evaluation/Submit_Self_Eval'));
+const EmployeeManagerPage = lazy(() => import('../components/Main/Evaluation/EmployeeManagerPage'));
 
 // Evaluation Forms types
 const TemplatesList = lazy(() => import('../components/Main/Evaluation/TemplatesList'));
@@ -373,6 +374,14 @@ const routes: AppRoute[] = [
         element: <AssignmentsPage />,
         layout: 'default',
         label: 'Assignments',
+        category: 'Evaluation',
+        protected: true,
+    },
+    {
+        path: '/employee-manager',
+        element: <EmployeeManagerPage />,
+        layout: 'default',
+        label: 'Employee Manager',
         category: 'Evaluation',
         protected: true,
     },
