@@ -30,10 +30,36 @@ export default class EvaluationServices {
             throw new Error(e.response?.data || e.message);
         }
     }
+    static async CreateUpdateTemplateWithQuestions(payload: any) {
+        // this will Create or update
+        try {
+            const r = await api.post('/privacy-evel/templates/create-or-update-with-questions/', payload);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw new Error(e.response?.data || e.message);
+        }
+    }
+    static async deleteTemplate(id: number, payload: any = null) {
+        try {
+            const r = await api.delete(`/privacy-evel/templates/${id}/`, payload);
+            return r.data;
+        } catch (e: any) {
+            throw new Error(e.response?.data || e.message);
+        }
+    }
 
     static async createVersion(payload: any) {
         try {
             const r = await api.post('/privacy-evel/versions/', payload);
+            return r.data;
+        } catch (e: any) {
+            throw new Error(e.response?.data || e.message);
+        }
+    }
+    static async listVersions() {
+        try {
+            const r = await api.get('/privacy-evel/versions/');
             return r.data;
         } catch (e: any) {
             throw new Error(e.response?.data || e.message);
@@ -98,6 +124,15 @@ export default class EvaluationServices {
     static async postComment(submissionId: number | string, payload: any) {
         try {
             const r = await api.post(`/privacy-evel/submissions/${submissionId}/comment/`, payload);
+            return r.data;
+        } catch (e: any) {
+            throw new Error(e.response?.data || e.message);
+        }
+    }
+    // Assignments
+    static async assignmentOptions(id: number) {
+        try {
+            const r = await api.get(`/privacy-evel/assignments/assignment-options/?template_version=${id}`);
             return r.data;
         } catch (e: any) {
             throw new Error(e.response?.data || e.message);

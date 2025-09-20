@@ -52,7 +52,14 @@ const SubmitManagerEval = lazy(() => import('../components/Main/Evaluation/Submi
 const SubmitEngmntEval = lazy(() => import('../components/Main/Evaluation/Submit_Engmnt_Eval'));
 const SubmitStftnEval = lazy(() => import('../components/Main/Evaluation/Submit_Stftn_Eval'));
 const SubmitSelfEval = lazy(() => import('../components/Main/Evaluation/Submit_Self_Eval'));
-const FormBuilderPage = lazy(() => import('../components/Main/Evaluation/FromBuilderPage'));
+
+// Evaluation Forms types
+const TemplatesList = lazy(() => import('../components/Main/Evaluation/TemplatesList'));
+const FormBuilder = lazy(() => import('../components/Main/Evaluation/FormBuilder')); // our builder page (FormBuilder.tsx)
+const AssignmentsPage = lazy(() => import('../components/Main/Evaluation/FormVersionsAssignmentsPage'));
+const SubmissionsList = lazy(() => import('../components/Main/Evaluation/SubmissionsList'));
+const SubmissionDetail = lazy(() => import('../components/Main/Evaluation/SubmissionDetail'));
+const AggregateReport = lazy(() => import('../components/Main/Evaluation/AggregateReport'));
 
 // Settings
 const CompanyInfo = lazy(() => import('../components/Main/Settings/Company_Info'));
@@ -346,12 +353,54 @@ const routes: AppRoute[] = [
     },
     // Evaluation Routes
     {
-        path: '/form-builder',
-        element: <FormBuilderPage />,
+        path: '/evaluations/templates',
+        element: <TemplatesList />,
+        layout: 'default',
+        label: 'Templates',
+        category: 'Evaluation',
+        protected: true,
+    },
+    {
+        path: '/evaluations/builder',
+        element: <FormBuilder />,
         layout: 'default',
         label: 'Form Builder',
         category: 'Evaluation',
+        protected: true,
     },
+    {
+        path: '/evaluations/assignments',
+        element: <AssignmentsPage />,
+        layout: 'default',
+        label: 'Assignments',
+        category: 'Evaluation',
+        protected: true,
+    },
+    {
+        path: '/evaluations/submissions',
+        element: <SubmissionsList />,
+        layout: 'default',
+        label: 'Submissions',
+        category: 'Evaluation',
+        protected: true,
+    },
+    {
+        path: '/evaluations/submissions/:id',
+        element: <SubmissionDetail />,
+        layout: 'default',
+        label: 'Submission Detail',
+        category: 'Evaluation',
+        protected: true,
+    },
+    {
+        path: '/evaluations/reports/target/:userId',
+        element: <AggregateReport />,
+        layout: 'default',
+        label: 'Aggregate Report',
+        category: 'Evaluation',
+        protected: true,
+    },
+
     {
         path: '/company_policies',
         element: <CompanyPolicies />,

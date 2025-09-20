@@ -4,7 +4,6 @@ import { Plus, Edit } from 'lucide-react';
 import EvaluationServices from '../../../services/EvaluationServices';
 import Modal from './Popups/Modal';
 import FormBuilder from './FormBuilder';
-
 type Template = any;
 
 export default function TemplatesList() {
