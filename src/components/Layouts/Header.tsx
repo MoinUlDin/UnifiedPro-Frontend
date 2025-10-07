@@ -328,15 +328,15 @@ const Header = () => {
                                                                 <div className="ltr:pr-3 rtl:pl-3">
                                                                     <h6
                                                                         dangerouslySetInnerHTML={{
-                                                                            __html: notification.message,
+                                                                            __html: notification?.message,
                                                                         }}
                                                                     ></h6>
-                                                                    <span className="text-xs block font-normal dark:text-gray-500">{notification.time}</span>
+                                                                    <span className="text-xs block font-normal dark:text-gray-500">{notification?.time}</span>
                                                                 </div>
                                                                 <button
                                                                     type="button"
                                                                     className="ltr:ml-auto rtl:mr-auto text-neutral-300 hover:text-danger opacity-0 group-hover:opacity-100"
-                                                                    onClick={() => removeNotification(notification.id)}
+                                                                    onClick={() => removeNotification(notification?.id)}
                                                                 >
                                                                     <IconXCircle />
                                                                 </button>
@@ -379,7 +379,7 @@ const Header = () => {
                                             <div className="ltr:pl-4 rtl:pr-4 truncate">
                                                 <h4 className="text-base">
                                                     {user?.name}
-                                                    {user.is_owner && <span className="text-xs bg-success-light rounded text-success px-1 ltr:ml-2 rtl:ml-2">Admin</span>}
+                                                    {user?.is_owner && <span className="text-xs bg-success-light rounded text-success px-1 ltr:ml-2 rtl:ml-2">Admin</span>}
                                                 </h4>
                                                 <button type="button" className="text-black/60 hover:text-primary dark:text-dark-light/60 dark:hover:text-white">
                                                     {user?.email}
@@ -388,7 +388,7 @@ const Header = () => {
                                         </div>
                                     </li>
                                     <li>
-                                        <Link to={`/employees/${user.id}/profile`} className="dark:hover:text-white">
+                                        <Link to={`/employees/${user?.id}/profile`} className="dark:hover:text-white">
                                             <IconUser className="w-4.5 h-4.5 ltr:mr-2 rtl:ml-2 shrink-0" />
                                             Profile
                                         </Link>

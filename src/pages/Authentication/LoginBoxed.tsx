@@ -5,6 +5,7 @@ import { setPageTitle } from '../../store/themeConfigSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import AuthServices from '../../services/AuthServices';
+import { Eye } from 'lucide-react';
 
 interface ThemeConfig {
     theme: string;
@@ -216,6 +217,7 @@ const LoginBoxed: React.FC = () => {
                                         placeholder="Enter your password"
                                         required
                                     />
+                                    <Eye className="absolute top-2 right-5" />
                                     <div className="absolute inset-0 rounded-2xl transition-opacity duration-200 pointer-events-none">
                                         <div
                                             className="absolute inset-[-1px] rounded-2xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-focus-within:opacity-100"

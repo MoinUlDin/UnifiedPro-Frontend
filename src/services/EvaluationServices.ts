@@ -177,4 +177,84 @@ export default class EvaluationServices {
             throw e;
         }
     }
+
+    // Submition
+    static async getAssignmentQuestions(id: number) {
+        try {
+            const r = await api.get(`/privacy-evel/assignments/${id}/get_questions/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async submitResponses(id: number, payload: any) {
+        try {
+            const r = await api.post(`/privacy-evel/submissions/submit_form/`, payload);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async fetchManagerSubmitted() {
+        try {
+            const r = await api.get(`/privacy-evel/submissions/submitted_list_manager/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async fetchAggregatedResults(f_type: 'self' | 'manager' | '360' | 'employee_manager') {
+        try {
+            const r = await api.get(`/privacy-evel/submissions/aggregate_results/?form_type=${f_type}`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async fetchSelfSubmitted() {
+        try {
+            const r = await api.get(`/privacy-evel/submissions/submitted_list_self/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+
+    static async saveDraft(id: number, payload: any) {
+        try {
+            const r = await api.get(`//`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+
+    // Comments on submitions
+    static async getSubmissionComments(id: number) {
+        try {
+            return;
+            const r = await api.get(`/privacy-evel/submissions/submitted_list_self/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async postSubmissionComment(id: number, payload: any) {
+        try {
+            console.log('payload: ', payload);
+            return;
+            const r = await api.post(`/privacy-evel/submissions/submitted_list_self/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
 }

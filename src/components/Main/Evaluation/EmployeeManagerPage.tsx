@@ -21,23 +21,9 @@ function EmployeeManagerPage() {
                 setLoading(false);
             });
     };
-    const fself = () => {
-        setLoading(true);
-        EvaluationServices.getSelfAssignments()
-            .then((r) => {
-                console.log('self: ', r);
-                setApiData(r);
-            })
-            .catch((e) => {
-                console.log(e);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    };
+
     useEffect(() => {
         fetchassignments();
-        fself();
     }, []);
     return (
         <div className="">

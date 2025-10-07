@@ -256,9 +256,9 @@ export default function FormBuilder({ existingTemplate }: { existingTemplate?: T
             setMainTab(2);
         } catch (err: any) {
             console.error(err);
-            const msg = err.message || String(err);
-            setError(msg);
+            const msg = err.response?.data?.detail || 'Unkown Error';
             toast.error('Failed to save template: ' + msg);
+            setError(msg);
         } finally {
             setSaving(false);
         }
