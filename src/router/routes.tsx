@@ -55,7 +55,7 @@ const SubmitSelfEval = lazy(() => import('../components/Main/Evaluation/Submit_S
 const EmployeeManagerPage = lazy(() => import('../components/Main/Evaluation/EmployeeManagerPage'));
 const SelfEvaluationPage = lazy(() => import('../components/Main/Evaluation/SelfEvaluationPages/SelfEvaluationPage'));
 const ManagerEvaluationPage = lazy(() => import('../components/Main/Evaluation/ManagerEvaluationsPages/ManagerEvaluationPage'));
-
+const Evaluations360Page = lazy(() => import('../components/Main/Evaluation/Evaluations360Pages/Evaluations360Page'));
 // Evaluation Forms types
 const TemplatesList = lazy(() => import('../components/Main/Evaluation/TemplatesList'));
 const FormBuilder = lazy(() => import('../components/Main/Evaluation/FormBuilder')); // our builder page (FormBuilder.tsx)
@@ -400,6 +400,14 @@ const routes: AppRoute[] = [
         element: <ManagerEvaluationPage />,
         layout: 'default',
         label: 'Manager Evaluation',
+        category: 'Evaluation',
+        protected: true,
+    },
+    {
+        path: '/360-evaluation',
+        element: <Evaluations360Page />,
+        layout: 'default',
+        label: '360 Evaluation',
         category: 'Evaluation',
         protected: true,
     },

@@ -79,8 +79,12 @@ export default function SelfEvaluationPage() {
 
     useEffect(() => {
         fetchAssignments();
-        fetchSumittedSelfList();
     }, []);
+    useEffect(() => {
+        if (tabs === 2 && !selfSubmitted) {
+            fetchSumittedSelfList();
+        }
+    }, [tabs]);
 
     const now = useMemo(() => new Date(), []);
 

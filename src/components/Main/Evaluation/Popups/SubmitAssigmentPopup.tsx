@@ -80,7 +80,6 @@ type AssignmentPayload = {
         form_name: string;
         template_version: number;
         target_user?: number;
-        // ...other fields if necessary
     };
     questions: Question[];
 };
@@ -342,27 +341,25 @@ export default function SubmitAssigmentPopup({ assignmentId, open, onClose, targ
             }
 
             case 'choice': {
+                // NOTE: 'choice' is treated here as single-choice (radio) as requested.
                 const mc = q as MultipleChoiceQuestion;
-                const selected = Array.isArray(val) ? (val as Array<string | number>) : [];
-                const toggle = (key: string | number) => {
-                    if (selected.find((s) => String(s) === String(key))) {
-                        // remove
-                        setAnswerValue(
-                            q.id,
-                            selected.filter((s) => String(s) !== String(key))
-                        );
-                    } else {
-                        setAnswerValue(q.id, [...selected, key]);
-                    }
-                };
-
+                const selected = Array.isArray(val) ? (val as Array<string | number>) : val !== null ? [val] : [];
+                // we will store a single value (string | number) for choice questions
                 return (
                     <div className="flex flex-col gap-2">
                         {mc?.meta?.choices.map((opt) => {
-                            const checked = selected.find((s) => String(s) === String(opt.key));
+                            const checked = String(selected.find((s) => String(s) === String(opt.key)) ?? '') === String(opt.key);
                             return (
                                 <label key={opt.key} className="flex items-center gap-2 cursor-pointer select-none">
-                                    <input type="radio" name={`q-${q.id}`} checked={!!checked} onChange={() => toggle(opt.key)} />
+                                    <input
+                                        type="radio"
+                                        name={`q-${q.id}`}
+                                        checked={checked}
+                                        onChange={() => {
+                                            // set single value (not array) — ensures previous selection is replaced immediately
+                                            setAnswerValue(q.id, opt.key);
+                                        }}
+                                    />
                                     <span>{opt.label}</span>
                                 </label>
                             );

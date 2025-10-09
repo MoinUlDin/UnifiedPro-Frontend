@@ -132,6 +132,16 @@ export default class EvaluationServices {
         }
     }
     // Assignments
+
+    static async fetchAllAssignments() {
+        try {
+            const r = await api.get(`/privacy-evel/assignments/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
     static async assignmentOptions(id: number) {
         try {
             const r = await api.get(`/privacy-evel/assignments/assignment-options/?template_version=${id}`);

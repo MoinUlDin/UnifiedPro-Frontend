@@ -71,8 +71,7 @@ export const EmployeeDashboard: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     // dashboardData is populated by your existing FetchEmployeesDashboard call
-    const dashboardData: BackendDashboard = useSelector((s: any) => s.employee?.employeeDashBoard ?? {});
-
+    const dashboardData: BackendDashboard | null = useSelector((s: any) => s.employee?.employeeDashBoard ?? null);
     const [currentTime, setCurrentTime] = useState<Date>(new Date());
     const [employeeData, setEmployeeData] = useState({
         name: '—',

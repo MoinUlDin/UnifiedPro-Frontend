@@ -21,6 +21,7 @@ const LoginBoxed: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [activeIndex, setActiveIndex] = useState<number>(0);
+    const [passState, setPassState] = useState<'password' | 'text'>('password');
 
     useEffect(() => {
         dispatch(setPageTitle('Login'));
@@ -94,7 +95,13 @@ const LoginBoxed: React.FC = () => {
                 setIsLoading(false);
             });
     };
-
+    const togglepassword = () => {
+        if (passState === 'password') {
+            setPassState('text');
+        } else {
+            setPassState('password');
+        }
+    };
     return (
         <div className="flex min-h-screen">
             <div className="hidden lg:block lg:w-[60%] relative overflow-hidden bg-black">
@@ -208,7 +215,7 @@ const LoginBoxed: React.FC = () => {
                                 <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Password</label>
                                 <div className="relative">
                                     <input
-                                        type="password"
+                                        type={passState}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className={`w-full px-5 py-4 rounded-2xl border ${
@@ -217,7 +224,8 @@ const LoginBoxed: React.FC = () => {
                                         placeholder="Enter your password"
                                         required
                                     />
-                                    <Eye className="absolute top-2 right-5" />
+                                    <Eye onClick={togglepassword} className="absolute top-4 right-3 hover:cursor-pointer" />
+
                                     <div className="absolute inset-0 rounded-2xl transition-opacity duration-200 pointer-events-none">
                                         <div
                                             className="absolute inset-[-1px] rounded-2xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-focus-within:opacity-100"

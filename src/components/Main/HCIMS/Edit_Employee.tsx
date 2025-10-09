@@ -9,6 +9,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { EmployeeType } from '../../../constantTypes/Types';
 import IconUser from '../../Icon/IconUser';
 import TerminateEmployeeModal from '../Tasks/TerminateEmployeeModal';
+import { capitalizeName } from '../../../utils/Common';
 import Swal from 'sweetalert2';
 import { Edit, Edit2, Trash, Trash2, UserMinus, UserMinus2, UserRoundMinus, UserRoundX } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -55,8 +56,9 @@ const Edit_Employee = () => {
                             <IconUser className="w-4.5 h-4.5" />
                         </div>
                     )}
-                    <span>
-                        {row.first_name} {row.last_name}
+                    <span className="flex flex-col">
+                        <span className="text-lg font-semibold">{capitalizeName(`${row.first_name} ${row.last_name}`)}</span>
+                        <span className="text-[12px] text-gray-500">Reporting: {row?.parent?.name || 'No parent'} </span>
                     </span>
                 </Link>
             ),
