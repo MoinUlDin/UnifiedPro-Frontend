@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, MessageSquare, User, Clock, CheckCircle } from 'lucide-react';
 import EvaluationServices from '../../../services/EvaluationServices';
 import toast from 'react-hot-toast';
+import { getAbbrivation } from '../../../utils/Common';
 
 type UserShort = {
     id: number;
@@ -22,10 +23,26 @@ type PerQuestionBreakdown = {
     selected_labels?: string[]; // for choice
 };
 
+type SystemMetrics = {
+    weights?: {
+        manager?: number;
+        tasks?: number;
+        attendance?: number;
+        [k: string]: number | undefined;
+    };
+    manager_percent?: number;
+    tasks_percent?: number;
+    attendance_percent?: number;
+    weighted_percent?: number;
+    final_score_10?: number;
+    [k: string]: any;
+};
+
 type ComputedBreakdown = {
     per_question: PerQuestionBreakdown[];
     total_achieved: number;
     total_weight: number;
+    system_metrics?: SystemMetrics | null;
 };
 
 export type Submission = {
@@ -45,11 +62,16 @@ export type Submission = {
 
 type CommentItem = {
     id: number;
-    user: { id: number; name: string; avatar?: string | null };
-    text: string;
+    submission: number;
+    author: {
+        id: number;
+        name: string;
+    };
+    message: string;
     created_at: string;
+    is_manager_response: boolean;
+    resolved: boolean;
 };
-
 type Props = {
     submission: Submission;
     formType?: string; // parent passes 'manager' when manager form
@@ -73,7 +95,9 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
     // computed values
     const breakdown = submission.computed_breakdown;
     const questions = breakdown?.per_question ?? [];
-    const overallScore = submission.computed_score ?? null;
+
+    // prefer system_metrics.final_score_10 when available
+    const finalScore = submission.computed_breakdown?.system_metrics?.final_score_10 ?? submission.computed_score ?? null;
 
     // load comments for this submission (call service)
     const fetchComments = async () => {
@@ -81,6 +105,7 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
             setLoadingComments(true);
             // adjust this call if your service method name differs:
             const res = await EvaluationServices.getSubmissionComments(submission.id);
+            console.log('Comments: ', res);
             // assume res is array of comments
             setComments(res || []);
         } catch (e) {
@@ -92,18 +117,27 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
     };
 
     useEffect(() => {
-        // fetch comments when component mounts or submission changes
+        // fetch immediately
         fetchComments();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [submission.id]);
+
+        const id = setInterval(() => {
+            fetchComments();
+        }, 10000); // 10 seconds
+
+        return () => clearInterval(id);
+    }, []);
 
     const handlePostComment = async () => {
         const text = newComment.trim();
         if (!text) return toast.error('Comment cannot be empty');
+        const payload = {
+            submission: submission.id,
+            message: text,
+        };
         setPosting(true);
         try {
             // call your API to create comment - adjust payload shape as needed
-            const created = await EvaluationServices.postSubmissionComment(submission.id, { text });
+            const created = await EvaluationServices.postSubmissionComment(payload);
             // optimistic: prepend to list
             setComments((s) => [created, ...s]);
             setNewComment('');
@@ -116,7 +150,9 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
         }
     };
 
-    const handleDeleteComment = async (id: number) => {};
+    const handleDeleteComment = async (id: number) => {
+        // placeholder - keep existing behaviour (not implemented)
+    };
 
     const overallPercent = useMemo(() => {
         if (!breakdown) return 0;
@@ -124,6 +160,9 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
         if (total <= 0) return 0;
         return Math.round((breakdown.total_achieved / total) * 100);
     }, [breakdown]);
+
+    // helper to render system metrics if available
+    const systemMetrics = submission.computed_breakdown?.system_metrics ?? null;
 
     return (
         <div className="p-6 ">
@@ -150,7 +189,7 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
 
                     <div className="bg-white border rounded-lg px-4 py-3 text-center shadow-sm">
                         <div className="text-xs text-gray-500">Score</div>
-                        <div className="text-2xl font-bold">{overallScore !== null ? overallScore.toFixed(2) : '-'}</div>
+                        <div className="text-2xl font-bold">{finalScore !== null ? Number(finalScore).toFixed(2) : '-'}</div>
                         <div className="text-xs text-gray-400 mt-1">{overallPercent}% of total weight</div>
                     </div>
                 </div>
@@ -218,7 +257,9 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
 
                                             {q.qtype === 'choice' && (
                                                 <div className="text-sm">
-                                                    <div className="mb-1">Selected: {Array.isArray(q.selected_labels) ? q.selected_labels.join(', ') : JSON.stringify(q.respondent_answer)}</div>
+                                                    <div className="mb-1">
+                                                        Selected: {Array.isArray(q.selected_labels) ? q.selected_labels.join(', ') : String(q.respondent_answer ?? q.raw_value ?? '—')}
+                                                    </div>
                                                     {Array.isArray(q.respondent_answer) && <div className="text-xs text-gray-400">Raw: {JSON.stringify(q.respondent_answer)}</div>}
                                                 </div>
                                             )}
@@ -248,8 +289,95 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
                     </div>
                 </div>
 
-                {/* Right column - comments & metadata */}
+                {/* Right column  system metrics & metadata */}
                 <div className="space-y-4">
+                    {/* System Metrics card (only render if available) */}
+                    {systemMetrics && (
+                        <div className="bg-white rounded-lg shadow border p-4 text-sm">
+                            <div className="mb-3 font-medium">System Metrics</div>
+
+                            {/* weights */}
+                            {systemMetrics.weights && (
+                                <div className="mb-3">
+                                    <div className="text-xs text-gray-500 mb-2">Weights</div>
+                                    <div className="grid grid-cols-3 gap-2 text-sm">
+                                        <div>
+                                            <div className="text-gray-600">Manager</div>
+                                            <div className="font-medium">{systemMetrics.weights.manager ?? '-'}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-gray-600">Tasks</div>
+                                            <div className="font-medium">{systemMetrics.weights.tasks ?? '-'}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-gray-600">Attendance</div>
+                                            <div className="font-medium">{systemMetrics.weights.attendance ?? '-'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* percents */}
+                            <div className="mb-3">
+                                <div className="text-xs text-gray-500 mb-2">Component Percentages</div>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <div className="text-gray-600">Manager</div>
+                                        <div className="font-medium">{typeof systemMetrics.manager_percent === 'number' ? `${systemMetrics.manager_percent}%` : '-'}</div>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <div className="text-gray-600">Tasks</div>
+                                        <div className="font-medium">{typeof systemMetrics.tasks_percent === 'number' ? `${systemMetrics.tasks_percent}%` : '-'}</div>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <div className="text-gray-600">Attendance</div>
+                                        <div className="font-medium">{typeof systemMetrics.attendance_percent === 'number' ? `${systemMetrics.attendance_percent}%` : '-'}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* weighted percent & final score */}
+                            <div className="mb-1">
+                                <div className="text-xs text-gray-500">Weighted percent</div>
+                                <div className="font-semibold text-lg">{typeof systemMetrics.weighted_percent === 'number' ? `${systemMetrics.weighted_percent}%` : '-'}</div>
+                            </div>
+
+                            <div className="mt-2">
+                                <div className="text-xs text-gray-500">Final score (0-10)</div>
+                                <div className="text-2xl font-bold">{typeof systemMetrics.final_score_10 === 'number' ? systemMetrics.final_score_10.toFixed(2) : '-'}</div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* metadata card */}
+                    <div className="bg-white rounded-lg shadow border p-4 text-sm">
+                        <div className="mb-3 font-medium">Submission details</div>
+                        <div className="space-y-2 text-gray-600">
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-gray-400" />
+                                <div>
+                                    Submitted at: <span className="font-medium ml-1">{fmt(submission.submitted_at)}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-gray-400" />
+                                <div>
+                                    Respondent: <span className="font-medium ml-1">{submission.respondent.name}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <div>
+                                    Assignment: <span className="font-medium ml-1">{submission.assignment.template_name}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* - Comments Section */}
+                <div className="lg:col-span-2">
                     <div className="bg-white rounded-lg shadow border p-4">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -280,66 +408,23 @@ export default function SubmissionDetailPage({ submission, formType, onBack }: P
                         )}
 
                         {/* comments list */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 mt-8">
                             {comments.map((c) => (
-                                <div key={c?.id} className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-700">
-                                        {c?.user?.name
-                                            .split(' ')
-                                            .map((p) => p[0])
-                                            .slice(0, 2)
-                                            .join('')}
-                                    </div>
+                                <div key={`comment-${c?.id}`} className={`flex items-start gap-3 px-6 py-2 border ${c.is_manager_response && 'border-blue-400 shadow-sm'} rounded-lg`}>
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-700">{getAbbrivation(c?.author?.name)}</div>
 
-                                    <div className="flex-1">
+                                    <div className="flex-1 ">
                                         <div className="flex items-center justify-between gap-2">
-                                            <div>
-                                                <div className="font-medium text-sm">{c?.user?.name}</div>
-                                                <div className="text-xs text-gray-400">{fmt(c?.created_at)}</div>
-                                            </div>
-
-                                            {/* delete only available for manager form type (you can restrict further) */}
-                                            {formType === 'manager' && (
-                                                <div>
-                                                    <button className="text-xs text-red-500" onClick={() => handleDeleteComment(c?.id)} disabled={deletingId === c?.id}>
-                                                        {deletingId === c?.id ? 'Deleting…' : 'Delete'}
-                                                    </button>
-                                                </div>
-                                            )}
+                                            <div className="font-medium text-sm">{c?.author?.name}</div>
+                                            <div className="text-xs text-gray-400">{fmt(c?.created_at)}</div>
                                         </div>
 
-                                        <div className="mt-1 text-sm">{c?.text}</div>
+                                        <div className="mt-1 text-sm">{c?.message}</div>
                                     </div>
                                 </div>
                             ))}
 
                             {comments.length === 0 && !loadingComments && <div className="text-sm text-gray-500">No comments yet.</div>}
-                        </div>
-                    </div>
-
-                    {/* metadata card */}
-                    <div className="bg-white rounded-lg shadow border p-4 text-sm">
-                        <div className="mb-3 font-medium">Submission details</div>
-                        <div className="space-y-2 text-gray-600">
-                            <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-gray-400" />
-                                <div>
-                                    Submitted at: <span className="font-medium ml-1">{fmt(submission.submitted_at)}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-gray-400" />
-                                <div>
-                                    Respondent: <span className="font-medium ml-1">{submission.respondent.name}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <div>
-                                    Assignment: <span className="font-medium ml-1">{submission.assignment.template_name}</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

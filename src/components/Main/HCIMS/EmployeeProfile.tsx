@@ -74,7 +74,7 @@ export default function EmployeeProfile() {
     const [data, setData] = useState<EmployeeProfileData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'performance' | 'profile'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'profile'>('overview');
 
     useEffect(() => {
         if (!id) return;
@@ -169,7 +169,19 @@ export default function EmployeeProfile() {
     }
 
     if (error) {
-        return <div className="p-6 text-red-600">{error}</div>;
+        return (
+            <div>
+                <span className="p-6 text-red-600">{error}</span>
+                <div className="border mx-auto max-w-4xl mt-10 px-6 py-4 rounded-2xl">
+                    <h1 className="text-2xl text-amber-900">Did you forget to create basic profile?</h1>
+                    <ul>
+                        <li>Go to settings</li>
+                        <li>Click Salary Structure</li>
+                        <li>Create basic profile for employee</li>
+                    </ul>
+                </div>
+            </div>
+        );
     }
 
     if (!data) return null;
@@ -216,10 +228,10 @@ export default function EmployeeProfile() {
 
                 {/* metrics row */}
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <CardSmall label="Performance Score" value={`${data.performance_score}%`} icon={<Target className="w-6 h-6" />} />
+                    <CardSmall label="Performance Score" value={`${data.performance_score?.toFixed(2)}%`} icon={<Target className="w-6 h-6" />} />
                     <CardSmall label="Task Completion" value={`${data.task_completion}%`} icon={<CheckCircle className="w-6 h-6" />} />
                     <CardSmall label="Dept. Ranking" value={String(data.dept_ranking)} icon={<Trophy className="w-6 h-6" />} />
-                    <CardSmall label="Attendance" value={`${data.attendance}%`} icon={<Clock className="w-6 h-6" />} />
+                    <CardSmall label="Attendance" value={`${data.attendance?.toFixed(2)}%`} icon={<Clock className="w-6 h-6" />} />
                 </div>
             </div>
 
@@ -227,7 +239,6 @@ export default function EmployeeProfile() {
             <div className="flex items-center gap-4 border w-fit bg-gray-100 px-1 py-0.5 rounded-full">
                 <Tab label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
                 <Tab label="Tasks" active={activeTab === 'tasks'} onClick={() => setActiveTab('tasks')} />
-                <Tab label="Performance" active={activeTab === 'performance'} onClick={() => setActiveTab('performance')} />
                 <Tab label="Profile" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
             </div>
 
@@ -476,8 +487,6 @@ export default function EmployeeProfile() {
                     </div>
                 </div>
             )}
-            {/* simple fallback for other tabs */}
-            {activeTab === 'performance' && <div className="bg-white border rounded-lg p-6">This tab is a placeholder; wire it to your tasks/performance data as needed.</div>}
         </div>
     );
 }

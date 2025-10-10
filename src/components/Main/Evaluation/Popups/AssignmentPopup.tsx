@@ -50,6 +50,11 @@ const AssignmentPopup: React.FC<Props> = ({ versionId, open, initial = null, onC
         if (parentFormType) setFormType(parentFormType);
     }, [parentFormType]);
 
+    useEffect(() => {
+        if (formType === 'manager') {
+            setIncludeMetrics(true);
+        }
+    }, [formType]);
     // load assignment options (grouped by department) on open or version change
     useEffect(() => {
         if (!open) return;

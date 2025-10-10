@@ -278,7 +278,7 @@ export default function StandalonePermissionsPage() {
                         {selectedGroup && (
                             <button onClick={handleSave} className="relative btn btn-sm btn-success">
                                 <span>Save Permissions</span>
-                                {showTick && <i className="animate-bounce bi bi-check absolute -top-5 -right-2 font-bold text-3xl text-black" />}
+                                {showTick && <i className="animate-pulse bi bi-check absolute -top-5 -right-2 font-bold text-3xl text-black" />}
                             </button>
                         )}
                     </Group>

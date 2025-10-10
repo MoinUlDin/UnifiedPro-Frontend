@@ -248,19 +248,57 @@ export default class EvaluationServices {
     // Comments on submitions
     static async getSubmissionComments(id: number) {
         try {
-            return;
-            const r = await api.get(`/privacy-evel/submissions/submitted_list_self/`);
+            const r = await api.get(`/privacy-evel/comments/by-submission/${id}/`);
             return r.data;
         } catch (e: any) {
             console.log('org Error: ', e);
             throw e;
         }
     }
-    static async postSubmissionComment(id: number, payload: any) {
+    static async postSubmissionComment(payload: any) {
         try {
             console.log('payload: ', payload);
-            return;
-            const r = await api.post(`/privacy-evel/submissions/submitted_list_self/`);
+            const r = await api.post(`/privacy-evel/comments/`, payload);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+
+    // System Metrics
+    static async fetchAllSystemMatrix() {
+        try {
+            const r = await api.get(`/privacy-evel/metrics/`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async deleteSystemMatrix(id: number) {
+        try {
+            const r = await api.delete(`/privacy-evel/metrics/${id}`);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async createSystemMatrix(payload: any) {
+        try {
+            console.log('payload: ', payload);
+            const r = await api.post(`/privacy-evel/metrics/`, payload);
+            return r.data;
+        } catch (e: any) {
+            console.log('org Error: ', e);
+            throw e;
+        }
+    }
+    static async updateSystemMatrix(id: number, payload: any) {
+        try {
+            console.log('payload: ', payload);
+            const r = await api.patch(`/privacy-evel/metrics/${id}/`, payload);
             return r.data;
         } catch (e: any) {
             console.log('org Error: ', e);

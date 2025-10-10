@@ -332,7 +332,7 @@ export default function Evaluations360Page() {
                                     </div>
                                     <div className="flex col-span-3 md:col-span-2 flex-col gap-2">
                                         <span>Average Score</span>
-                                        <span className={`font-extrabold text-fuchsia-800 text-lg`}>{item?.target?.average_score?.toPrecision(3)}/10</span>
+                                        <span className={`font-extrabold text-fuchsia-800 text-lg`}>{item?.target?.average_score?.toPrecision(3) || 'NA'}/10</span>
                                     </div>
                                     <div className="flex flex-col items-center gap-2 ">
                                         <div className="flex gap-2 items-center text-green-700">

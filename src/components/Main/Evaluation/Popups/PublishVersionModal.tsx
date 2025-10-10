@@ -76,7 +76,8 @@ export default function PublishVersionModal({ open, templateId, questions = [], 
                 onClose();
             })
             .catch((err: any) => {
-                const msg = (err && (err.message || JSON.stringify(err))) || 'Publish failed';
+                console.log('Error : ', err);
+                const msg = err?.response?.data?.non_field_errors || 'Publish failed';
                 setError(String(msg));
                 toast.error('Failed to publish version: ' + msg);
             })

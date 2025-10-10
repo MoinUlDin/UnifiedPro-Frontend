@@ -75,9 +75,13 @@ export default function EmployeeManagerAggregatedDetail({ data, onClose }: Props
         const text = newComment.trim();
         if (!text) return toast.error('Comment cannot be empty');
         setPosting(true);
+        const payload = {
+            submission: data.manager_aggregate.assignment_id,
+            message: text,
+        };
         try {
             // adapt method name / payload shape as needed for your backend
-            const created = await EvaluationServices.postSubmissionComment?.(data.assignment_id, { text });
+            const created = await EvaluationServices.postSubmissionComment?.(payload);
 
             // optimistic update
             setComments((s) => [created, ...s]);

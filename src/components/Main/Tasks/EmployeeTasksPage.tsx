@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import TaskServices from '../../../services/TaskServices';
 import toast from 'react-hot-toast';
 import { CheckCircle, CloudDownload, Clock, Tag } from 'lucide-react';
-
+import { getUser } from '../../../utils/Common';
 /**
  * Expected backend format (an array of tasks) — example from your message:
  * [
@@ -145,15 +145,16 @@ export default function EmployeeTasksPage() {
     const [tasks, setTasks] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<'all' | 'completed' | 'in_progress'>('all');
-
+    const userInfo = getUser();
     useEffect(() => {
         load();
     }, []);
 
     function load() {
         setLoading(true);
-        TaskServices.fetchEmployeeTasks(3)
+        TaskServices.fetchEmployeeTasks(userInfo.id)
             .then((r) => {
+                console.log('Tasks: ', r);
                 setTasks(r);
             })
             .catch((e) => {

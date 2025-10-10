@@ -21,6 +21,15 @@ export default class EmployeeServices {
             throw e;
         }
     }
+    static async updateProfileData(id: number, payload: any) {
+        try {
+            const response = await api.patch(`/company-Setup/employee-details/${id}/update/`, payload);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async FetchEmployeesDashboard(dispatch: any) {
         try {
             const response = await api.get(`/routine-tasks/employee-dashboard/`);

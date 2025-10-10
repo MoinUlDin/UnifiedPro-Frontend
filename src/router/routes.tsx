@@ -44,25 +44,18 @@ const MarkHoliday = lazy(() => import('../components/Main/Routines/MarkHoliday')
 const ViewMarkedHolidays = lazy(() => import('../components/Main/Routines/ViewMarkedHolidays'));
 // Evaluation
 const CompanyPolicies = lazy(() => import('../components/Main/Evaluation/Company_Policies'));
-const Contest = lazy(() => import('../components/Main/Evaluation/Contest'));
 const PerformanceMatric = lazy(() => import('../components/Main/Evaluation/Performance_Matric'));
 const SetupEval = lazy(() => import('../components/Main/Evaluation/Setup_Eval'));
-const Submit_360_Eval = lazy(() => import('../components/Main/Evaluation/Submit_360_Eval'));
-const SubmitManagerEval = lazy(() => import('../components/Main/Evaluation/Submit_Mngr_Eval'));
-const SubmitEngmntEval = lazy(() => import('../components/Main/Evaluation/Submit_Engmnt_Eval'));
-const SubmitStftnEval = lazy(() => import('../components/Main/Evaluation/Submit_Stftn_Eval'));
-const SubmitSelfEval = lazy(() => import('../components/Main/Evaluation/Submit_Self_Eval'));
 const EmployeeManagerPage = lazy(() => import('../components/Main/Evaluation/EmployeeManagerPage'));
 const SelfEvaluationPage = lazy(() => import('../components/Main/Evaluation/SelfEvaluationPages/SelfEvaluationPage'));
 const ManagerEvaluationPage = lazy(() => import('../components/Main/Evaluation/ManagerEvaluationsPages/ManagerEvaluationPage'));
 const Evaluations360Page = lazy(() => import('../components/Main/Evaluation/Evaluations360Pages/Evaluations360Page'));
+const SystemMetricsPage = lazy(() => import('../components/Main/Evaluation/SystemMetricsPage'));
+
 // Evaluation Forms types
 const TemplatesList = lazy(() => import('../components/Main/Evaluation/TemplatesList'));
 const FormBuilder = lazy(() => import('../components/Main/Evaluation/FormBuilder')); // our builder page (FormBuilder.tsx)
 const AssignmentsPage = lazy(() => import('../components/Main/Evaluation/FormVersionsAssignmentsPage'));
-const SubmissionsList = lazy(() => import('../components/Main/Evaluation/SubmissionsList'));
-const SubmissionDetail = lazy(() => import('../components/Main/Evaluation/SubmissionDetail'));
-const AggregateReport = lazy(() => import('../components/Main/Evaluation/AggregateReport'));
 
 // Settings
 const CompanyInfo = lazy(() => import('../components/Main/Settings/Company_Info'));
@@ -369,6 +362,7 @@ const routes: AppRoute[] = [
         layout: 'default',
         label: 'Form Builder',
         category: 'Evaluation',
+        permissions: ['form_builder.can_read'],
         protected: true,
     },
     {
@@ -411,30 +405,6 @@ const routes: AppRoute[] = [
         category: 'Evaluation',
         protected: true,
     },
-    {
-        path: '/evaluations/submissions',
-        element: <SubmissionsList />,
-        layout: 'default',
-        label: 'Submissions',
-        category: 'Evaluation',
-        protected: true,
-    },
-    {
-        path: '/evaluations/submissions/:id',
-        element: <SubmissionDetail />,
-        layout: 'default',
-        label: 'Submission Detail',
-        category: 'Evaluation',
-        protected: true,
-    },
-    {
-        path: '/evaluations/reports/target/:userId',
-        element: <AggregateReport />,
-        layout: 'default',
-        label: 'Aggregate Report',
-        category: 'Evaluation',
-        protected: true,
-    },
 
     {
         path: '/company_policies',
@@ -443,18 +413,12 @@ const routes: AppRoute[] = [
         label: 'Evaluation',
         category: 'Evaluation',
     },
+
     {
-        path: '/create_contest',
-        element: <Contest />,
+        path: '/system_matric',
+        element: <SystemMetricsPage />,
         layout: 'default',
-        label: 'Contest',
-        category: 'Evaluation',
-    },
-    {
-        path: '/performance_matric',
-        element: <PerformanceMatric />,
-        layout: 'default',
-        label: 'Performance Metrics',
+        label: 'System Metrics',
         category: 'Evaluation',
     },
     {
@@ -464,31 +428,7 @@ const routes: AppRoute[] = [
         label: 'Setup Evaluation',
         category: 'Evaluation',
     },
-    {
-        path: '/view_overall_all_forms',
-        element: <Submit_360_Eval />,
-        layout: 'default',
-    },
-    {
-        path: '/view_manager_all_forms',
-        element: <SubmitManagerEval />,
-        layout: 'default',
-    },
-    {
-        path: '/view_engagement_all_forms',
-        element: <SubmitEngmntEval />,
-        layout: 'default',
-    },
-    {
-        path: '/view_satisfaction_all_forms',
-        element: <SubmitStftnEval />,
-        layout: 'default',
-    },
-    {
-        path: '/view_all_forms',
-        element: <SubmitSelfEval />,
-        layout: 'default',
-    },
+
     // Settings Routes
     {
         path: '/company_info',
@@ -542,6 +482,8 @@ const routes: AppRoute[] = [
         element: <StandalonePermissionsPage />,
         layout: 'default',
         label: 'Permissions',
+        protected: true,
+        permissions: ['p4.can_read'],
         category: 'Settings',
     },
     // Training Routes
