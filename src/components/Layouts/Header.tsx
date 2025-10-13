@@ -32,10 +32,15 @@ import IconTrendingUp from '../Icon/IconTrendingUp';
 import IconSettings from '../Icon/IconSettings';
 import IconNotes from '../Icon/IconNotes';
 import IconLogin from '../Icon/IconLogin';
-import { getUser } from '../../utils/Common';
+import { formatDate, getUser } from '../../utils/Common';
+import { type notificationsType } from '../../constantTypes/CommonTypes';
+import NotificationServices from '../../services/NotificationServices';
+import toast from 'react-hot-toast';
 
 const Header = () => {
     const location = useLocation();
+    const notifications: notificationsType = useSelector((s: RootState) => s.notifications.notifications);
+
     const user = getUser();
     useEffect(() => {
         const updateActiveLink = () => {
@@ -51,7 +56,9 @@ const Header = () => {
         };
         updateActiveLink();
     }, [location.pathname]);
-
+    useEffect(() => {
+        console.log('notification State: ', notifications);
+    }, [notifications]);
     const isRtl = useSelector((state: RootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
 
     const themeConfig = useSelector((state: RootState) => state.themeConfig);
@@ -60,16 +67,10 @@ const Header = () => {
     function createMarkup(messages: any) {
         return { __html: messages };
     }
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState<any>([]);
 
     const removeMessage = (value: number) => {
         setMessages(messages.filter((user: any) => user.id !== value));
-    };
-
-    const [notifications, setNotifications] = useState([]);
-
-    const removeNotification = (value: number) => {
-        setNotifications(notifications.filter((user: any) => user.id !== value));
     };
 
     const [search, setSearch] = useState(false);
@@ -86,6 +87,16 @@ const Header = () => {
 
     const { t } = useTranslation();
 
+    const markAllRead = () => {
+        NotificationServices.MarkAllRead()
+            .then((r) => {
+                console.log('marked as read: ', r);
+                toast.success('All marked as read', { duration: 2000 });
+            })
+            .catch((e) => {
+                toast.error('Error Marking as Read');
+            });
+    };
     return (
         <header className={`z-40 ${themeConfig.semidark && themeConfig.menu === 'horizontal' ? 'dark' : ''}`}>
             <div className="shadow-sm">
@@ -251,7 +262,7 @@ const Header = () => {
                                     {messages.length > 0 ? (
                                         <>
                                             <li onClick={(e) => e.stopPropagation()}>
-                                                {messages.map((message) => {
+                                                {messages.map((message: any) => {
                                                     return (
                                                         <div key={message.id} className="flex items-center py-3 px-5">
                                                             <div dangerouslySetInnerHTML={createMarkup(message.image)}></div>
@@ -294,7 +305,7 @@ const Header = () => {
                             <Dropdown
                                 offset={[0, 8]}
                                 placement={`${isRtl ? 'bottom-start' : 'bottom-end'}`}
-                                btnClassName="relative block p-2 rounded-full bg-white-light/40 dark:bg-dark/40 hover:text-primary hover:bg-white-light/90 dark:hover:bg-dark/60"
+                                btnClassName="relative  block p-2 rounded-full bg-white-light/40 dark:bg-dark/40 hover:text-primary hover:bg-white-light/90 dark:hover:bg-dark/60"
                                 button={
                                     <span>
                                         <IconBellBing />
@@ -305,39 +316,38 @@ const Header = () => {
                                     </span>
                                 }
                             >
-                                <ul className="!py-0 text-dark dark:text-white-dark w-[300px] sm:w-[350px] divide-y dark:divide-white/10">
+                                <ul className="!py-0 text-dark bg-gray-200 max-h-[75vh] overflow-auto dark:text-white-dark w-[300px] sm:w-[350px] divide-y dark:divide-white/10">
                                     <li>
                                         <div className="flex items-center px-4 py-2 justify-between font-semibold">
                                             <h4 className="text-lg">Notification</h4>
-                                            {notifications.length ? <span className="badge bg-primary/80">{notifications.length}New</span> : ''}
+                                            {notifications?.unread_count > 0 ? <span className="badge bg-primary/80">{notifications?.unread_count}New</span> : ''}
                                         </div>
                                     </li>
-                                    {notifications.length > 0 ? (
+                                    <li>
+                                        <div className="p-4">
+                                            <button onClick={markAllRead} className="btn btn-primary block w-full btn-small">
+                                                Mark All as Read
+                                            </button>
+                                        </div>
+                                    </li>
+                                    {notifications.results.length > 0 ? (
                                         <>
-                                            {notifications.map((notification) => {
+                                            {notifications?.results.map((notification) => {
+                                                const read = notification.is_read;
                                                 return (
-                                                    <li key={notification.id} className="dark:text-white-light/90" onClick={(e) => e.stopPropagation()}>
+                                                    <li key={notification.id} className={`dark:text-white-light/90 ${!read && 'bg-blue-50'}`} onClick={(e) => e.stopPropagation()}>
                                                         <div className="group flex items-center px-4 py-2">
-                                                            <div className="grid place-content-center rounded">
-                                                                <div className="w-12 h-12 relative">
-                                                                    <img className="w-12 h-12 rounded-full object-cover" alt="profile" src={`/assets/images/${notification.profile}`} />
-                                                                    <span className="bg-success w-2 h-2 rounded-full block absolute right-[6px] bottom-0"></span>
-                                                                </div>
-                                                            </div>
                                                             <div className="ltr:pl-3 rtl:pr-3 flex flex-auto">
                                                                 <div className="ltr:pr-3 rtl:pl-3">
+                                                                    <h2 className="text-lg font-semibold my-1">{notification.title}</h2>
                                                                     <h6
                                                                         dangerouslySetInnerHTML={{
                                                                             __html: notification?.message,
                                                                         }}
                                                                     ></h6>
-                                                                    <span className="text-xs block font-normal dark:text-gray-500">{notification?.time}</span>
+                                                                    <span className="text-xs mt-1 text-end block font-normal dark:text-gray-400">{formatDate(notification?.created_at)}</span>
                                                                 </div>
-                                                                <button
-                                                                    type="button"
-                                                                    className="ltr:ml-auto rtl:mr-auto text-neutral-300 hover:text-danger opacity-0 group-hover:opacity-100"
-                                                                    onClick={() => removeNotification(notification?.id)}
-                                                                >
+                                                                <button type="button" className="ltr:ml-auto rtl:mr-auto text-neutral-300 hover:text-danger opacity-0 group-hover:opacity-100">
                                                                     <IconXCircle />
                                                                 </button>
                                                             </div>
@@ -345,11 +355,6 @@ const Header = () => {
                                                     </li>
                                                 );
                                             })}
-                                            <li>
-                                                <div className="p-4">
-                                                    <button className="btn btn-primary block w-full btn-small">Read All Notifications</button>
-                                                </div>
-                                            </li>
                                         </>
                                     ) : (
                                         <li onClick={(e) => e.stopPropagation()}>

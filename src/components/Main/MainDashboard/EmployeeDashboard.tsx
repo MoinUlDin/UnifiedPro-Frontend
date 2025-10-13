@@ -550,11 +550,11 @@ export const EmployeeDashboard: React.FC = () => {
                         <p className="text-sm text-gray-500">Update task progress and manage deadlines</p>
                     </div>
 
-                    <div className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg hover:shadow-xl transition cursor-pointer text-center group">
+                    <div onClick={() => navigate('/create-announcement')} className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg hover:shadow-xl transition cursor-pointer text-center group">
                         <div className="p-3 bg-purple-50 rounded-full w-fit mx-auto mb-4 group-hover:bg-purple-100 transition">
                             <Users className="w-6 h-6 text-purple-600" />
                         </div>
-                        <h3 className="font-semibold mb-2">Team Updates</h3>
+                        <h3 className="font-semibold mb-2">Announcements</h3>
                         <p className="text-sm text-gray-500">Stay updated with team announcements</p>
                     </div>
                 </motion.div>

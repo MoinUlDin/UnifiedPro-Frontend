@@ -1,161 +1,196 @@
 import React, { useEffect, useState } from 'react';
-import { User, Edit2, Calendar, Target, CheckCircle, Trophy, Clock, PieChart, MapPin, Phone, Mail, Award, Building, Building2, Calendar1, Info } from 'lucide-react';
+import { User, Edit2, Calendar, Target, CheckCircle, Trophy, Clock, MapPin, Phone, Mail } from 'lucide-react';
 import EmployeeServices from '../../../services/EmployeeServices';
 import { useParams } from 'react-router-dom';
 import { formatDateOnly, capitalizeName } from '../../../utils/Common';
+import { EditProfilePopup } from './EditProfilePopup';
 
-// NOTE: this component expects EmployeeManagementService.fetchProfileData(id)
-// to be available in the runtime (as you described). It calls that function
-// and renders the two tab views shown in the images (Overview + Profile).
-interface task {
-    id: number;
-    task_name: string;
-    priority: string;
-    weight: number;
-    status: string;
-    progress: number;
-    start_date: string;
-    due_date: string;
-    time_taken: null;
-    report_kpi_value: null;
-    assigned_by: {
-        id: number;
-        name: string;
-    };
-    submitted_by: null;
-    completion_date: string;
-    on_time: boolean;
-}
-type EmployeeProfileData = {
-    id: string | number;
-    initials?: string;
-    name?: string;
-    title?: string;
-    department?: string;
-    employee_code?: string;
-    joined_at?: string;
-    status?: string;
-    performance_score?: number; // e.g. 88
-    task_completion?: number; // e.g. 50
-    dept_ranking?: string; // e.g. "#3"
-    attendance?: number; // e.g. 96
-    tasks: task[];
-    month_metrics?: {
-        assigned?: number;
-        completed?: number;
-        pending?: number;
-        overdue?: number;
-        goal_achievement?: number; // percent
-    };
-    achievements?: Array<{ title: string; subtitle?: string; date?: string }>;
-    personal?: {
-        first_name?: string;
-        last_name?: string;
-        email?: string;
-        phone?: string;
-        location?: string;
-        profile_image: string;
-    };
-    employment?: {
-        position?: string;
-        department?: string;
-        manager?: string;
-        employment_type?: string;
-        work_schedule?: string;
-        join_date?: string;
-    };
-    skills?: string[];
-    emergency?: { name?: string; relation?: string; phone?: string };
-    address?: { street?: string; city?: string; state?: string; zip?: string; country?: string };
-};
+type AnyObj = Record<string, any>;
 
 export default function EmployeeProfile() {
     const { id } = useParams();
-    const [data, setData] = useState<EmployeeProfileData | null>(null);
+    const [data, setData] = useState<AnyObj | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'profile'>('overview');
+    const [openEditProfile, setOpenEditProfile] = useState<boolean>(false);
 
-    useEffect(() => {
-        if (!id) return;
-        let mounted = true;
+    // --- Normalizer: convert server payload into shape our popup expects ---
+    function normalizeServerPayload(payload: AnyObj): AnyObj {
+        if (!payload) return payload;
+
+        // helpers
+        const firstAchievement = (payload.achievements && payload.achievements[0]) || {};
+        const personal = payload.personal || {};
+        const address = payload.address || {};
+        const employment = payload.employment || {};
+        const academic = payload.academic || {};
+        const personal_details = payload.personal_details || {};
+        const expertise = payload.expertise || {};
+        const skillsArr = Array.isArray(payload.skills) ? payload.skills : [];
+
+        // build a details object that matches EmployeeDetails fields exactly (fallback to sensible places)
+        const details: AnyObj = {
+            // Address
+            street_address: address.street ?? payload.address?.street ?? 'N/A',
+            city: address.city ?? 'N/A',
+            state: address.state ?? 'N/A',
+            zipcode: address.zip ?? payload.address?.zip ?? 'N/A',
+            apartment: address.apartment ?? null,
+            country: address.country ?? 'Pakistan',
+
+            // Previous Job / employment (some fields may also exist at top-level)
+            title: employment.previous_title ?? payload.title ?? 'N/A',
+            location: employment.previous_location ?? personal.location ?? 'N/A',
+            email: employment.previous_email ?? personal.email ?? 'N/A',
+            start_date: employment.previous_start_date ?? null,
+            end_date: employment.previous_end_date ?? null,
+            work_phone: employment.work_phone ?? payload.employment?.work_phone ?? null,
+            cell_phone: employment.cell_phone ?? payload.employment?.cell_phone ?? null,
+
+            // Emergency
+            emergency_contact_first_name: payload.emergency?.first_name ?? personal_details.emergency_contact_first_name ?? 'N/A',
+            emergency_contact_last_name: payload.emergency?.last_name ?? personal_details.emergency_contact_last_name ?? 'N/A',
+            emergency_contact_address: payload.emergency?.address ?? personal_details.emergency_contact_address ?? 'N/A',
+            primary_phone_no: payload.emergency?.phone ?? personal_details.primary_phone_no ?? 'N/A',
+            alternate_phone_no: payload.emergency?.alternate_phone_no ?? personal_details.alternate_phone_no ?? null,
+
+            // Academic
+            degree_name: academic.degree_name ?? personal_details.degree_name ?? 'N/A',
+            major_subjects: academic.major_subjects ?? personal_details.major_subjects ?? (skillsArr.join(', ') || 'N/A'),
+            any_special_info: academic.any_special_info ?? personal_details.any_special_info ?? 'N/A',
+            academic_start_date: academic.academic_start_date ?? null,
+            academic_end_date: academic.academic_end_date ?? null,
+            passing_year: academic.passing_year ?? null,
+            university_name: academic.university_name ?? 'N/A',
+            graduation_status: academic.graduation_status ?? 'N/A',
+
+            // Expertise & Achievement
+            expertise_name: expertise.name ?? personal_details.expertise_name ?? 'N/A',
+            expertise_details: expertise.details ?? personal_details.expertise_details ?? 'N/A',
+            achievement_title: firstAchievement.title ?? personal_details.achievement_title ?? 'N/A',
+            achievement_details: firstAchievement.subtitle ?? personal_details.achievement_details ?? 'N/A',
+
+            // Personal / Bank / Misc
+            social_security: personal_details.social_security ?? 'N/A',
+            educational_background: personal_details.educational_background ?? 'N/A',
+            degrees_earned: personal_details.degrees_earned ?? 'N/A',
+            certifications: personal_details.certifications ?? 'N/A',
+            professional_memberships: personal_details.professional_memberships ?? 'N/A',
+            medical_info: personal_details.medical_info ?? 'N/A',
+            personal_contact: personal_details.personal_contact ?? 'N/A',
+            bank_name: personal_details.bank_name ?? 'N/A',
+            bank_account_number: personal_details.bank_account_number ?? 'N/A',
+            hobbies_and_interests: personal_details.hobbies_and_interests ?? 'N/A',
+            salary: personal_details.salary ?? (payload.salary ? String(payload.salary) : null),
+        };
+
+        // keep original top-level fields for UI (but ensure they exist)
+        const normalized: AnyObj = {
+            ...payload,
+            // keep top-level useful names
+            id: payload.id,
+            detail_id: payload.detail_id ?? null,
+            initials:
+                payload.initials ??
+                (payload.name
+                    ? payload.name
+                          .split(' ')
+                          .map((s: string) => s[0])
+                          .slice(0, 2)
+                          .join('')
+                          .toUpperCase()
+                    : undefined),
+            personal: {
+                first_name: personal.first_name ?? payload.name?.split(' ')?.[0] ?? null,
+                last_name: personal.last_name ?? payload.name?.split(' ')?.slice(1).join(' ') ?? null,
+                email: personal.email ?? payload.personal?.email ?? null,
+                phone: personal.phone ?? null,
+                location: personal.location ?? employment.previous_location ?? null,
+                profile_image: personal.profile_image ?? null,
+            },
+            employment: {
+                ...payload.employment,
+                previous_title: employment.previous_title ?? details.title,
+                previous_location: employment.previous_location ?? details.location,
+                previous_email: employment.previous_email ?? details.email,
+                previous_start_date: employment.previous_start_date ?? details.start_date,
+                previous_end_date: employment.previous_end_date ?? details.end_date,
+                work_phone: employment.work_phone ?? details.work_phone,
+                cell_phone: employment.cell_phone ?? details.cell_phone,
+            },
+            address: {
+                street: details.street_address,
+                city: details.city,
+                state: details.state,
+                zip: details.zipcode,
+                apartment: details.apartment,
+                country: details.country,
+            },
+            academic: {
+                degree_name: details.degree_name,
+                major_subjects: details.major_subjects,
+                any_special_info: details.any_special_info,
+                academic_start_date: details.academic_start_date,
+                academic_end_date: details.academic_end_date,
+                passing_year: details.passing_year,
+                university_name: details.university_name,
+                graduation_status: details.graduation_status,
+            },
+            personal_details: {
+                social_security: details.social_security,
+                educational_background: details.educational_background,
+                degrees_earned: details.degrees_earned,
+                certifications: details.certifications,
+                professional_memberships: details.professional_memberships,
+                medical_info: details.medical_info,
+                personal_contact: details.personal_contact,
+                bank_name: details.bank_name,
+                bank_account_number: details.bank_account_number,
+                hobbies_and_interests: details.hobbies_and_interests,
+                salary: details.salary,
+            },
+
+            // add the details object (exactly what popup expects)
+            details,
+            // ensure skills array exists
+            skills: Array.isArray(payload.skills)
+                ? payload.skills
+                : typeof details.major_subjects === 'string'
+                ? details.major_subjects
+                      .split(',')
+                      .map((s: string) => s.trim())
+                      .filter(Boolean)
+                : [],
+        };
+
+        return normalized;
+    }
+
+    const fetchProfileData = () => {
         setLoading(true);
         setError(null);
-        // calling the API as the user requested
-        // EmployeeManagementService.fetchProfileData(id).then(...)
-        // we assume the global service exists
-        // you can adapt this to your own import
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        EmployeeServices.fetchProfileData(id)
+        EmployeeServices.fetchProfileData(Number(id))
             .then((r: any) => {
-                if (!mounted) return;
-                // assume API returns r.data or r
                 const payload = r?.data ?? r;
-                setData(normalize(payload));
-                console.log('Profile Data: ', r);
+                const normalized = normalizeServerPayload(payload);
+                setData(normalized);
+                console.log('Profile Data: ', normalized);
             })
             .catch((e: any) => {
-                if (!mounted) return;
                 console.error(e);
                 setError('Failed to load profile');
             })
             .finally(() => {
-                if (!mounted) return;
                 setLoading(false);
             });
+    };
 
-        return () => {
-            mounted = false;
-        };
+    useEffect(() => {
+        if (!id) return;
+        fetchProfileData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
-
-    function normalize(payload: any): EmployeeProfileData {
-        // Extract shape used by this component. You can adapt fields to match your API.
-        return {
-            id: payload?.id ?? id,
-            initials: payload?.initials ?? getInitials(payload?.name ?? payload?.first_name ?? ''),
-            name: payload?.name ?? (payload?.first_name && payload?.last_name ? `${payload.first_name} ${payload.last_name}` : 'Sarah Johnson'),
-            title: payload?.title ?? payload?.position ?? 'Senior Frontend Developer',
-            department: payload?.department ?? 'Information Technology',
-            employee_code: payload?.employee_code ?? 'EMP-001',
-            joined_at: payload?.joined_at ?? 'March 15, 2023',
-            status: payload?.status ?? 'Active',
-            performance_score: payload?.performance_score ?? 88,
-            task_completion: payload?.task_completion ?? 50,
-            dept_ranking: payload?.dept_ranking ?? '#3',
-            attendance: payload?.attendance ?? 96,
-            month_metrics: payload?.month_metrics ?? { assigned: 8, completed: 6, pending: 1, overdue: 1, goal_achievement: 75 },
-            achievements: payload?.achievements ?? [
-                { title: 'Employee of the Month', subtitle: 'Outstanding performance and dedication in October 2024', date: '10/31/2024' },
-                { title: '100% Task Completion', subtitle: 'Completed all assigned tasks on time for 3 consecutive months', date: '10/15/2024' },
-                { title: 'React Certification', subtitle: 'Completed Advanced React Developer Certification', date: '9/22/2024' },
-            ],
-            personal: payload?.personal ?? { first_name: 'Sarah', last_name: 'Johnson', email: 'sarah.johnson@company.com', phone: '+1 (555) 123-4567', location: 'New York Office' },
-            employment: payload?.employment ?? {
-                position: 'Senior Frontend Developer',
-                department: 'Information Technology',
-                manager: 'David Wilson',
-                employment_type: 'Full Time',
-                work_schedule: 'Monday - Friday, 9:00 AM - 6:00 PM',
-                join_date: 'March 15, 2023',
-            },
-            tasks: payload.tasks,
-            skills: payload?.skills ?? ['React', 'TypeScript', 'Node.js', 'Python', 'UI/UX Design', 'Agile'],
-            emergency: payload?.emergency ?? { name: 'Michael Johnson', relation: 'Spouse', phone: '+1 (555) 987-6543' },
-            address: payload?.address ?? { street: '123 Main Street, Apt 4B', city: 'New York', state: 'NY', zip: '10001', country: 'United States' },
-        };
-    }
-
-    function getInitials(name: string) {
-        if (!name) return 'SJ';
-        return name
-            .split(' ')
-            .map((s) => s[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase();
-    }
 
     if (loading) {
         return (
@@ -220,7 +255,7 @@ export default function EmployeeProfile() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-2 border rounded px-3 py-2 text-sm hover:shadow">
+                        <button onClick={() => setOpenEditProfile(true)} className="flex items-center gap-2 border rounded px-3 py-2 text-sm hover:shadow">
                             <Edit2 className="w-4 h-4" /> Edit Profile
                         </button>
                     </div>
@@ -228,10 +263,10 @@ export default function EmployeeProfile() {
 
                 {/* metrics row */}
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <CardSmall label="Performance Score" value={`${data.performance_score?.toFixed(2)}%`} icon={<Target className="w-6 h-6" />} />
-                    <CardSmall label="Task Completion" value={`${data.task_completion}%`} icon={<CheckCircle className="w-6 h-6" />} />
+                    <CardSmall label="Performance Score" value={`${(data.performance_score ?? 0).toFixed(2)}%`} icon={<Target className="w-6 h-6" />} />
+                    <CardSmall label="Task Completion" value={`${data.task_completion ?? 0}%`} icon={<CheckCircle className="w-6 h-6" />} />
                     <CardSmall label="Dept. Ranking" value={String(data.dept_ranking)} icon={<Trophy className="w-6 h-6" />} />
-                    <CardSmall label="Attendance" value={`${data.attendance?.toFixed(2)}%`} icon={<Clock className="w-6 h-6" />} />
+                    <CardSmall label="Attendance" value={`${(data.attendance ?? 0).toFixed(2)}%`} icon={<Clock className="w-6 h-6" />} />
                 </div>
             </div>
 
@@ -242,13 +277,13 @@ export default function EmployeeProfile() {
                 <Tab label="Profile" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
             </div>
 
-            {/* Content area */}
+            {/* Content */}
             {activeTab === 'overview' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="col-span-2 space-y-6">
                         <div className="bg-white border rounded-lg p-6">
                             <h3 className="font-semibold">Current Month Performance</h3>
-                            <p className="text-xs text-gray-400">November 2024 metrics and goals</p>
+                            <p className="text-xs text-gray-400">Month metrics and goals</p>
                             <div className="mt-4 grid grid-cols-2 gap-4">
                                 <div>
                                     <div className="text-sm text-gray-500">Tasks Assigned</div>
@@ -270,23 +305,6 @@ export default function EmployeeProfile() {
                                 </div>
                             </div>
                         </div>
-
-                        <div className="bg-white border rounded-lg p-6">
-                            <h3 className="font-semibold">Recent Achievements</h3>
-                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {data.achievements?.map((a, i) => (
-                                    <div key={i} className="border rounded p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <div className="font-semibold">{a.title}</div>
-                                                <div className="text-xs text-gray-500">{a.subtitle}</div>
-                                            </div>
-                                            <div className="text-xs text-gray-400">{a.date}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
                     </div>
 
                     <div className="space-y-6">
@@ -295,16 +313,6 @@ export default function EmployeeProfile() {
                             <p className="text-xs text-gray-400">Current task breakdown</p>
                             <div className="flex items-center justify-center mt-6">
                                 <SmallPie />
-                            </div>
-                        </div>
-
-                        <div className="bg-white border rounded-lg p-6">
-                            <h3 className="font-semibold">Quick Stats</h3>
-                            <div className="grid grid-cols-2 gap-4 mt-4">
-                                <StatLabel label="Pending" value={String(data.month_metrics?.pending ?? 0)} />
-                                <StatLabel label="Overdue" value={String(data.month_metrics?.overdue ?? 0)} />
-                                <StatLabel label="Completed" value={String(data.month_metrics?.completed ?? 0)} />
-                                <StatLabel label="Assigned" value={String(data.month_metrics?.assigned ?? 0)} />
                             </div>
                         </div>
                     </div>
@@ -354,7 +362,7 @@ export default function EmployeeProfile() {
                         <div className="bg-white border rounded-lg p-6">
                             <h4 className="font-semibold">Skills & Expertise</h4>
                             <div className="mt-4 flex flex-wrap gap-2">
-                                {data.skills?.map((s, i) => (
+                                {data.skills?.map((s: string, i: number) => (
                                     <span key={i} className="px-3 py-1 border rounded-full text-xs">
                                         {s}
                                     </span>
@@ -410,12 +418,20 @@ export default function EmployeeProfile() {
                                     <div className="font-medium">{data.employment?.employment_type}</div>
                                 </div>
                                 <div>
-                                    <div className="text-xs text-gray-400">Work Schedule</div>
-                                    <div className="font-medium">{data.employment?.work_schedule}</div>
-                                </div>
-                                <div>
                                     <div className="text-xs text-gray-400">Join Date</div>
                                     <div className="font-medium">{data.employment?.join_date}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-400">Prev. Employer / Title</div>
+                                    <div className="font-medium">{data.employment?.previous_title}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-400">Prev. Location</div>
+                                    <div className="font-medium">{data.employment?.previous_location}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-400">Work Phone</div>
+                                    <div className="font-medium">{data.employment?.work_phone}</div>
                                 </div>
                             </div>
                         </div>
@@ -425,18 +441,52 @@ export default function EmployeeProfile() {
                             <div className="mt-4">
                                 <div className="text-xs text-gray-400">Name</div>
                                 <div className="font-medium">{data.emergency?.name}</div>
-                                <div className="text-xs text-gray-400 mt-3">Relationship</div>
-                                <div className="font-medium">{data.emergency?.relation}</div>
                                 <div className="text-xs text-gray-400 mt-3">Phone</div>
                                 <div className="font-medium">{data.emergency?.phone}</div>
+                                <div className="text-xs text-gray-400 mt-3">Address</div>
+                                <div className="font-medium whitespace-pre-line">{data.emergency?.address}</div>
                             </div>
                         </div>
 
                         <div className="bg-white border rounded-lg p-6">
-                            <h4 className="font-semibold">Quick Summary</h4>
-                            <div className="mt-3 text-sm text-gray-600">
-                                Performance <span className="font-semibold">{data.performance_score}%</span> • Task Completion <span className="font-semibold">{data.task_completion}%</span> •
-                                Attendance <span className="font-semibold">{data.attendance}%</span>
+                            <h4 className="font-semibold">Academic</h4>
+                            <div className="mt-4 grid grid-cols-1 gap-2">
+                                <div>
+                                    <div className="text-xs text-gray-400">Degree</div>
+                                    <div className="font-medium">{data.academic?.degree_name}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-400">University</div>
+                                    <div className="font-medium">{data.academic?.university_name}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-400">From / To</div>
+                                    <div className="font-medium">
+                                        {formatDateOnly(data.academic?.academic_start_date)} — {formatDateOnly(data.academic?.academic_end_date)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border rounded-lg p-6">
+                            <h4 className="font-semibold">Personal / Bank</h4>
+                            <div className="mt-4 grid grid-cols-1 gap-2">
+                                <div>
+                                    <div className="text-xs text-gray-400">Bank</div>
+                                    <div className="font-medium">{data.personal_details?.bank_name}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-400">Bank Account</div>
+                                    <div className="font-medium">{data.personal_details?.bank_account_number}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-400">SSN</div>
+                                    <div className="font-medium">{data.personal_details?.social_security}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-400">Hobbies</div>
+                                    <div className="font-medium">{data.personal_details?.hobbies_and_interests}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -446,16 +496,15 @@ export default function EmployeeProfile() {
             {activeTab === 'tasks' && (
                 <div className="border bg-white rounded-lg p-6">
                     <div className="flex items-start gap-2 font-medium">
-                        <Building2 size={14} className="mt-1" />
+                        <div className="mt-1" />
                         <span>
                             <h2>Task Management</h2>
                             <p className="text-sm text-gray-600">All assigned tasks and their current status</p>
                         </span>
                     </div>
                     <div>
-                        {data.tasks?.map((t) => {
+                        {data.tasks?.map((t: AnyObj) => {
                             const color = t.status === 'Completed' ? 'green' : t.status === 'Pending' ? 'yellow' : 'red';
-                            console.log('Item : ', t);
                             const size = 3;
                             return (
                                 <div className="w-full border py-2 px-3 rounded mb-3" key={`tasks-${t.id}`}>
@@ -466,19 +515,17 @@ export default function EmployeeProfile() {
                                         </div>
                                         <div className={`text-[12px] py-0.5 px-1 bg-${color}-500 rounded text-white`}>{t.status}</div>
                                     </div>
-                                    <p className={`px-${size}`}></p>
                                     <div className="flex gap-3 mt-3">
                                         <div className="flex items-center gap-2 ">
-                                            <Calendar1 size={14} />
+                                            <Calendar className="w-4 h-4" />
                                             <span className="mt-0.5 text-[10px] text-gray-500">Due: {formatDateOnly(t.due_date)}</span>
                                         </div>
                                         <div className={`flex items-center gap-2 text-${color}-700`}>
-                                            <Info size={14} />
-                                            <span className={`mt-0.5 text-[10px] `}>{capitalizeName(t.priority)} Priority</span>
+                                            <div className={`mt-0.5 text-[10px] `}>{capitalizeName(t.priority)} Priority</div>
                                         </div>
                                         <div className="flex items-center gap-2 ">
-                                            <User size={14} />
-                                            <span className="mt-0.5 text-[10px] text-gray-500">{t.assigned_by.name}</span>
+                                            <User className="w-4 h-4" />
+                                            <span className="mt-0.5 text-[10px] text-gray-500">{t.assigned_by?.name}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -487,6 +534,8 @@ export default function EmployeeProfile() {
                     </div>
                 </div>
             )}
+
+            {openEditProfile && data && <EditProfilePopup open={openEditProfile} onClose={() => setOpenEditProfile(false)} initial={data} OnSuccess={fetchProfileData} />}
         </div>
     );
 }
@@ -513,17 +562,7 @@ function CardSmall({ label, value, icon }: { label: string; value: string | numb
     );
 }
 
-function StatLabel({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="border rounded p-3 text-center">
-            <div className="text-xs text-gray-400">{label}</div>
-            <div className="font-semibold">{value}</div>
-        </div>
-    );
-}
-
 function SmallPie() {
-    // simple static pie placeholder using SVG
     return (
         <svg width="140" height="140" viewBox="0 0 32 32">
             <circle r="16" cx="16" cy="16" fill="#e6f7f0" />

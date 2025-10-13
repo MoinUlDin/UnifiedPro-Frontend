@@ -1,5 +1,5 @@
 // App.tsx
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import React, { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from './store';
@@ -7,6 +7,7 @@ import store from './store';
 import { toggleRTL, toggleTheme, toggleLocale, toggleMenu, toggleLayout, toggleAnimation, toggleNavbar, toggleSemidark } from './store/themeConfigSlice';
 
 import useTokenRefresher from './TokenRefresh';
+import NotificationServices from './services/NotificationServices';
 
 function App({ children }: PropsWithChildren) {
     // Using useSelector to get the current state from Redux
@@ -99,6 +100,23 @@ function App({ children }: PropsWithChildren) {
         return () => clearTimeout(timeoutId);
     }, [navigate]);
 
+    const FetchNotifications = useCallback(() => {
+        NotificationServices.FetchNotifications(dispatch)
+            .then((r) => {
+                console.log('notifications: ', r);
+            })
+            .catch((e) => {
+                console.log('Notifications Error: ', e);
+            });
+    }, []);
+    useEffect(() => {
+        setTimeout(() => {
+            FetchNotifications();
+            return;
+        }, 55000);
+
+        FetchNotifications();
+    }, []);
     useEffect(() => {
         // 2) Storage‑event listener
         const onStorage = (e: StorageEvent) => {

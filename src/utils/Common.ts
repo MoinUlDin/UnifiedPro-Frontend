@@ -122,11 +122,17 @@ export function formatTime(input: string | null): string | null {
         hour12: true,
     });
 }
-
+type userInfo = {
+    id: number;
+    allUser_id: number;
+    name: string;
+    is_owner: boolean;
+    email: string;
+};
 export function getUser() {
     const raw = localStorage.getItem('UserInfo');
     if (!raw) return null;
-    const user = JSON.parse(raw);
+    const user: userInfo = JSON.parse(raw);
     if (user) return user;
     return null;
 }

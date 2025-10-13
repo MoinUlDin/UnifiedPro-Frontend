@@ -2,6 +2,15 @@ import api from '../utils/api';
 import { setEmployees, setTerminateEmployees, setEmployeeDashbord } from '../store/slices/employeeSlice';
 
 export default class EmployeeServices {
+    static async FetchNotifications() {
+        try {
+            const response = await api.get(`/routine-tasks/notifications/`);
+            return response.data;
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
     static async FetchEmployees(dispatch: any) {
         try {
             const response = await api.get(`/auth/employees/`);

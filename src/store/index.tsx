@@ -3,13 +3,14 @@ import themeConfigReducer from './themeConfigSlice'; // Adjust this path as need
 import settingsReducer from './slices/settingSlice';
 import employeeReducer from './slices/employeeSlice';
 import companyReducer from './slices/companySlice';
-
+import notificationReducer from './slices/notifications';
 const store = configureStore({
     reducer: {
         themeConfig: themeConfigReducer,
         settings: settingsReducer,
         employee: employeeReducer,
         company: companyReducer,
+        notifications: notificationReducer,
     },
 });
 
