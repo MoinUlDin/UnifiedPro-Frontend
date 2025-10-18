@@ -21,7 +21,7 @@ const EmployeeDetails = lazy(() => import('../components/Main/HCIMS/Report-Detai
 const EmployeeContactDirectory = lazy(() => import('../components/Main/HCIMS/Report-Details/Employee_Contact_Directory'));
 const BirthdayDirectory = lazy(() => import('../components/Main/HCIMS/Report-Details/Birthday_Directory'));
 const ProfilePage = lazy(() => import('../components/Main/HCIMS/EmployeeProfile'));
-
+const OwnerProfile = lazy(() => import('../components/Main/HCIMS/OwnerProfile'));
 // Tasks
 const TasksDashboard = lazy(() => import('../components/Main/Tasks/Dashboard'));
 const ViewTasks = lazy(() => import('../components/Main/Tasks/View_Tasks'));
@@ -159,6 +159,7 @@ const routes: AppRoute[] = [
     },
     {
         path: '/edit_employee',
+        label: 'Manage Employees',
         element: <EditEmployee />,
         layout: 'default',
         category: 'HCIMS',
@@ -174,14 +175,15 @@ const routes: AppRoute[] = [
         protected: true,
         permissions: ['p10.can_read'],
     },
-    {
-        path: '/whatsapp',
-        element: <WhatsApp />,
-        layout: 'default',
-        category: 'HCIMS',
-    },
+    // {
+    //     path: '/whatsapp',
+    //     element: <WhatsApp />,
+    //     layout: 'default',
+    //     category: 'HCIMS',
+    // },
     {
         path: '/reports_pages',
+        label: 'Reports',
         element: <HCIMSReports />,
         layout: 'default',
         category: 'HCIMS',
@@ -214,6 +216,12 @@ const routes: AppRoute[] = [
         protected: true,
         permissions: ['p11.can_read'],
         label: 'Employee Profile',
+        icon: 'User',
+    },
+    {
+        path: '/owner/profile',
+        element: <OwnerProfile />,
+        layout: 'default',
         icon: 'User',
     },
     {
@@ -281,13 +289,13 @@ const routes: AppRoute[] = [
         // category: 'Tasks',
     },
     // Routines Routes
-    {
-        path: '/routine_report_dashboard',
-        element: <RoutineDashboard />,
-        layout: 'default',
-        label: 'Dashbord',
-        category: 'Routines',
-    },
+    // {
+    //     path: '/routine_report_dashboard',
+    //     element: <RoutineDashboard />,
+    //     layout: 'default',
+    //     label: 'Dashbord',
+    //     category: 'Routines',
+    // },
     {
         path: '/mark_holidays',
         element: <MarkHoliday />,
@@ -333,13 +341,13 @@ const routes: AppRoute[] = [
         element: <CreateExp />,
         layout: 'default',
     },
-    {
-        path: '/routine_reports',
-        element: <RoutinesReports />,
-        layout: 'default',
-        label: 'Reports',
-        category: 'Routines',
-    },
+    // {
+    //     path: '/routine_reports',
+    //     element: <RoutinesReports />,
+    //     layout: 'default',
+    //     label: 'Reports',
+    //     category: 'Routines',
+    // },
     {
         path: '/routine_whistle',
         element: <Whistle />,
@@ -348,14 +356,7 @@ const routes: AppRoute[] = [
         category: 'Routines',
     },
     // Evaluation Routes
-    {
-        path: '/evaluations/templates',
-        element: <TemplatesList />,
-        layout: 'default',
-        label: 'Templates',
-        category: 'Evaluation',
-        protected: true,
-    },
+
     {
         path: '/evaluations/builder',
         element: <FormBuilder />,
@@ -407,25 +408,10 @@ const routes: AppRoute[] = [
     },
 
     {
-        path: '/company_policies',
-        element: <CompanyPolicies />,
-        layout: 'default',
-        label: 'Evaluation',
-        category: 'Evaluation',
-    },
-
-    {
         path: '/system_matric',
         element: <SystemMetricsPage />,
         layout: 'default',
         label: 'System Metrics',
-        category: 'Evaluation',
-    },
-    {
-        path: '/step_evaluation',
-        element: <SetupEval />,
-        layout: 'default',
-        label: 'Setup Evaluation',
         category: 'Evaluation',
     },
 

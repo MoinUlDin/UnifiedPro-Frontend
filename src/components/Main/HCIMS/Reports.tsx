@@ -23,17 +23,17 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ title, description, icon, col
         if (panelRef.current) {
             gsap.fromTo(
                 panelRef.current,
-                { 
+                {
                     opacity: 0,
                     rotateY: -30,
-                    scale: 0.8
+                    scale: 0.8,
                 },
                 {
                     opacity: 1,
                     rotateY: 0,
                     scale: 1,
                     duration: 1,
-                    ease: "power4.out",
+                    ease: 'power4.out',
                     scrollTrigger: {
                         trigger: panelRef.current,
                         start: 'top 85%',
@@ -44,13 +44,7 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ title, description, icon, col
     }, []);
 
     return (
-        <motion.div
-            ref={panelRef}
-            className="relative group perspective-1000"
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
-            onClick={onClick}
-        >
+        <motion.div ref={panelRef} className="relative group perspective-1000" onHoverStart={() => setIsHovered(true)} onHoverEnd={() => setIsHovered(false)} onClick={onClick}>
             <motion.div
                 className={`w-full p-6 rounded-xl backdrop-blur-md bg-white/90 dark:bg-gray-800/90 
                           shadow-lg border border-white/20 cursor-pointer transition-all duration-500
@@ -61,19 +55,12 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ title, description, icon, col
                 }}
             >
                 <div className="flex items-start space-x-4">
-                    <div 
-                        className={`flex items-center justify-center p-4 rounded-xl text-white`}
-                        style={{ backgroundColor: color }}
-                    >
+                    <div className={`flex items-center justify-center p-4 rounded-xl text-white`} style={{ backgroundColor: color }}>
                         <i className={`${icon} text-2xl`} aria-hidden="true"></i>
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                            {title}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300">
-                            {description}
-                        </p>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
+                        <p className="text-gray-600 dark:text-gray-300">{description}</p>
                     </div>
                 </div>
             </motion.div>
@@ -108,13 +95,7 @@ const Reports: React.FC = () => {
             icon: 'bi-journal-text',
             color: '#37BC9B',
         },
-        {
-            id: 4,
-            title: 'Birthday Calendar',
-            description: 'View upcoming birthdays of employees.',
-            icon: 'bi-calendar-heart-fill',
-            color: '#967ADC',
-        },
+
         {
             id: 5,
             title: 'Termination Stats',
@@ -122,13 +103,7 @@ const Reports: React.FC = () => {
             icon: 'bi-pie-chart-fill',
             color: '#F6BB42',
         },
-        {
-            id: 6,
-            title: 'Recruitment Pipeline',
-            description: 'Track recruitment progress and metrics.',
-            icon: 'bi-kanban-fill',
-            color: '#DA4453',
-        },
+
         {
             id: 7,
             title: 'Time Metrics',
@@ -142,14 +117,16 @@ const Reports: React.FC = () => {
             description: 'View employee performance metrics.',
             icon: 'bi-graph-up-arrow',
             color: '#f0b111',
-        }
+        },
     ];
 
     const handlePanelClick = (id: number) => {
         const routes = {
-            1: '/report-employee-details',
+            1: '/edit_employee',
             3: '/employee_contact_directory',
             4: '/birthday_directory',
+            5: '/terminate_employee',
+            8: '/edit_employee',
         };
         navigate(routes[id] || '/');
     };
@@ -164,26 +141,26 @@ const Reports: React.FC = () => {
                 </div>
 
                 <div ref={headerRef} className="relative text-center mb-20 space-y-6">
-                    <motion.h1 
+                    <motion.h1
                         className="text-4xl font-black tracking-tight bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 
                                  dark:from-white dark:via-gray-300 dark:to-white bg-clip-text text-transparent leading-tight"
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
                     >
                         HCIMS Reports
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                         className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                        transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
                     >
                         Access comprehensive HR insights and analytics through our enterprise-grade reporting system
                     </motion.p>
                 </div>
 
-                <motion.div 
+                <motion.div
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 mt-16"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

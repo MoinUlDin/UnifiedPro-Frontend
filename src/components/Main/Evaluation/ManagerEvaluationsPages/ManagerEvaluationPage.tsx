@@ -187,9 +187,9 @@ export default function ManagerEvaluationPage() {
                 <button onClick={() => setTabs(2)} className={`flex-1 py-1 rounded-full ${tabs === 2 && 'bg-white'}`}>
                     Completed Evaluations
                 </button>
-                <button onClick={() => setTabs(3)} className={`flex-1 py-1 rounded-full ${tabs === 3 && 'bg-white'}`}>
+                {/* <button onClick={() => setTabs(3)} className={`flex-1 py-1 rounded-full ${tabs === 3 && 'bg-white'}`}>
                     Team Analytics
-                </button>
+                </button> */}
             </div>
             {tabs === 1 &&
                 (loading ? (

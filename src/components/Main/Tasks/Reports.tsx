@@ -23,17 +23,17 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ title, description, icon, col
         if (panelRef.current) {
             gsap.fromTo(
                 panelRef.current,
-                { 
+                {
                     opacity: 0,
                     rotateY: -30,
-                    scale: 0.8
+                    scale: 0.8,
                 },
                 {
                     opacity: 1,
                     rotateY: 0,
                     scale: 1,
                     duration: 1,
-                    ease: "power4.out",
+                    ease: 'power4.out',
                     scrollTrigger: {
                         trigger: panelRef.current,
                         start: 'top 85%',
@@ -44,13 +44,7 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ title, description, icon, col
     }, []);
 
     return (
-        <motion.div
-            ref={panelRef}
-            className="relative group perspective-1000"
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
-            onClick={onClick}
-        >
+        <motion.div ref={panelRef} className="relative group perspective-1000" onHoverStart={() => setIsHovered(true)} onHoverEnd={() => setIsHovered(false)} onClick={onClick}>
             <motion.div
                 className={`w-full p-6 rounded-xl backdrop-blur-md bg-white/90 dark:bg-gray-800/90 
                           shadow-lg border border-white/20 cursor-pointer transition-all duration-500
@@ -61,19 +55,12 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ title, description, icon, col
                 }}
             >
                 <div className="flex items-start space-x-4">
-                    <div 
-                        className={`flex items-center justify-center p-4 rounded-xl text-white`}
-                        style={{ backgroundColor: color }}
-                    >
+                    <div className={`flex items-center justify-center p-4 rounded-xl text-white`} style={{ backgroundColor: color }}>
                         <i className={`${icon} text-2xl`} aria-hidden="true"></i>
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                            {title}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300">
-                            {description}
-                        </p>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
+                        <p className="text-gray-600 dark:text-gray-300">{description}</p>
                     </div>
                 </div>
             </motion.div>
@@ -113,7 +100,7 @@ const Reports: React.FC = () => {
             description: 'Access all task-related announcements and updates.',
             icon: 'bi-megaphone-fill',
             color: '#4ceb34',
-        }
+        },
     ];
 
     const handlePanelClick = (id: number) => {
@@ -129,7 +116,7 @@ const Reports: React.FC = () => {
                 navigate('/TaskReports');
                 break;
             case 4:
-                navigate('/announcements');
+                navigate('/create-announcement');
                 break;
             default:
                 navigate('/');
@@ -138,7 +125,7 @@ const Reports: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-transparent overflow-hidden">
-    <div className="max-w-8xl mx-auto relative">
+            <div className="max-w-8xl mx-auto relative">
                 {/* Decorative Elements */}
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                     <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
@@ -147,9 +134,7 @@ const Reports: React.FC = () => {
 
                 {/* Content */}
                 <motion.div className="relative z-10">
-                    <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-12 text-center">
-                        Task Management Reports
-                    </h1>
+                    <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-12 text-center">Task Management Reports</h1>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <AnimatePresence>
                             {reports.map((report) => (
@@ -161,10 +146,7 @@ const Reports: React.FC = () => {
                                     exit={{ opacity: 0, scale: 0.8 }}
                                     transition={{ duration: 0.5 }}
                                 >
-                                    <ReportPanel
-                                        {...report}
-                                        onClick={() => handlePanelClick(report.id)}
-                                    />
+                                    <ReportPanel {...report} onClick={() => handlePanelClick(report.id)} />
                                 </motion.div>
                             ))}
                         </AnimatePresence>

@@ -223,9 +223,6 @@ export default function SelfEvaluationPage() {
                 <button onClick={() => setTabs(2)} className={`flex-1 py-1 rounded-full ${tabs === 2 && 'bg-white'}`}>
                     All Submissions
                 </button>
-                <button onClick={() => setTabs(3)} className={`flex-1 py-1 rounded-full ${tabs === 3 && 'bg-white'}`}>
-                    Analytics
-                </button>
             </div>
             {/* List */}
             {tabs === 1 && (

@@ -128,6 +128,7 @@ type userInfo = {
     name: string;
     is_owner: boolean;
     email: string;
+    profile_image: string | null;
 };
 export function getUser() {
     const raw = localStorage.getItem('UserInfo');

@@ -12,30 +12,23 @@ import IconInfoTriangle from '../../../components/Icon/IconInfoTriangle';
 import Edit_Employee_Popup from '../HCIMS/Edit_Employee_Popup';
 import EmployeeDashboard from './EmployeeDashboard';
 import axios from 'axios';
+import { CheckOwner } from '../../../utils/Common';
+import OwnerServices from '../../../services/OwnerServices';
 
 const MainDashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const isDark = document.documentElement.classList.contains('dark');
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
+    const isOwner = CheckOwner();
 
     useEffect(() => {
-        try {
-            const userInfoString = localStorage.getItem('UserInfo');
-            if (userInfoString) {
-                const userInfo = JSON.parse(userInfoString);
-                if (userInfo) {
-                    setIsAdmin(userInfo.is_owner);
-                }
-            } else {
-                console.log('No userInfo found in localStorage');
-            }
-        } catch (error) {
-            console.error('Error parsing userInfo:', error);
-            // Optionally clear invalid data
-            localStorage.removeItem('userInfo');
-        }
+        OwnerServices.getOwnerDashboard()
+            .then((r) => {
+                console.log('owner Dashboard', r);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
     }, []);
-
     // Animation variants for staggered animations
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -150,7 +143,7 @@ const MainDashboard = () => {
         },
     };
 
-    if (!isAdmin) {
+    if (!isOwner) {
         return <EmployeeDashboard></EmployeeDashboard>;
     }
 

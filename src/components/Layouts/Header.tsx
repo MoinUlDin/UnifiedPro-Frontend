@@ -44,16 +44,21 @@ const Header = () => {
     const user = getUser();
     useEffect(() => {
         const updateActiveLink = () => {
-            const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
+            const selector = document.querySelector<HTMLAnchorElement>(`ul.horizontal-menu a[href="${window.location.pathname}"]`);
             if (selector) {
-                document.querySelectorAll('ul.horizontal-menu .nav-link.active').forEach((el) => el.classList.remove('active'));
+                document.querySelectorAll<HTMLAnchorElement>('ul.horizontal-menu .nav-link.active').forEach((el) => el.classList.remove('active'));
+
                 selector.classList.add('active');
+
+                // closest returns Element | null — narrow it to HTMLElement
                 const ul = selector.closest('ul');
-                if (ul) {
+                if (ul instanceof HTMLElement) {
+                    // offsetLeft and scrollLeft are available on HTMLElement
                     ul.scrollLeft = selector.offsetLeft - ul.offsetWidth / 2 + selector.offsetWidth / 2;
                 }
             }
         };
+
         updateActiveLink();
     }, [location.pathname]);
     useEffect(() => {
@@ -369,18 +374,29 @@ const Header = () => {
                                 </ul>
                             </Dropdown>
                         </div>
+
                         {/* Profile */}
                         <div className="dropdown shrink-0 flex">
                             <Dropdown
                                 offset={[0, 8]}
                                 placement={`${isRtl ? 'bottom-start' : 'bottom-end'}`}
                                 btnClassName="relative group block"
-                                button={<img className="w-9 h-9 rounded-full object-cover saturate-50 group-hover:saturate-100" src="/assets/images/user-profile.jpeg" alt="userProfile" />}
+                                button={
+                                    user?.profile_image ? (
+                                        <img className="w-9 h-9 rounded-full object-cover saturate-50 group-hover:saturate-100" src={`${user.profile_image}`} alt="userProfile" />
+                                    ) : (
+                                        <img className="w-9 h-9 rounded-full object-cover saturate-50 group-hover:saturate-100" src="/assets/images/user-profile.jpeg" alt="userProfile" />
+                                    )
+                                }
                             >
                                 <ul className="text-dark dark:text-white-dark !py-0 w-[230px] font-semibold dark:text-white-light/90">
                                     <li>
                                         <div className="flex items-center px-4 py-4">
-                                            <img className="rounded-md w-10 h-10 object-cover" src="/assets/images/user-profile.jpeg" alt="userProfile" />
+                                            {user?.profile_image ? (
+                                                <img className="rounded-md w-10 h-10 object-cover" src={`${user.profile_image}`} alt="userProfile" />
+                                            ) : (
+                                                <img className="rounded-md w-10 h-10 object-cover" src="/assets/images/user-profile.jpeg" alt="userProfile" />
+                                            )}
                                             <div className="ltr:pl-4 rtl:pr-4 truncate">
                                                 <h4 className="text-base">
                                                     {user?.name}
@@ -393,12 +409,12 @@ const Header = () => {
                                         </div>
                                     </li>
                                     <li>
-                                        <Link to={`/employees/${user?.id}/profile`} className="dark:hover:text-white">
+                                        <Link to={`/owner/profile`} className="dark:hover:text-white">
                                             <IconUser className="w-4.5 h-4.5 ltr:mr-2 rtl:ml-2 shrink-0" />
                                             Profile
                                         </Link>
                                     </li>
-                                    <li>
+                                    {/* <li>
                                         <Link to="/apps/mailbox" className="dark:hover:text-white">
                                             <IconMail className="w-4.5 h-4.5 ltr:mr-2 rtl:ml-2 shrink-0" />
                                             Inbox
@@ -409,7 +425,7 @@ const Header = () => {
                                             <IconLockDots className="w-4.5 h-4.5 ltr:mr-2 rtl:ml-2 shrink-0" />
                                             Lock Screen
                                         </Link>
-                                    </li>
+                                    </li> */}
                                     <li className="border-t border-white-light dark:border-white-light/10">
                                         <Link to="/auth/LoginBoxed" className="text-danger !py-3">
                                             <IconLogout className="w-4.5 h-4.5 ltr:mr-2 rtl:ml-2 rotate-90 shrink-0" />
