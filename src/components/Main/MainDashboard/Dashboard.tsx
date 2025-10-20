@@ -1,563 +1,242 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import ReactApexChart from 'react-apexcharts';
 import CountUp from 'react-countup';
-import IconUsers from '../../../components/Icon/IconUsers';
-import IconTrendingUp from '../../../components/Icon/IconTrendingUp';
-import IconCalendar from '../../../components/Icon/IconCalendar';
-import IconPencilPaper from '../../../components/Icon/IconPencilPaper';
-import IconPlus from '../../../components/Icon/IconPlus';
-import IconCircleCheck from '../../../components/Icon/IconCircleCheck';
-import IconInfoTriangle from '../../../components/Icon/IconInfoTriangle';
-import Edit_Employee_Popup from '../HCIMS/Edit_Employee_Popup';
-import EmployeeDashboard from './EmployeeDashboard';
-import axios from 'axios';
-import { CheckOwner } from '../../../utils/Common';
+import ReactApexChart from 'react-apexcharts';
+import { Users, CheckCircle, Clock, Layers, TrendingUp } from 'lucide-react';
 import OwnerServices from '../../../services/OwnerServices';
+import { CheckOwner } from '../../../utils/Common';
+import EmployeeDashboard from './EmployeeDashboard';
 
-const MainDashboard = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const isDark = document.documentElement.classList.contains('dark');
+type DepartmentItem = {
+    id: number;
+    name: string;
+    performance: number | null;
+    expected_arrival_time: string | null;
+};
+
+type TaskUser = { id: number; name: string } | null;
+
+type RecentTask = {
+    id: number;
+    task_name: string;
+    priority: string;
+    progress: number;
+    status: string;
+    employee: TaskUser;
+    assigned_by: TaskUser;
+    submitted_by: TaskUser | null;
+    completion_date: string | null;
+    modified_at: string | null;
+    on_time: boolean | null;
+    completed_task_file: string | null;
+};
+
+type OwnerDashboardPayload = {
+    company_performance?: number | null;
+    emp_count: number;
+    present_count: number;
+    absent_count?: number | null;
+    departments: DepartmentItem[];
+    department_count: number;
+    recent_completed_tasks: RecentTask[];
+};
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.08, ease: 'easeOut' } },
+};
+const cardVariants = { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
+
+const OwnerMainDashboard: React.FC = () => {
+    const [data, setData] = useState<OwnerDashboardPayload | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const isOwner = CheckOwner();
 
     useEffect(() => {
+        if (!isOwner) return;
+        setLoading(true);
         OwnerServices.getOwnerDashboard()
-            .then((r) => {
-                console.log('owner Dashboard', r);
+            .then((r: OwnerDashboardPayload) => {
+                setData(r);
+                setError(null);
             })
             .catch((e) => {
-                console.log(e);
-            });
-    }, []);
-    // Animation variants for staggered animations
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-            },
-        },
-    };
-
-    const chartVariants = {
-        hidden: { opacity: 0, scale: 0.8 },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            transition: {
-                type: 'spring',
-                stiffness: 100,
-                damping: 15,
-            },
-        },
-    };
-
-    const slideVariants = {
-        hidden: { opacity: 0, x: -20 },
-        visible: {
-            opacity: 1,
-            x: 0,
-            transition: {
-                type: 'spring',
-                stiffness: 100,
-            },
-        },
-    };
-
-    // Mock data
-    const attendanceData = {
-        totalEmployees: 150,
-        presentEmployees: 120,
-        absentEmployees: 20,
-        onLeave: 10,
-    };
-
-    const appraisalData = {
-        pendingAppraisals: 15,
-        upcomingAppraisals: 8,
-        nextReviews: [
-            { date: '2024-12-15', name: 'John Doe' },
-            { date: '2024-12-18', name: 'Jane Smith' },
-            { date: '2024-12-20', name: 'Mike Johnson' },
-        ],
-    };
-
-    const kpiData = {
-        companyPerformance: 85,
-        departmentalPerformance: {
-            HR: 88,
-            IT: 92,
-            Finance: 85,
-            Marketing: 78,
-            Operations: 82,
-        },
-        individualPerformance: {
-            metrics: ['Goals', 'Skills', 'Attendance', 'Projects', 'Leadership'],
-            values: [85, 78, 90, 88, 75],
-        },
-    };
-
-    const trainingData = {
-        totalEmployees: 150,
-        assigned: 125,
-        completed: 95,
-        inProgress: 30,
-        assignedPercentage: 83,
-        completionPercentage: 76,
-    };
-
-    // Add more detailed HR metrics
-    const hrMetrics = {
-        recruitment: {
-            openPositions: 12,
-            activeApplications: 45,
-            interviewsScheduled: 8,
-            offersPending: 3,
-            timeToHire: 25, // in days
-            costPerHire: 2500,
-        },
-        employeeEngagement: {
-            satisfactionScore: 85,
-            lastSurveyParticipation: 92,
-            employeeTurnover: 4.2,
-            averageTenure: 3.2, // in years
-        },
-        compensation: {
-            averageSalary: 65000,
-            payrollCost: 850000,
-            benefitsCost: 150000,
-            compensationRatio: 28, // percentage of revenue
-        },
-        development: {
-            trainingBudgetUsed: 75, // percentage
-            certifications: 45,
-            skillGapIndex: 82,
-            promotions: 12,
-        },
-        compliance: {
-            documentsExpiringSoon: 8,
-            mandatoryTrainingCompletion: 94,
-            incidentReports: 2,
-            policyAcknowledgments: 98,
-        },
-    };
+                console.error('owner dashboard error', e);
+                setError('Failed to load dashboard');
+            })
+            .finally(() => setLoading(false));
+    }, [isOwner]);
 
     if (!isOwner) {
-        return <EmployeeDashboard></EmployeeDashboard>;
+        return <EmployeeDashboard />;
     }
 
+    // prepare chart data for departments
+    const deptNames = (data?.departments || []).map((d) => d.name);
+    const deptPerf = (data?.departments || []).map((d) => (d.performance == null ? 0 : Number(d.performance)));
+
     return (
-        <motion.div className="dashboard-container p-6 max-w-[1920px] mx-auto" initial="hidden" animate="visible" variants={containerVariants}>
-            {/* Header with Quick Actions */}
-            <motion.div className="flex flex-col md:flex-row justify-between items-center mb-8" variants={slideVariants}>
+        <motion.div className="max-w-6xl mx-auto p-6" initial="hidden" animate="visible" variants={containerVariants}>
+            <header className="flex items-center justify-between mb-6 z-10">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">HR Dashboard</h1>
-                    <p className="text-gray-500 mt-1">Real-time overview of your organization</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Owner Dashboard</h1>
+                    <p className="text-sm text-slate-500 mt-1">Overview — employees, attendance, departments & recent tasks</p>
                 </div>
-                <div className="flex gap-4">
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setIsModalOpen(true)}
-                        className="btn-primary px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl"
-                    >
-                        <IconPlus className="w-4 h-4 inline-block mr-2" />
-                        New Employee
-                    </motion.button>
-                    {isModalOpen && <Edit_Employee_Popup closeModal={() => setIsModalOpen(false)} />}
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="btn-secondary px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg"
-                    >
-                        <IconCalendar className="w-4 h-4 inline-block mr-2" />
-                        Generate Report
-                    </motion.button>
+                <div className="text-right">
+                    <div className="text-sm text-slate-500">Company Performance</div>
+                    <div className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-emerald-500" />
+                        <span>{data?.company_performance ?? '—'}</span>
+                    </div>
                 </div>
-            </motion.div>
-            <div className="grid grid-cols-12 gap-6 mb-6">
-                {/* Key Metrics - Full Width */}
-                <motion.div
-                    className="col-span-12" // Ensure it spans the full width
-                    variants={containerVariants}
-                >
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {' '}
-                        {/* Adjusted grid for 4 equal columns */}
-                        {/* Attendance Cards with hover effects */}
-                        <motion.div
-                            variants={chartVariants}
-                            whileHover={{
-                                scale: 1.02,
-                                transition: { type: 'spring', stiffness: 400 },
-                            }}
-                            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 pl-2 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="flex justify-between gap-1 items-start">
-                                <div>
-                                    <p className="text-sm text-gray-500">Total Employees</p>
-                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                        <CountUp end={attendanceData.totalEmployees} duration={2} />
-                                    </h3>
-                                </div>
-                                <div className="p-3 bg-blue-100 rounded-lg">
-                                    <IconUsers className="w-5 h-6 text-blue-600" />
-                                </div>
-                            </div>
-                        </motion.div>
-                        <motion.div
-                            variants={chartVariants}
-                            whileHover={{
-                                scale: 1.02,
-                                transition: { type: 'spring', stiffness: 400 },
-                            }}
-                            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="flex justify-between gap-2 items-start">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Present Today</p>
-                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                        <CountUp end={attendanceData.presentEmployees} duration={2} />
-                                    </h3>
-                                </div>
-                                <div className="p-3 bg-green-100 rounded-lg">
-                                    <IconCircleCheck className="w-6 h-6 text-green-600" />
-                                </div>
-                            </div>
-                        </motion.div>
-                        <motion.div
-                            variants={chartVariants}
-                            whileHover={{
-                                scale: 1.02,
-                                transition: { type: 'spring', stiffness: 400 },
-                            }}
-                            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="flex justify-between gap-1 items-start">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Absent Today</p>
-                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                        <CountUp end={attendanceData.absentEmployees} duration={2} />
-                                    </h3>
-                                </div>
-                                <div className="p-3 bg-red-100 rounded-lg">
-                                    <IconInfoTriangle className="w-6 h-6 text-red-600" />
-                                </div>
-                            </div>
-                        </motion.div>
-                        <motion.div
-                            variants={chartVariants}
-                            whileHover={{
-                                scale: 1.02,
-                                transition: { type: 'spring', stiffness: 400 },
-                            }}
-                            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="flex justify-between gap-1 items-start">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">On Leave</p>
-                                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                        <CountUp end={attendanceData.onLeave} duration={2} />
-                                    </h3>
-                                </div>
-                                <div className="p-3 bg-yellow-100 rounded-lg">
-                                    <IconCalendar className="w-6 h-6 text-yellow-600" />
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                </motion.div>
-            </div>
-            {/* Main Stats Grid - 70% width */}
-            <div className="grid grid-cols-12 gap-6 mb-6">
-                {/* Key Metrics - 70% width */}
-                <motion.div className="col-span-12 lg:col-span-8" variants={containerVariants}>
-                    {/* Performance Charts with animations */}
-                    <motion.div variants={chartVariants} className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300">
-                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center">
-                            <IconTrendingUp className="w-6 h-6 mr-2 text-blue-600" />
-                            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Performance Overview</span>
-                        </h2>
-                        <ReactApexChart
-                            options={{
-                                chart: {
-                                    type: 'bar',
-                                    toolbar: {
-                                        show: false,
-                                    },
-                                    background: 'transparent',
-                                },
-                                plotOptions: {
-                                    bar: {
-                                        horizontal: false,
-                                        columnWidth: '55%',
-                                        borderRadius: 8,
-                                    },
-                                },
-                                dataLabels: {
-                                    enabled: false,
-                                },
-                                grid: {
-                                    borderColor: isDark ? '#374151' : '#E5E7EB',
-                                    strokeDashArray: 4,
-                                },
-                                xaxis: {
-                                    categories: Object.keys(kpiData.departmentalPerformance),
-                                    labels: {
-                                        style: {
-                                            colors: isDark ? '#9CA3AF' : '#6B7280',
-                                        },
-                                    },
-                                },
-                                yaxis: {
-                                    labels: {
-                                        style: {
-                                            colors: isDark ? '#9CA3AF' : '#6B7280',
-                                        },
-                                    },
-                                },
-                                theme: {
-                                    mode: isDark ? 'dark' : 'light',
-                                },
-                            }}
-                            series={[
-                                {
-                                    name: 'Performance',
-                                    data: Object.values(kpiData.departmentalPerformance),
-                                },
-                            ]}
-                            type="bar"
-                            height={350}
-                        />
-                    </motion.div>
-                </motion.div>
+            </header>
 
-                {/* Side Stats - 30% width */}
-                <motion.div className="col-span-12 lg:col-span-4 mt-6 space-y-1" variants={containerVariants}>
-                    {/* Recruitment Summary with hover effects */}
-                    <motion.div
-                        variants={chartVariants}
-                        whileHover={{
-                            scale: 1.02,
-                            transition: { type: 'spring', stiffness: 400 },
-                        }}
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 hover:shadow-xl transition-all duration-300"
-                    >
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-                            <IconUsers className="w-5 h-5 inline-block mr-2" />
-                            Recruitment Pipeline
-                        </h2>
-                        <ReactApexChart
-                            options={{
-                                chart: {
-                                    type: 'donut',
-                                    background: 'transparent',
-                                },
-                                labels: ['Open', 'In Progress', 'Offered', 'Closed'],
-                                colors: ['#3B82F6', '#10B981', '#F59E0B', '#6366F1'],
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        colors: isDark ? '#9CA3AF' : '#6B7280',
-                                    },
-                                },
-                                theme: {
-                                    mode: isDark ? 'dark' : 'light',
-                                },
-                            }}
-                            series={[
-                                hrMetrics.recruitment.openPositions,
-                                hrMetrics.recruitment.activeApplications,
-                                hrMetrics.recruitment.offersPending,
-                                8, // closed positions
-                            ]}
-                            type="donut"
-                            height={300}
-                        />
-                    </motion.div>
-
-                    {/* Employee Engagement Metrics with animations */}
-                    <motion.div
-                        variants={chartVariants}
-                        whileHover={{
-                            scale: 1.02,
-                            transition: { type: 'spring', stiffness: 400 },
-                        }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 hover:shadow-xl transition-all duration-300"
-                    >
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-                            <IconTrendingUp className="w-5 h-5 inline-block mr-2" />
-                            Employee Engagement
-                        </h2>
-                        <div className="space-y-4">
-                            {/* Satisfaction Score */}
+            {loading ? (
+                <div className="p-8 bg-white rounded-lg shadow text-center">Loading dashboard…</div>
+            ) : error ? (
+                <div className="p-4 bg-red-50 text-red-700 rounded">{error}</div>
+            ) : (
+                <>
+                    {/* top KPI cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <motion.div variants={cardVariants} className="bg-white dark:bg-slate-800 rounded-xl shadow p-5 flex items-center gap-4">
+                            <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+                                <Users className="w-6 h-6 text-indigo-600" />
+                            </div>
                             <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm text-gray-500">Satisfaction</span>
-                                    <span className="text-sm font-semibold">{hrMetrics.employeeEngagement.satisfactionScore}%</span>
+                                <div className="text-sm text-slate-500">Employees</div>
+                                <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                                    <CountUp end={data!.emp_count} duration={1.5} />
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div className="bg-green-500 h-2 rounded-full transition-all duration-500" style={{ width: `${hrMetrics.employeeEngagement.satisfactionScore}%` }}></div>
-                                </div>
+                                <div className="text-xs text-slate-400 mt-1">Total employees in company</div>
                             </div>
-                            {/* Survey Participation */}
+                        </motion.div>
+
+                        <motion.div variants={cardVariants} className="bg-white dark:bg-slate-800 rounded-xl shadow p-5 flex items-center gap-4">
+                            <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                                <CheckCircle className="w-6 h-6 text-green-600" />
+                            </div>
                             <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm text-gray-500">Survey Participation</span>
-                                    <span className="text-sm font-semibold">{hrMetrics.employeeEngagement.lastSurveyParticipation}%</span>
+                                <div className="text-sm text-slate-500">Present Today</div>
+                                <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                                    <CountUp end={data!.present_count} duration={1.2} />
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div className="bg-blue-500 h-2 rounded-full transition-all duration-500" style={{ width: `${hrMetrics.employeeEngagement.lastSurveyParticipation}%` }}></div>
-                                </div>
+                                <div className="text-xs text-slate-400 mt-1">{data!.absent_count != null ? `${data!.absent_count} absent` : 'No absent data'}</div>
                             </div>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            </div>
+                        </motion.div>
 
-            {/* Bottom Section with staggered animations */}
-            <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-6" variants={containerVariants}>
-                {/* Training Progress with hover effects */}
-                <motion.div
-                    variants={chartVariants}
-                    whileHover={{
-                        scale: 1.02,
-                        transition: { type: 'spring', stiffness: 400 },
-                    }}
-                    className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
-                >
-                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
-                        <IconPencilPaper className="w-5 h-5 inline-block mr-2" />
-                        Training Progress
-                    </h2>
-                    <ReactApexChart
-                        options={{
-                            chart: {
-                                type: 'radialBar',
-                                background: 'transparent',
-                            },
-                            plotOptions: {
-                                radialBar: {
-                                    hollow: {
-                                        size: '70%',
-                                    },
-                                    track: {
-                                        background: isDark ? '#374151' : '#E5E7EB',
-                                    },
-                                    dataLabels: {
-                                        name: {
-                                            color: isDark ? '#9CA3AF' : '#6B7280',
-                                        },
-                                        value: {
-                                            color: isDark ? '#FFFFFF' : '#111827',
-                                            fontSize: '30px',
-                                            fontWeight: 600,
-                                        },
-                                    },
-                                },
-                            },
-                            labels: ['Completion'],
-                            colors: ['#10B981'],
-                            theme: {
-                                mode: isDark ? 'dark' : 'light',
-                            },
-                        }}
-                        series={[hrMetrics.compliance.mandatoryTrainingCompletion]}
-                        type="radialBar"
-                        height={300}
-                    />
-                </motion.div>
+                        <motion.div variants={cardVariants} className="bg-white dark:bg-slate-800 rounded-xl shadow p-5 flex items-center gap-4">
+                            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                                <Layers className="w-6 h-6 text-amber-600" />
+                            </div>
+                            <div>
+                                <div className="text-sm text-slate-500">Departments</div>
+                                <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                                    <CountUp end={data!.department_count} duration={1.2} />
+                                </div>
+                                <div className="text-xs text-slate-400 mt-1">Department performances below</div>
+                            </div>
+                        </motion.div>
+                    </div>
 
-                {/* Compliance Overview with animations */}
-                <motion.div
-                    variants={chartVariants}
-                    whileHover={{
-                        scale: 1.02,
-                        transition: { type: 'spring', stiffness: 400 },
-                    }}
-                    transition={{ delay: 0.1 }}
-                    className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
-                >
-                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
-                        <IconPlus className="w-5 h-5 inline-block mr-2" />
-                        Compliance Overview
-                    </h2>
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-                            <p className="text-sm text-gray-500">Expiring Docs</p>
-                            <p className="text-2xl font-bold text-red-600">{hrMetrics.compliance.documentsExpiringSoon}</p>
-                        </div>
-                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-                            <p className="text-sm text-gray-500">Training Complete</p>
-                            <p className="text-2xl font-bold text-orange-600">{hrMetrics.compliance.mandatoryTrainingCompletion}%</p>
-                        </div>
-                    </div>
-                    <div className="mb-4">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                            <span>Policy Acknowledgments</span>
-                            <span className="font-semibold">{hrMetrics.compliance.policyAcknowledgments}%</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                            <span>Incident Reports</span>
-                            <span className="font-semibold">{hrMetrics.compliance.incidentReports}</span>
-                        </div>
-                    </div>
-                </motion.div>
+                    <div className="grid grid-cols-1 gap-6 mb-6">
+                        {/* Department performance chart */}
+                        <motion.div variants={cardVariants} className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                                    Department Performance
+                                </h3>
+                                <div className="text-sm text-slate-500">Latest</div>
+                            </div>
 
-                {/* Employee Development with animations */}
-                <motion.div
-                    variants={chartVariants}
-                    whileHover={{
-                        scale: 1.02,
-                        transition: { type: 'spring', stiffness: 400 },
-                    }}
-                    transition={{ delay: 0.2 }}
-                    className="col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
-                >
-                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
-                        <IconPencilPaper className="w-5 h-5 inline-block mr-2" />
-                        Employee Development
-                    </h2>
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-4">
-                            <p className="text-sm text-gray-500">Budget Used</p>
-                            <p className="text-2xl font-bold text-teal-600">{hrMetrics.development.trainingBudgetUsed}%</p>
-                        </div>
-                        <div className="bg-cyan-50 dark:bg-cyan-900/20 rounded-lg p-4">
-                            <p className="text-sm text-gray-500">Certifications</p>
-                            <p className="text-2xl font-bold text-cyan-600">{hrMetrics.development.certifications}</p>
-                        </div>
-                    </div>
-                    <div className="mb-4">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                            <span>Skill Gap Index</span>
-                            <span className="font-semibold">{hrMetrics.development.skillGapIndex}%</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                            <span>Recent Promotions</span>
-                            <span className="font-semibold">{hrMetrics.development.promotions}</span>
-                        </div>
-                    </div>
-                </motion.div>
-            </motion.div>
+                            {deptPerf.length === 0 ? (
+                                <div className="py-12 text-center text-slate-400">No department performance data</div>
+                            ) : (
+                                <ReactApexChart
+                                    type="bar"
+                                    height={260}
+                                    series={[{ name: 'Performance', data: deptPerf }]}
+                                    options={{
+                                        chart: { toolbar: { show: false }, background: 'transparent' },
+                                        plotOptions: { bar: { borderRadius: 6, horizontal: false, columnWidth: '60%' } },
+                                        xaxis: { categories: deptNames, labels: { style: { colors: '#6B7280' } } },
+                                        yaxis: { labels: { style: { colors: '#6B7280' } }, min: 0 },
+                                        dataLabels: { enabled: false },
+                                        theme: { mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light' },
+                                    }}
+                                />
+                            )}
 
-            {/* Add glass-morphism effect to cards */}
-            {/* <style jsx>{`
-                .dashboard-container {
-                    background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-                }
-                .card {
-                    backdrop-filter: blur(10px);
-                    background: rgba(255, 255, 255, 0.1);
-                }
-                .dark .card {
-                    background: rgba(17, 24, 39, 0.8);
-                }
-            `}</style> */}
+                            {/* department list with performance */}
+                            <div className="mt-4 grid gap-3">
+                                {data!.departments.map((d) => (
+                                    <div key={d.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded">
+                                        <div>
+                                            <div className="text-sm font-medium text-slate-800 dark:text-white">{d.name}</div>
+                                            <div className="text-xs text-slate-400">{d.expected_arrival_time ? `Arrival: ${d.expected_arrival_time}` : 'No schedule'}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-lg font-semibold">{d.performance == null ? '—' : `${d.performance}%`}</div>
+                                            <div className="text-xs text-slate-400">Performance</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+
+                        {/* Recent completed tasks */}
+                        <motion.div variants={cardVariants} className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-indigo-600" />
+                                    Recent Completed Tasks
+                                </h3>
+                                <div className="text-sm text-slate-500">Latest</div>
+                            </div>
+
+                            {data!.recent_completed_tasks.length === 0 ? (
+                                <div className="py-8 text-center text-slate-400">No completed tasks yet</div>
+                            ) : (
+                                <ul className="space-y-3">
+                                    {data!.recent_completed_tasks.map((t) => (
+                                        <li key={t.id} className="flex items-start gap-3 p-3 rounded hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-slate-800 dark:text-white">{t.task_name}</div>
+                                                        <div className="text-xs text-slate-400">
+                                                            {t.employee ? t.employee.name : '—'} • {t.assigned_by ? `Assigned by ${t.assigned_by.name}` : ''}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="text-right">
+                                                        <div className="text-sm font-semibold">
+                                                            {t.on_time === null ? '—' : t.on_time ? <span className="text-green-600">On time</span> : <span className="text-amber-600">Late</span>}
+                                                        </div>
+                                                        <div className="text-xs text-slate-400">{t.completion_date ? new Date(t.completion_date).toLocaleString() : ''}</div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    <div className="text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-900 text-slate-600">{t.priority}</div>
+                                                    <div className="text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-900 text-slate-600">Progress: {t.progress}%</div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </motion.div>
+                    </div>
+                </>
+            )}
         </motion.div>
     );
 };
 
-export default MainDashboard;
+export default OwnerMainDashboard;
